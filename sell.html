@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>List an Item - UniMarket</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body>
+
+    <!-- Header -->
+    <header class="site-header">
+        <div class="container">
+            <a href="index.html" class="logo">UniMarket</a>
+            <nav class="nav-links">
+                <a href="products.html" class="nav-link">Shop</a>
+                <a href="#" class="nav-link">About</a>
+            </nav>
+            <div class="search-bar">
+                <i data-lucide="search" class="search-icon"></i>
+                <input type="text" class="input input-pill" placeholder="Search...">
+            </div>
+            <div class="user-actions">
+                <a href="profile.html" class="btn-icon btn-ghost"><i data-lucide="user"></i></a>
+            </div>
+            <button class="mobile-menu-btn"><i data-lucide="menu"></i></button>
+        </div>
+    </header>
+
+    <div class="container" style="padding-top: 3rem; padding-bottom: 4rem; max-width: 800px;">
+        <h1 style="font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem;">List an Item for Sale</h1>
+        <p style="color: var(--muted); margin-bottom: 2rem;">Fill out the details below to create your listing.</p>
+
+        <form class="form-card" id="sell-form">
+            <div class="form-group">
+                <label class="form-label">Product Name *</label>
+                <input type="text" class="input" placeholder="e.g., Engineering Mechanics Textbook" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Description *</label>
+                <textarea class="input" placeholder="Describe the condition, features, and any other details..."
+                    required></textarea>
+            </div>
+
+            <div class="grid grid-cols-1 grid-cols-2 gap-4">
+                <div class="form-group">
+                    <label class="form-label">Price ($) *</label>
+                    <input type="number" class="input" placeholder="45.00" step="0.01" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Category *</label>
+                    <select class="input" id="category-select" required>
+                        <option value="">Select a category</option>
+                        <option value="textbooks">Textbooks</option>
+                        <option value="electronics">Electronics</option>
+                        <option value="clothing">Clothing</option>
+                        <option value="furniture">Furniture</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Clothing-specific fields (hidden by default) -->
+            <div class="hidden" id="clothing-fields">
+                <div class="grid grid-cols-1 grid-cols-2 gap-4">
+                    <div class="form-group">
+                        <label class="form-label">Condition</label>
+                        <select class="input">
+                            <option>New</option>
+                            <option>Like New</option>
+                            <option>Good</option>
+                            <option>Fair</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Size</label>
+                        <select class="input">
+                            <option>XS</option>
+                            <option>S</option>
+                            <option>M</option>
+                            <option>L</option>
+                            <option>XL</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Color</label>
+                    <input type="text" class="input" placeholder="e.g., Black, Blue">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Product Images (Up to 5)</label>
+                <div class="image-uploader" onclick="document.getElementById('file-input').click()">
+                    <i data-lucide="upload"
+                        style="width: 3rem; height: 3rem; margin: 0 auto 1rem; color: var(--muted);"></i>
+                    <p style="font-weight: 600; margin-bottom: 0.5rem;">Click to upload images</p>
+                    <p style="font-size: 0.875rem; color: var(--muted);">PNG, JPG up to 10MB</p>
+                </div>
+                <input type="file" id="file-input" accept="image/*" multiple style="display: none;">
+                <div class="image-preview-grid" id="image-preview"></div>
+            </div>
+
+            <div class="form-actions">
+                <a href="profile.html" class="btn btn-outline">Cancel</a>
+                <button type="submit" class="btn btn-primary">List Item</button>
+            </div>
+        </form>
+    </div>
+
+    <footer class="site-footer">
+        <div class="container">
+            <div class="footer-bottom">
+                <p>UniMarket © 2000-2023, All Rights Reserved</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/app.js"></script>
+    <script>
+        // Category-specific fields
+        const categorySelect = document.getElementById('category-select');
+        const clothingFields = document.getElementById('clothing-fields');
+
+        categorySelect.addEventListener('change', (e) => {
+            if (e.target.value === 'clothing') {
+                clothingFields.classList.remove('hidden');
+            } else {
+                clothingFields.classList.add('hidden');
+            }
+        });
+
+        // Image preview
+        const fileInput = document.getElementById('file-input');
+        const imagePreview = document.getElementById('image-preview');
+        let selectedFiles = [];
+
+        fileInput.addEventListener('change', (e) => {
+            const files = Array.from(e.target.files).slice(0, 5);
+            selectedFiles = files;
+            displayImages();
+        });
+
+        function displayImages() {
+            imagePreview.innerHTML = '';
+            selectedFiles.forEach((file, index) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const div = document.createElement('div');
+                    div.className = 'image-preview-item';
+                    div.innerHTML = `
+                        <img src="${e.target.result}" alt="Preview">
+                        <button type="button" class="image-preview-remove" onclick="removeImage(${index})">
+                            <i data-lucide="x" style="width: 1rem; height: 1rem;"></i>
+                        </button>
+                    `;
+                    imagePreview.appendChild(div);
+                    lucide.createIcons();
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function removeImage(index) {
+            selectedFiles.splice(index, 1);
+            displayImages();
+        }
+
+        // Form submission
+        document.getElementById('sell-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            alert('Listing created successfully!');
+            window.location.href = 'profile.html';
+        });
+    </script>
+</body>
+
+</html>

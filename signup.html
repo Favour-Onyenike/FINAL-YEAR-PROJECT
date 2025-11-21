@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - UniMarket</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body>
+
+    <div class="auth-layout">
+        <button class="btn-back btn-back-auth" onclick="history.back()">
+            <i data-lucide="chevron-left"></i>
+            Back
+        </button>
+        <div class="auth-card">
+            <div class="auth-header">
+                <a href="index.html" class="auth-logo">UniMarket</a>
+                <h1 class="auth-title">Create an Account</h1>
+                <p class="auth-subtitle" id="uni-subtitle">You're signing up for Baze University</p>
+            </div>
+
+            <form class="auth-form" id="signup-form">
+                <div class="form-group">
+                    <label class="form-label">Full Name</label>
+                    <input type="text" class="input" placeholder="John Doe" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Email Address</label>
+                    <input type="email" class="input" id="email-input" placeholder="student@bazeuniversity.edu.ng"
+                        required>
+                    <p class="text-sm text-red-500 hidden" id="email-error"
+                        style="color: var(--destructive); font-size: 0.8rem; margin-top: 0.25rem;">Email must end with
+                        @bazeuniversity.edu.ng</p>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input type="password" class="input" placeholder="••••••••" required>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Create an
+                    account</button>
+            </form>
+
+            <div class="auth-footer">
+                <p>Already have an account? <a href="login.html">Log in</a></p>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+    <script>
+        // Get University from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const university = urlParams.get('university') || 'Baze University';
+        document.getElementById('uni-subtitle').textContent = `You're signing up for ${university}`;
+
+        // Form Validation
+        const form = document.getElementById('signup-form');
+        const emailInput = document.getElementById('email-input');
+        const emailError = document.getElementById('email-error');
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const email = emailInput.value.toLowerCase();
+
+            // Check if university is Baze (or default) and validate email
+            if (university.includes('Baze') && !email.endsWith('@bazeuniversity.edu.ng')) {
+                emailError.classList.remove('hidden');
+                emailInput.style.borderColor = 'var(--destructive)';
+                return;
+            }
+
+            // Reset error
+            emailError.classList.add('hidden');
+            emailInput.style.borderColor = 'var(--input)';
+
+            // Simulate API call / Success
+            const btn = form.querySelector('button');
+            const originalText = btn.textContent;
+            btn.textContent = 'Creating account...';
+            btn.disabled = true;
+
+            setTimeout(() => {
+                // Save mock user to localStorage
+                localStorage.setItem('user', JSON.stringify({
+                    name: form.querySelector('input[type="text"]').value,
+                    email: email,
+                    university: university
+                }));
+
+                window.location.href = 'profile.html';
+            }, 1500);
+        });
+    </script>
+</body>
+
+</html>

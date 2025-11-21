@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Profile - UniMarket</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body>
+
+    <!-- Header -->
+    <header class="site-header">
+        <div class="container">
+            <a href="index.html" class="logo">UniMarket</a>
+            <nav class="nav-links">
+                <a href="products.html" class="nav-link">Shop</a>
+                <a href="#" class="nav-link">About</a>
+            </nav>
+            <div class="search-bar">
+                <i data-lucide="search" class="search-icon"></i>
+                <input type="text" class="input input-pill" placeholder="Search...">
+            </div>
+            <div class="user-actions">
+                <a href="profile.html" class="btn-icon btn-ghost"><i data-lucide="user"></i></a>
+            </div>
+            <button class="mobile-menu-btn"><i data-lucide="menu"></i></button>
+        </div>
+    </header>
+
+    <div class="container" style="padding-top: 3rem; padding-bottom: 4rem; max-width: 600px;">
+        <h1 style="font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem;">Edit Profile</h1>
+        <p style="color: var(--muted); margin-bottom: 2rem;">Update your profile information.</p>
+
+        <form class="form-card">
+            <div class="form-group" style="text-align: center;">
+                <div class="profile-avatar" style="margin: 0 auto 1rem; position: relative;">
+                    <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=2000&auto=format&fit=crop"
+                        alt="Avatar">
+                    <button type="button" class="btn-icon btn-primary" style="position: absolute; bottom: 0; right: 0;">
+                        <i data-lucide="camera" style="width: 1rem;"></i>
+                    </button>
+                </div>
+                <p style="font-size: 0.875rem; color: var(--muted);">Click to change profile photo</p>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Full Name</label>
+                <input type="text" class="input" value="John Doe" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Username</label>
+                <input type="text" class="input" value="johndoe" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Bio</label>
+                <textarea class="input"
+                    placeholder="Tell us about yourself...">Engineering student at Baze University. Selling textbooks and electronics.</textarea>
+            </div>
+
+            <div class="form-actions">
+                <a href="profile.html" class="btn btn-outline">Cancel</a>
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </div>
+        </form>
+    </div>
+
+    <footer class="site-footer">
+        <div class="container">
+            <div class="footer-bottom">
+                <p>UniMarket © 2000-2023, All Rights Reserved</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/app.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notifications - UniMarket</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        .notification-item {
+            display: flex;
+            gap: 1rem;
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            transition: background-color 0.2s;
+        }
+
+        .notification-item:hover {
+            background-color: var(--secondary);
+        }
+
+        .notification-item.unread {
+            background-color: hsl(240, 4.8%, 98%);
+        }
+
+        .notification-avatar {
+            width: 3rem;
+            height: 3rem;
+            border-radius: 50%;
+            background-color: var(--secondary);
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .notification-content {
+            flex: 1;
+        }
+
+        .notification-text {
+            margin-bottom: 0.5rem;
+        }
+
+        .notification-time {
+            font-size: 0.875rem;
+            color: var(--muted);
+        }
+
+        .unread-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #3b82f6;
+            border-radius: 50%;
+            flex-shrink: 0;
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Header -->
+    <header class="site-header">
+        <div class="container">
+            <a href="index.html" class="logo">UniMarket</a>
+            <nav class="nav-links">
+                <a href="products.html" class="nav-link">Shop</a>
+                <a href="#" class="nav-link">About</a>
+            </nav>
+            <div class="search-bar">
+                <i data-lucide="search" class="search-icon"></i>
+                <input type="text" class="input input-pill" placeholder="Search...">
+            </div>
+            <div class="user-actions">
+                <a href="saved-items.html" class="btn-icon btn-ghost"><i data-lucide="bookmark"></i></a>
+                <a href="messages.html" class="btn-icon btn-ghost"><i data-lucide="message-square"></i></a>
+                <a href="profile.html" class="btn-icon btn-ghost"><i data-lucide="user"></i></a>
+            </div>
+            <button class="mobile-menu-btn"><i data-lucide="menu"></i></button>
+        </div>
+    </header>
+
+    <div class="container" style="padding-top: 3rem; padding-bottom: 4rem; max-width: 800px;">
+        <div class="flex justify-between items-center" style="margin-bottom: 2rem;">
+            <h1 style="font-size: 2rem; font-weight: 700;">Notifications</h1>
+            <button class="btn btn-ghost">Mark all as read</button>
+        </div>
+
+        <div
+            style="background-color: var(--background); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden;">
+            <!-- Notification 1 (Unread) -->
+            <div class="notification-item unread">
+                <div class="notification-avatar">
+                    <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=2000&auto=format&fit=crop"
+                        alt="User">
+                </div>
+                <div class="notification-content">
+                    <div class="notification-text">
+                        <strong>Sarah Williams</strong> liked your item <strong>Engineering Mechanics</strong>
+                    </div>
+                    <div class="notification-time">5 minutes ago</div>
+                </div>
+                <div class="unread-dot"></div>
+            </div>
+
+            <!-- Notification 2 (Unread) -->
+            <div class="notification-item unread">
+                <div class="notification-avatar">
+                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=2000&auto=format&fit=crop"
+                        alt="User">
+                </div>
+                <div class="notification-content">
+                    <div class="notification-text">
+                        <strong>Mike Johnson</strong> sent you a message about <strong>MacBook Air M1</strong>
+                    </div>
+                    <div class="notification-time">1 hour ago</div>
+                </div>
+                <div class="unread-dot"></div>
+            </div>
+
+            <!-- Notification 3 (Read) -->
+            <div class="notification-item">
+                <div class="notification-avatar">
+                    <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=2000&auto=format&fit=crop"
+                        alt="User">
+                </div>
+                <div class="notification-content">
+                    <div class="notification-text">
+                        <strong>Emma Davis</strong> commented on your item <strong>Sony Headphones</strong>
+                    </div>
+                    <div class="notification-time">3 hours ago</div>
+                </div>
+            </div>
+
+            <!-- Notification 4 (Read) -->
+            <div class="notification-item">
+                <div class="notification-avatar">
+                    <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=2000&auto=format&fit=crop"
+                        alt="User">
+                </div>
+                <div class="notification-content">
+                    <div class="notification-text">
+                        <strong>Alex Brown</strong> saved your item <strong>Vintage Graphic Tee</strong>
+                    </div>
+                    <div class="notification-time">Yesterday</div>
+                </div>
+            </div>
+
+            <!-- Notification 5 (Read) -->
+            <div class="notification-item">
+                <div class="notification-avatar">
+                    <div
+                        style="width: 100%; height: 100%; background-color: var(--success); display: flex; align-items: center; justify-content: center; color: white;">
+                        <i data-lucide="check-circle" style="width: 1.5rem;"></i>
+                    </div>
+                </div>
+                <div class="notification-content">
+                    <div class="notification-text">
+                        Your listing <strong>Engineering Mechanics</strong> has been published successfully
+                    </div>
+                    <div class="notification-time">2 days ago</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="site-footer">
+        <div class="container">
+            <div class="footer-bottom">
+                <p>UniMarket © 2000-2023, All Rights Reserved</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/app.js"></script>
+</body>
+
+</html>

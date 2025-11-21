@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UniMarket - Your Campus Marketplace</title>
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Fonts are imported in CSS -->
+</head>
+
+<body>
+
+    <!-- Header -->
+    <header class="site-header">
+        <div class="container">
+            <a href="index.html" class="logo">UniMarket</a>
+
+            <nav class="nav-links">
+                <!-- Shop Dropdown -->
+                <div class="nav-dropdown">
+                    <button class="nav-link nav-dropdown-trigger">
+                        Shop
+                        <i data-lucide="chevron-down" class="dropdown-icon"></i>
+                    </button>
+                    <div class="dropdown-menu">
+                        <a href="products.html" class="dropdown-item">All Products</a>
+                        <div class="dropdown-separator"></div>
+                        <span class="dropdown-label">Categories</span>
+                        <a href="products.html?category=Clothing" class="dropdown-item">Clothing</a>
+                        <a href="products.html?category=Furniture" class="dropdown-item">Furniture</a>
+                        <a href="products.html?category=Books" class="dropdown-item">Books</a>
+                        <a href="products.html?category=Electronics" class="dropdown-item">Electronics</a>
+                        <a href="products.html?category=Other" class="dropdown-item">Other</a>
+                    </div>
+                </div>
+
+                <a href="about.html" class="nav-link">About</a>
+            </nav>
+
+            <div class="search-bar">
+                <i data-lucide="search" class="search-icon"></i>
+                <input type="text" placeholder="Search for textbooks, electronics..." class="input input-pill">
+            </div>
+
+            <div class="user-actions">
+                <!-- Logged Out State -->
+                <a href="login.html" class="btn btn-ghost">Log In</a>
+                <a href="signup.html" class="btn btn-primary">Sign Up</a>
+            </div>
+
+            <button class="mobile-menu-btn">
+                <i data-lucide="menu"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Mobile Menu -->
+    <div class="mobile-menu">
+        <!-- Mobile menu content would go here -->
+    </div>
+
+    <main>
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="hero-overlay"></div>
+            <div class="hero-content">
+                <h1 class="hero-title">Your Campus Marketplace</h1>
+                <p class="hero-subtitle">Buy, sell, and connect with students on your campus.</p>
+
+                <div class="hero-stats">
+                    <div class="stat-item">
+                        <span class="stat-number">5k+</span>
+                        <span class="stat-label">Active Users</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">12k+</span>
+                        <span class="stat-label">Transactions</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">98%</span>
+                        <span class="stat-label">Happy Customers</span>
+                    </div>
+                </div>
+
+                <a href="products.html" class="btn btn-hero">Start Exploring</a>
+            </div>
+        </section>
+
+        <!-- Top Selling Section -->
+        <section class="top-selling section-padding">
+            <div class="container">
+                <h2 class="section-title">TOP SELLING</h2>
+
+                <div class="product-grid">
+                    <!-- Product Card 1 -->
+                    <a href="product-detail.html" class="product-card">
+                        <div class="product-image-container">
+                            <img src="https://images.unsplash.com/photo-1544947950-fa07a98d237f?q=80&w=800&auto=format&fit=crop"
+                                alt="Calculus Textbook" class="product-image">
+                            <button class="product-save-btn">
+                                <i data-lucide="bookmark"></i>
+                            </button>
+                        </div>
+                        <div class="product-info">
+                            <h3 class="product-name">Calculus: Early Transcendentals</h3>
+                            <span class="product-price">$45.00</span>
+                            <div class="product-stats">
+                                <span class="stat"><i data-lucide="heart" size="14"></i> 12</span>
+                                <span class="stat"><i data-lucide="message-square" size="14"></i> 5</span>
+                            </div>
+                        </div>
+                    </a>
+
+                    <!-- Product Card 2 -->
+                    <a href="product-detail.html" class="product-card">
+                        <div class="product-image-container">
+                            <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=800&auto=format&fit=crop"
+                                alt="Wireless Headphones" class="product-image">
+                            <button class="product-save-btn">
+                                <i data-lucide="bookmark"></i>
+                            </button>
+                        </div>
+                        <div class="product-info">
+                            <h3 class="product-name">Sony WH-1000XM4</h3>
+                            <span class="product-price">$180.00</span>
+                            <div class="product-stats">
+                                <span class="stat"><i data-lucide="heart" size="14"></i> 24</span>
+                                <span class="stat"><i data-lucide="message-square" size="14"></i> 8</span>
+                            </div>
+                        </div>
+                    </a>
+
+                    <!-- Product Card 3 -->
+                    <a href="product-detail.html" class="product-card">
+                        <div class="product-image-container">
+                            <img src="https://images.unsplash.com/photo-1585336261022-680e295ce3fe?q=80&w=800&auto=format&fit=crop"
+                                alt="Graphing Calculator" class="product-image">
+                            <button class="product-save-btn">
+                                <i data-lucide="bookmark"></i>
+                            </button>
+                        </div>
+                        <div class="product-info">
+                            <h3 class="product-name">TI-84 Plus CE</h3>
+                            <span class="product-price">$85.00</span>
+                            <div class="product-stats">
+                                <span class="stat"><i data-lucide="heart" size="14"></i> 15</span>
+                                <span class="stat"><i data-lucide="message-square" size="14"></i> 3</span>
+                            </div>
+                        </div>
+                    </a>
+
+                    <!-- Product Card 4 -->
+                    <a href="product-detail.html" class="product-card">
+                        <div class="product-image-container">
+                            <img src="https://images.unsplash.com/photo-1555685812-4b943f3e99a6?q=80&w=800&auto=format&fit=crop"
+                                alt="Dorm Lamp" class="product-image">
+                            <button class="product-save-btn">
+                                <i data-lucide="bookmark"></i>
+                            </button>
+                        </div>
+                        <div class="product-info">
+                            <h3 class="product-name">LED Desk Lamp</h3>
+                            <span class="product-price">$20.00</span>
+                            <div class="product-stats">
+                                <span class="stat"><i data-lucide="heart" size="14"></i> 8</span>
+                                <span class="stat"><i data-lucide="message-square" size="14"></i> 2</span>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+
+                <div class="view-all-container">
+                    <a href="products.html" class="btn btn-outline btn-pill">View All Products</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Browse by Category Section -->
+        <section class="categories section-padding bg-secondary">
+            <div class="container">
+                <h2 class="section-title">BROWSE BY CATEGORY</h2>
+
+                <div class="category-grid">
+
+                    <!-- Card 1: Textbooks (LEFT - full height) -->
+                    <a href="products.html?category=Textbooks" class="category-card">
+                        <img src="https://images.unsplash.com/photo-1507842217343-583bb7270b66?q=80&w=1000&auto=format&fit=crop"
+                            alt="Textbooks">
+                        <div class="category-overlay"></div>
+                        <span class="category-name">Textbooks</span>
+                    </a>
+
+                    <!-- Card 2: Electronics (CENTER - top) -->
+                    <a href="products.html?category=Electronics" class="category-card">
+                        <img src="https://images.unsplash.com/photo-1498049381145-2564537ec960?q=80&w=1000&auto=format&fit=crop"
+                            alt="Electronics">
+                        <div class="category-overlay"></div>
+                        <span class="category-name">Electronics</span>
+                    </a>
+
+                    <!-- Card 3: Clothing (RIGHT - full height) -->
+                    <a href="products.html?category=Clothing" class="category-card">
+                        <img src="https://images.unsplash.com/photo-1523381210434-271e8be1f52b?q=80&w=1000&auto=format&fit=crop"
+                            alt="Clothing">
+                        <div class="category-overlay"></div>
+                        <span class="category-name">Clothing</span>
+                    </a>
+
+                    <!-- Card 4: Others (CENTER - bottom) -->
+                    <a href="products.html?category=Others" class="category-card">
+                        <img src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?q=80&w=1000&auto=format&fit=crop"
+                            alt="Others">
+                        <div class="category-overlay"></div>
+                        <span class="category-name">Furniture</span>
+                    </a>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- Newsletter Section -->
+        <section class="newsletter-section section-padding">
+            <div class="container">
+                <div class="newsletter-card">
+                    <div class="newsletter-content">
+                        <h2 class="newsletter-title">STAY UP TO DATE ABOUT OUR LATEST OFFERS</h2>
+                    </div>
+                    <div class="newsletter-form-container">
+                        <form class="newsletter-form">
+                            <div class="email-input-wrapper">
+                                <i data-lucide="mail" class="email-icon"></i>
+                                <input type="email" placeholder="Enter your email address" class="newsletter-input">
+                            </div>
+                            <button type="button" class="btn btn-subscribe">Subscribe to Newsletter</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <a href="index.html" class="logo">UniMarket</a>
+                    <p>The trusted marketplace for students. Buy, sell, and connect with your campus community.</p>
+                    <div class="footer-socials">
+                        <a href="#" class="social-btn"><i data-lucide="twitter" size="18"></i></a>
+                        <a href="#" class="social-btn"><i data-lucide="facebook" size="18"></i></a>
+                        <a href="#" class="social-btn"><i data-lucide="instagram" size="18"></i></a>
+                        <a href="#" class="social-btn"><i data-lucide="github" size="18"></i></a>
+                    </div>
+                </div>
+
+                <div class="footer-col">
+                    <h4>Company</h4>
+                    <ul>
+                        <li><a href="#">About</a></li>
+                        <li><a href="#">Features</a></li>
+                        <li><a href="#">Works</a></li>
+                        <li><a href="#">Career</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-col">
+                    <h4>Help</h4>
+                    <ul>
+                        <li><a href="#">Customer Support</a></li>
+                        <li><a href="#">Delivery Details</a></li>
+                        <li><a href="#">Terms & Conditions</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-col">
+                    <h4>FAQ</h4>
+                    <ul>
+                        <li><a href="#">Account</a></li>
+                        <li><a href="#">Manage Deliveries</a></li>
+                        <li><a href="#">Orders</a></li>
+                        <li><a href="#">Payments</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>UniMarket © 2000-2023, All Rights Reserved</p>
+                <div class="payment-icons">
+                    <!-- Placeholders for payment icons -->
+                    <span>Visa</span>
+                    <span>Mastercard</span>
+                    <span>Paypal</span>
+                    <span>Apple Pay</span>
+                    <span>Google Pay</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        lucide.createIcons();
+
+    </script>
+    <script src="js/app.js"></script>
+</body>
+
+</html>

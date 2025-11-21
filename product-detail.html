@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Engineering Mechanics - UniMarket</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body>
+
+    <!-- Header -->
+    <header class="site-header">
+        <div class="container">
+            <a href="index.html" class="logo">UniMarket</a>
+
+            <nav class="nav-links">
+                <a href="products.html" class="nav-link">Shop</a>
+                <a href="#" class="nav-link">About</a>
+            </nav>
+
+            <div class="search-bar">
+                <i data-lucide="search" class="search-icon"></i>
+                <input type="text" class="input input-pill" placeholder="Search for textbooks, electronics...">
+            </div>
+
+            <div class="user-actions">
+                <a href="login.html" class="nav-link">Log In</a>
+                <a href="signup-select-university.html" class="btn btn-primary">Sign Up</a>
+            </div>
+
+            <button class="mobile-menu-btn">
+                <i data-lucide="menu"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Mobile Menu -->
+    <div class="mobile-menu">
+        <div class="flex flex-col gap-4">
+            <a href="products.html" class="nav-link" style="font-size: 1.25rem;">Shop</a>
+            <a href="#" class="nav-link" style="font-size: 1.25rem;">About</a>
+            <hr style="border-color: var(--border);">
+            <a href="login.html" class="nav-link" style="font-size: 1.25rem;">Log In</a>
+            <a href="signup-select-university.html" class="btn btn-primary" style="width: 100%;">Sign Up</a>
+        </div>
+    </div>
+
+    <div class="container product-detail-layout">
+
+        <!-- Left Column: Gallery -->
+        <div class="gallery-container">
+            <div class="main-image">
+                <img src="https://images.unsplash.com/photo-1544816155-12df9643f363?q=80&w=2000&auto=format&fit=crop"
+                    alt="Product Image" id="main-img">
+            </div>
+            <div class="gallery-thumbnails">
+                <div class="thumbnail active" onclick="changeImage(this.querySelector('img').src)">
+                    <img src="https://images.unsplash.com/photo-1544816155-12df9643f363?q=80&w=2000&auto=format&fit=crop"
+                        alt="Thumbnail 1">
+                </div>
+                <div class="thumbnail" onclick="changeImage(this.querySelector('img').src)">
+                    <img src="https://images.unsplash.com/photo-1532012197267-da84d127e765?q=80&w=2000&auto=format&fit=crop"
+                        alt="Thumbnail 2">
+                </div>
+                <div class="thumbnail" onclick="changeImage(this.querySelector('img').src)">
+                    <img src="https://images.unsplash.com/photo-1589829085413-56de8ae18c73?q=80&w=2000&auto=format&fit=crop"
+                        alt="Thumbnail 3">
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Details -->
+        <div class="product-detail-info">
+            <div>
+                <span class="detail-category">Textbooks</span>
+                <h1 class="detail-title">Engineering Mechanics: Statics & Dynamics</h1>
+            </div>
+
+            <div class="detail-price">$45.00</div>
+
+            <div class="seller-card">
+                <div class="seller-avatar">
+                    <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=2000&auto=format&fit=crop"
+                        alt="Seller">
+                </div>
+                <div class="seller-info">
+                    <h4>Sold by Alex Johnson</h4>
+                    <div class="seller-rating">
+                        <i data-lucide="star" style="width: 1rem; fill: #fbbf24; color: #fbbf24;"></i>
+                        <span>4.8 (24 reviews)</span>
+                    </div>
+                </div>
+                <a href="messages.html" class="btn btn-outline" style="margin-left: auto;">Contact</a>
+            </div>
+
+            <div class="detail-description">
+                <h3>Description</h3>
+                <p>Used for one semester. In great condition, no highlighting or markings inside. Includes the access
+                    code for online materials (unused). Can meet at the library or student center for pickup.</p>
+            </div>
+
+            <div class="detail-actions">
+                <button class="btn btn-primary flex-1">
+                    <i data-lucide="message-square" style="width: 1.2rem; margin-right: 0.5rem;"></i> Contact Seller
+                </button>
+                <button class="btn btn-outline">
+                    <i data-lucide="bookmark" style="width: 1.2rem;"></i>
+                </button>
+            </div>
+
+            <!-- Owner Controls (Hidden by default, show if owner) -->
+            <div class="detail-actions hidden" id="owner-controls">
+                <a href="edit-product.html" class="btn btn-outline flex-1">Edit Listing</a>
+                <button class="btn btn-outline"
+                    style="color: var(--destructive); border-color: var(--destructive);">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Comments Section -->
+    <div class="container comments-section">
+        <h3 style="font-size: 1.5rem; font-weight: 700;">Comments (3)</h3>
+
+        <div class="comment-list">
+            <!-- Comment 1 -->
+            <div class="comment-item">
+                <div class="comment-avatar">
+                    <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=2000&auto=format&fit=crop"
+                        alt="User">
+                </div>
+                <div class="comment-content">
+                    <div class="comment-header">
+                        <span class="comment-author">Sarah Williams</span>
+                        <span class="comment-date">2 days ago</span>
+                    </div>
+                    <p class="comment-text">Is this still available?</p>
+                </div>
+            </div>
+
+            <!-- Comment 2 -->
+            <div class="comment-item">
+                <div class="comment-avatar">
+                    <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=2000&auto=format&fit=crop"
+                        alt="Seller">
+                </div>
+                <div class="comment-content">
+                    <div class="comment-header">
+                        <span class="comment-author">Alex Johnson (Seller)</span>
+                        <span class="comment-date">1 day ago</span>
+                    </div>
+                    <p class="comment-text">Yes, it is! Send me a message if you're interested.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="comment-form">
+            <textarea class="comment-input" placeholder="Ask a question..."></textarea>
+            <button class="btn btn-primary btn-icon comment-submit">
+                <i data-lucide="send" style="width: 1rem;"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <a href="index.html" class="logo">UniMarket</a>
+                    <p>The trusted marketplace for university students. Buy, sell, and connect safely on campus.</p>
+                    <div class="footer-socials">
+                        <a href="#" class="social-btn"><i data-lucide="twitter" style="width: 1.2rem;"></i></a>
+                        <a href="#" class="social-btn"><i data-lucide="facebook" style="width: 1.2rem;"></i></a>
+                        <a href="#" class="social-btn"><i data-lucide="instagram" style="width: 1.2rem;"></i></a>
+                        <a href="#" class="social-btn"><i data-lucide="github" style="width: 1.2rem;"></i></a>
+                    </div>
+                </div>
+
+                <div class="footer-col">
+                    <h4>Company</h4>
+                    <ul>
+                        <li><a href="#">About</a></li>
+                        <li><a href="#">Features</a></li>
+                        <li><a href="#">Works</a></li>
+                        <li><a href="#">Career</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-col">
+                    <h4>Help</h4>
+                    <ul>
+                        <li><a href="#">Customer Support</a></li>
+                        <li><a href="#">Delivery Details</a></li>
+                        <li><a href="#">Terms & Conditions</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-col">
+                    <h4>FAQ</h4>
+                    <ul>
+                        <li><a href="#">Account</a></li>
+                        <li><a href="#">Manage Deliveries</a></li>
+                        <li><a href="#">Orders</a></li>
+                        <li><a href="#">Payments</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>UniMarket © 2000-2023, All Rights Reserved</p>
+                <div class="payment-methods flex gap-4">
+                    <div style="width: 40px; height: 25px; background: #f0f0f0; border-radius: 4px;"></div>
+                    <div style="width: 40px; height: 25px; background: #f0f0f0; border-radius: 4px;"></div>
+                    <div style="width: 40px; height: 25px; background: #f0f0f0; border-radius: 4px;"></div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/app.js"></script>
+    <script>
+        // Simple gallery script
+        function changeImage(src) {
+            document.getElementById('main-img').src = src;
+            // Update active class on thumbnails
+            document.querySelectorAll('.thumbnail').forEach(thumb => {
+                thumb.classList.remove('active');
+                if (thumb.querySelector('img').src === src) {
+                    thumb.classList.add('active');
+                }
+            });
+        }
+    </script>
+</body>
+
+</html>

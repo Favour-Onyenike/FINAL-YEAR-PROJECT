@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shop Products - UniMarket</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body>
+
+    <!-- Header -->
+    <header class="site-header">
+        <div class="container">
+            <a href="index.html" class="logo">UniMarket</a>
+
+            <nav class="nav-links">
+                <a href="products.html" class="nav-link" style="color: var(--foreground);">Shop</a>
+                <a href="#" class="nav-link">About</a>
+            </nav>
+
+            <div class="search-bar">
+                <i data-lucide="search" class="search-icon"></i>
+                <input type="text" class="input input-pill" placeholder="Search for textbooks, electronics...">
+            </div>
+
+            <div class="user-actions">
+                <a href="login.html" class="nav-link">Log In</a>
+                <a href="signup-select-university.html" class="btn btn-primary">Sign Up</a>
+            </div>
+
+            <button class="mobile-menu-btn">
+                <i data-lucide="menu"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Mobile Menu -->
+    <div class="mobile-menu">
+        <div class="flex flex-col gap-4">
+            <a href="products.html" class="nav-link" style="font-size: 1.25rem;">Shop</a>
+            <a href="#" class="nav-link" style="font-size: 1.25rem;">About</a>
+            <hr style="border-color: var(--border);">
+            <a href="login.html" class="nav-link" style="font-size: 1.25rem;">Log In</a>
+            <a href="signup-select-university.html" class="btn btn-primary" style="width: 100%;">Sign Up</a>
+        </div>
+    </div>
+
+    <div class="container products-layout">
+        <!-- Sidebar Filters -->
+        <aside class="filters-sidebar">
+            <div class="flex items-center justify-between" style="margin-bottom: 1.5rem;">
+                <h3 style="font-family: var(--font-heading); font-weight: 700; font-size: 1.25rem;">Filters</h3>
+                <button class="btn-ghost" style="font-size: 0.875rem; padding: 0.25rem 0.5rem;">Clear All</button>
+            </div>
+
+            <!-- Category Filter -->
+            <div class="filter-section">
+                <div class="filter-title">Category <i data-lucide="chevron-down" style="width: 1rem;"></i></div>
+                <div class="filter-group">
+                    <select class="input" id="category-select">
+                        <option value="all">All Categories</option>
+                        <option value="textbooks">Textbooks</option>
+                        <option value="electronics">Electronics</option>
+                        <option value="clothing">Clothing</option>
+                        <option value="furniture">Furniture</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Price Filter -->
+            <div class="filter-section">
+                <div class="filter-title">Price Range</div>
+                <div class="filter-group">
+                    <input type="range" min="0" max="1000" value="500" class="range-slider" id="price-range">
+                    <div class="range-values">
+                        <span>$0</span>
+                        <span id="price-value">$500</span>
+                        <span>$1000+</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Condition Filter -->
+            <div class="filter-section">
+                <div class="filter-title">Condition</div>
+                <div class="filter-group">
+                    <label class="checkbox-label">
+                        <input type="radio" name="condition" value="all" checked> Any
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="radio" name="condition" value="new"> New
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="radio" name="condition" value="like-new"> Like New
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="radio" name="condition" value="good"> Good
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="radio" name="condition" value="fair"> Fair
+                    </label>
+                </div>
+            </div>
+
+            <!-- Clothing Specific Filters (Hidden by default) -->
+            <div class="filter-section hidden" id="clothing-filters">
+                <div class="filter-title">Size</div>
+                <div class="filter-group">
+                    <label class="checkbox-label"><input type="checkbox" value="s"> Small</label>
+                    <label class="checkbox-label"><input type="checkbox" value="m"> Medium</label>
+                    <label class="checkbox-label"><input type="checkbox" value="l"> Large</label>
+                    <label class="checkbox-label"><input type="checkbox" value="xl"> XL</label>
+                </div>
+
+                <div class="filter-title" style="margin-top: 1rem;">Color</div>
+                <div class="filter-group">
+                    <label class="checkbox-label"><input type="checkbox" value="black"> Black</label>
+                    <label class="checkbox-label"><input type="checkbox" value="white"> White</label>
+                    <label class="checkbox-label"><input type="checkbox" value="blue"> Blue</label>
+                    <label class="checkbox-label"><input type="checkbox" value="red"> Red</label>
+                </div>
+            </div>
+
+            <button class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Apply Filter</button>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="products-main">
+            <!-- Banner -->
+            <div class="products-banner">
+                <div class="products-banner-overlay"></div>
+                <div class="products-banner-content">
+                    <h2 style="font-size: 2rem; font-weight: 800; margin-bottom: 0.5rem;">Sell Your Stuff, Fast!</h2>
+                    <p style="margin-bottom: 1.5rem; opacity: 0.9;">Turn your old textbooks and gear into cash. It's
+                        free to list!</p>
+                    <a href="sell.html" class="btn btn-primary" style="background-color: white; color: black;">Start
+                        Selling</a>
+                </div>
+            </div>
+
+            <!-- List Header -->
+            <div class="products-header">
+                <div>
+                    <h1 style="font-size: 1.5rem; font-weight: 700;">All Products</h1>
+                    <p style="color: var(--muted); font-size: 0.9rem;">Showing 1-12 of 48 results</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span style="font-size: 0.9rem; color: var(--muted);">Sort by:</span>
+                    <select class="input" style="width: auto;">
+                        <option>Newest</option>
+                        <option>Price: Low to High</option>
+                        <option>Price: High to Low</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Product Grid -->
+            <div class="grid grid-cols-1 grid-cols-2 grid-cols-4 gap-6">
+                <!-- Product 1 -->
+                <a href="product-detail.html" class="product-card">
+                    <div class="product-image-container">
+                        <img src="https://images.unsplash.com/photo-1544816155-12df9643f363?q=80&w=2000&auto=format&fit=crop"
+                            alt="Product" class="product-image">
+                        <button class="product-save-btn"><i data-lucide="bookmark" style="width: 1.25rem;"></i></button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Engineering Mechanics</h3>
+                        <span class="product-price">$45.00</span>
+                        <div class="product-meta">
+                            <span class="meta-item"><i data-lucide="heart" style="width: 1rem;"></i> 12</span>
+                            <span class="meta-item"><i data-lucide="map-pin" style="width: 1rem;"></i> Library</span>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Product 2 -->
+                <a href="product-detail.html" class="product-card">
+                    <div class="product-image-container">
+                        <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=2000&auto=format&fit=crop"
+                            alt="Product" class="product-image">
+                        <button class="product-save-btn"><i data-lucide="bookmark" style="width: 1.25rem;"></i></button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Sony Headphones</h3>
+                        <span class="product-price">$180.00</span>
+                        <div class="product-meta">
+                            <span class="meta-item"><i data-lucide="heart" style="width: 1rem;"></i> 28</span>
+                            <span class="meta-item"><i data-lucide="map-pin" style="width: 1rem;"></i> Student
+                                Center</span>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Product 3 -->
+                <a href="product-detail.html" class="product-card">
+                    <div class="product-image-container">
+                        <img src="https://images.unsplash.com/photo-1585336261022-680e295ce3fe?q=80&w=2000&auto=format&fit=crop"
+                            alt="Product" class="product-image">
+                        <button class="product-save-btn"><i data-lucide="bookmark" style="width: 1.25rem;"></i></button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">MacBook Air M1</h3>
+                        <span class="product-price">$650.00</span>
+                        <div class="product-meta">
+                            <span class="meta-item"><i data-lucide="heart" style="width: 1rem;"></i> 45</span>
+                            <span class="meta-item"><i data-lucide="map-pin" style="width: 1rem;"></i> Dorm A</span>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Product 4 -->
+                <a href="product-detail.html" class="product-card">
+                    <div class="product-image-container">
+                        <img src="https://images.unsplash.com/photo-1576566588028-4147f3842f27?q=80&w=2000&auto=format&fit=crop"
+                            alt="Product" class="product-image">
+                        <button class="product-save-btn"><i data-lucide="bookmark" style="width: 1.25rem;"></i></button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Vintage Graphic Tee</h3>
+                        <span class="product-price">$15.00</span>
+                        <div class="product-meta">
+                            <span class="meta-item"><i data-lucide="heart" style="width: 1rem;"></i> 8</span>
+                            <span class="meta-item"><i data-lucide="map-pin" style="width: 1rem;"></i> Cafeteria</span>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Product 5 -->
+                <a href="product-detail.html" class="product-card">
+                    <div class="product-image-container">
+                        <img src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?q=80&w=2000&auto=format&fit=crop"
+                            alt="Product" class="product-image">
+                        <button class="product-save-btn"><i data-lucide="bookmark" style="width: 1.25rem;"></i></button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Green Sofa</h3>
+                        <span class="product-price">$120.00</span>
+                        <div class="product-meta">
+                            <span class="meta-item"><i data-lucide="heart" style="width: 1rem;"></i> 15</span>
+                            <span class="meta-item"><i data-lucide="map-pin" style="width: 1rem;"></i> Off-campus</span>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Product 6 -->
+                <a href="product-detail.html" class="product-card">
+                    <div class="product-image-container">
+                        <img src="https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?q=80&w=2000&auto=format&fit=crop"
+                            alt="Product" class="product-image">
+                        <button class="product-save-btn"><i data-lucide="bookmark" style="width: 1.25rem;"></i></button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Polaroid Camera</h3>
+                        <span class="product-price">$85.00</span>
+                        <div class="product-meta">
+                            <span class="meta-item"><i data-lucide="heart" style="width: 1rem;"></i> 32</span>
+                            <span class="meta-item"><i data-lucide="map-pin" style="width: 1rem;"></i> Arts Block</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination">
+                <button class="page-btn"><i data-lucide="chevron-left" style="width: 1rem;"></i></button>
+                <button class="page-btn active">1</button>
+                <button class="page-btn">2</button>
+                <button class="page-btn">3</button>
+                <span style="display: flex; align-items: center; color: var(--muted);">...</span>
+                <button class="page-btn">8</button>
+                <button class="page-btn"><i data-lucide="chevron-right" style="width: 1rem;"></i></button>
+            </div>
+        </main>
+    </div>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <a href="index.html" class="logo">UniMarket</a>
+                    <p>The trusted marketplace for university students. Buy, sell, and connect safely on campus.</p>
+                    <div class="footer-socials">
+                        <a href="#" class="social-btn"><i data-lucide="twitter" style="width: 1.2rem;"></i></a>
+                        <a href="#" class="social-btn"><i data-lucide="facebook" style="width: 1.2rem;"></i></a>
+                        <a href="#" class="social-btn"><i data-lucide="instagram" style="width: 1.2rem;"></i></a>
+                        <a href="#" class="social-btn"><i data-lucide="github" style="width: 1.2rem;"></i></a>
+                    </div>
+                </div>
+
+                <div class="footer-col">
+                    <h4>Company</h4>
+                    <ul>
+                        <li><a href="#">About</a></li>
+                        <li><a href="#">Features</a></li>
+                        <li><a href="#">Works</a></li>
+                        <li><a href="#">Career</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-col">
+                    <h4>Help</h4>
+                    <ul>
+                        <li><a href="#">Customer Support</a></li>
+                        <li><a href="#">Delivery Details</a></li>
+                        <li><a href="#">Terms & Conditions</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-col">
+                    <h4>FAQ</h4>
+                    <ul>
+                        <li><a href="#">Account</a></li>
+                        <li><a href="#">Manage Deliveries</a></li>
+                        <li><a href="#">Orders</a></li>
+                        <li><a href="#">Payments</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>UniMarket © 2000-2023, All Rights Reserved</p>
+                <div class="payment-methods flex gap-4">
+                    <div style="width: 40px; height: 25px; background: #f0f0f0; border-radius: 4px;"></div>
+                    <div style="width: 40px; height: 25px; background: #f0f0f0; border-radius: 4px;"></div>
+                    <div style="width: 40px; height: 25px; background: #f0f0f0; border-radius: 4px;"></div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/app.js"></script>
+    <script>
+        // Simple script to handle clothing filter visibility
+        const categorySelect = document.getElementById('category-select');
+        const clothingFilters = document.getElementById('clothing-filters');
+        const priceRange = document.getElementById('price-range');
+        const priceValue = document.getElementById('price-value');
+
+        if (categorySelect && clothingFilters) {
+            categorySelect.addEventListener('change', (e) => {
+                if (e.target.value === 'clothing') {
+                    clothingFilters.classList.remove('hidden');
+                } else {
+                    clothingFilters.classList.add('hidden');
+                }
+            });
+        }
+
+        if (priceRange && priceValue) {
+            priceRange.addEventListener('input', (e) => {
+                priceValue.textContent = `$${e.target.value}`;
+            });
+        }
+    </script>
+</body>
+
+</html>

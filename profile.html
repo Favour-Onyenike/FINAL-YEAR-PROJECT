@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile - UniMarket</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body>
+
+    <!-- Header -->
+    <header class="site-header">
+        <div class="container">
+            <a href="index.html" class="logo">UniMarket</a>
+
+            <nav class="nav-links">
+                <a href="products.html" class="nav-link">Shop</a>
+                <a href="#" class="nav-link">About</a>
+            </nav>
+
+            <div class="search-bar">
+                <i data-lucide="search" class="search-icon"></i>
+                <input type="text" class="input input-pill" placeholder="Search for textbooks, electronics...">
+            </div>
+
+            <div class="user-actions">
+                <a href="saved-items.html" class="btn-icon btn-ghost">
+                    <i data-lucide="bookmark"></i>
+                </a>
+                <a href="messages.html" class="btn-icon btn-ghost">
+                    <i data-lucide="message-square"></i>
+                </a>
+                <a href="profile.html" class="btn-icon btn-ghost">
+                    <i data-lucide="user"></i>
+                </a>
+            </div>
+
+            <button class="mobile-menu-btn">
+                <i data-lucide="menu"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Mobile Menu -->
+    <div class="mobile-menu">
+        <div class="flex flex-col gap-4">
+            <a href="products.html" class="nav-link" style="font-size: 1.25rem;">Shop</a>
+            <a href="#" class="nav-link" style="font-size: 1.25rem;">About</a>
+            <hr style="border-color: var(--border);">
+            <a href="saved-items.html" class="nav-link" style="font-size: 1.25rem;">Saved Items</a>
+            <a href="messages.html" class="nav-link" style="font-size: 1.25rem;">Messages</a>
+            <a href="profile.html" class="nav-link" style="font-size: 1.25rem;">Profile</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Profile Header -->
+        <div class="profile-header">
+            <div class="profile-avatar">
+                <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=2000&auto=format&fit=crop"
+                    alt="User Avatar">
+            </div>
+
+            <div class="profile-info">
+                <div class="flex items-center gap-4" style="margin-bottom: 1rem;">
+                    <h1 class="profile-username" style="margin-bottom: 0;">johndoe</h1>
+                    <a href="edit-profile.html" class="btn btn-outline">Edit Profile</a>
+                </div>
+
+                <div class="profile-stats">
+                    <div class="profile-stat">
+                        <span class="profile-stat-number">12</span>
+                        <span class="profile-stat-label">Listings</span>
+                    </div>
+                    <div class="profile-stat">
+                        <span class="profile-stat-number">8</span>
+                        <span class="profile-stat-label">Sales</span>
+                    </div>
+                </div>
+
+                <div>
+                    <p style="font-weight: 600; margin-bottom: 0.25rem;">John Doe</p>
+                    <p style="color: var(--muted);">Engineering student at Baze University. Selling textbooks and
+                        electronics.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="profile-tabs">
+            <button class="profile-tab active" onclick="switchTab('listings')">My Listings</button>
+            <button class="profile-tab" onclick="switchTab('saved')">Saved</button>
+        </div>
+
+        <!-- Tab Content: My Listings -->
+        <div class="profile-tab-content" id="listings-content">
+            <div class="flex justify-between items-center" style="margin-bottom: 2rem;">
+                <h2 style="font-size: 1.5rem; font-weight: 700;">My Listings</h2>
+                <a href="sell.html" class="btn btn-primary">
+                    <i data-lucide="plus" style="width: 1rem; margin-right: 0.5rem;"></i> New Listing
+                </a>
+            </div>
+
+            <div class="grid grid-cols-1 grid-cols-2 grid-cols-4 gap-6">
+                <!-- Product 1 -->
+                <a href="product-detail.html" class="product-card">
+                    <div class="product-image-container">
+                        <img src="https://images.unsplash.com/photo-1544816155-12df9643f363?q=80&w=2000&auto=format&fit=crop"
+                            alt="Product" class="product-image">
+                        <button class="product-save-btn"><i data-lucide="bookmark" style="width: 1.25rem;"></i></button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Engineering Mechanics</h3>
+                        <span class="product-price">$45.00</span>
+                        <div class="product-meta">
+                            <span class="meta-item"><i data-lucide="heart" style="width: 1rem;"></i> 12</span>
+                            <span class="meta-item"><i data-lucide="message-square" style="width: 1rem;"></i> 4</span>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Product 2 -->
+                <a href="product-detail.html" class="product-card">
+                    <div class="product-image-container">
+                        <img src="https://images.unsplash.com/photo-1585336261022-680e295ce3fe?q=80&w=2000&auto=format&fit=crop"
+                            alt="Product" class="product-image">
+                        <button class="product-save-btn"><i data-lucide="bookmark" style="width: 1.25rem;"></i></button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">MacBook Air M1</h3>
+                        <span class="product-price">$650.00</span>
+                        <div class="product-meta">
+                            <span class="meta-item"><i data-lucide="heart" style="width: 1rem;"></i> 45</span>
+                            <span class="meta-item"><i data-lucide="message-square" style="width: 1rem;"></i> 15</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <!-- Tab Content: Saved (Hidden by default) -->
+        <div class="profile-tab-content hidden" id="saved-content">
+            <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 2rem;">Saved Items</h2>
+
+            <div class="grid grid-cols-1 grid-cols-2 grid-cols-4 gap-6">
+                <!-- Product 1 -->
+                <a href="product-detail.html" class="product-card">
+                    <div class="product-image-container">
+                        <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=2000&auto=format&fit=crop"
+                            alt="Product" class="product-image">
+                        <button class="product-save-btn"><i data-lucide="bookmark" style="width: 1.25rem;"></i></button>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Sony Headphones</h3>
+                        <span class="product-price">$180.00</span>
+                        <div class="product-meta">
+                            <span class="meta-item"><i data-lucide="heart" style="width: 1rem;"></i> 28</span>
+                            <span class="meta-item"><i data-lucide="map-pin" style="width: 1rem;"></i> Student
+                                Center</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <a href="index.html" class="logo">UniMarket</a>
+                    <p>The trusted marketplace for university students. Buy, sell, and connect safely on campus.</p>
+                    <div class="footer-socials">
+                        <a href="#" class="social-btn"><i data-lucide="twitter" style="width: 1.2rem;"></i></a>
+                        <a href="#" class="social-btn"><i data-lucide="facebook" style="width: 1.2rem;"></i></a>
+                        <a href="#" class="social-btn"><i data-lucide="instagram" style="width: 1.2rem;"></i></a>
+                        <a href="#" class="social-btn"><i data-lucide="github" style="width: 1.2rem;"></i></a>
+                    </div>
+                </div>
+
+                <div class="footer-col">
+                    <h4>Company</h4>
+                    <ul>
+                        <li><a href="#">About</a></li>
+                        <li><a href="#">Features</a></li>
+                        <li><a href="#">Works</a></li>
+                        <li><a href="#">Career</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-col">
+                    <h4>Help</h4>
+                    <ul>
+                        <li><a href="#">Customer Support</a></li>
+                        <li><a href="#">Delivery Details</a></li>
+                        <li><a href="#">Terms & Conditions</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-col">
+                    <h4>FAQ</h4>
+                    <ul>
+                        <li><a href="#">Account</a></li>
+                        <li><a href="#">Manage Deliveries</a></li>
+                        <li><a href="#">Orders</a></li>
+                        <li><a href="#">Payments</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>UniMarket © 2000-2023, All Rights Reserved</p>
+                <div class="payment-methods flex gap-4">
+                    <div style="width: 40px; height: 25px; background: #f0f0f0; border-radius: 4px;"></div>
+                    <div style="width: 40px; height: 25px; background: #f0f0f0; border-radius: 4px;"></div>
+                    <div style="width: 40px; height: 25px; background: #f0f0f0; border-radius: 4px;"></div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/app.js"></script>
+    <script>
+        function switchTab(tabName) {
+            // Hide all tab content
+            document.querySelectorAll('.profile-tab-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+
+            // Remove active class from all tabs
+            document.querySelectorAll('.profile-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Show selected tab content
+            document.getElementById(tabName + '-content').classList.remove('hidden');
+
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+        }
+    </script>
+</body>
+
+</html>

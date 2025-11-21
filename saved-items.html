@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Saved Items - UniMarket</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body>
+
+    <!-- Header -->
+    <header class="site-header">
+        <div class="container">
+            <a href="index.html" class="logo">UniMarket</a>
+            <nav class="nav-links">
+                <a href="products.html" class="nav-link">Shop</a>
+                <a href="#" class="nav-link">About</a>
+            </nav>
+            <div class="search-bar">
+                <i data-lucide="search" class="search-icon"></i>
+                <input type="text" class="input input-pill" placeholder="Search...">
+            </div>
+            <div class="user-actions">
+                <a href="saved-items.html" class="btn-icon btn-ghost" style="color: var(--foreground);">
+                    <i data-lucide="bookmark"></i>
+                </a>
+                <a href="messages.html" class="btn-icon btn-ghost"><i data-lucide="message-square"></i></a>
+                <a href="profile.html" class="btn-icon btn-ghost"><i data-lucide="user"></i></a>
+            </div>
+            <button class="mobile-menu-btn"><i data-lucide="menu"></i></button>
+        </div>
+    </header>
+
+    <div class="mobile-menu">
+        <div class="flex flex-col gap-4">
+            <a href="products.html" class="nav-link" style="font-size: 1.25rem;">Shop</a>
+            <a href="#" class="nav-link" style="font-size: 1.25rem;">About</a>
+            <hr style="border-color: var(--border);">
+            <a href="saved-items.html" class="nav-link" style="font-size: 1.25rem;">Saved Items</a>
+            <a href="messages.html" class="nav-link" style="font-size: 1.25rem;">Messages</a>
+            <a href="profile.html" class="nav-link" style="font-size: 1.25rem;">Profile</a>
+        </div>
+    </div>
+
+    <div class="container" style="padding-top: 3rem; padding-bottom: 4rem;">
+        <h1 style="font-size: 2rem; font-weight: 700; margin-bottom: 3rem;">Saved Items</h1>
+
+        <!-- Empty State (Show when no items) -->
+        <!-- <div class="empty-state">
+            <i data-lucide="bookmark" class="empty-state-icon"></i>
+            <h2 class="empty-state-title">You have no saved items</h2>
+            <p class="empty-state-description">Start browsing to save items you're interested in.</p>
+            <a href="products.html" class="btn btn-primary">Start Browsing</a>
+        </div> -->
+
+        <!-- Product Grid (Show when items exist) -->
+        <div class="grid grid-cols-1 grid-cols-2 grid-cols-4 grid-cols-5 gap-6">
+            <!-- Product 1 -->
+            <a href="product-detail.html" class="product-card">
+                <div class="product-image-container">
+                    <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=2000&auto=format&fit=crop"
+                        alt="Product" class="product-image">
+                    <button class="product-save-btn"><i data-lucide="bookmark"
+                            style="width: 1.25rem; fill: currentColor;"></i></button>
+                </div>
+                <div class="product-info">
+                    <h3 class="product-name">Sony Headphones</h3>
+                    <span class="product-price">$180.00</span>
+                    <div class="product-meta">
+                        <span class="meta-item"><i data-lucide="heart" style="width: 1rem;"></i> 28</span>
+                        <span class="meta-item"><i data-lucide="map-pin" style="width: 1rem;"></i> Student Center</span>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Product 2 -->
+            <a href="product-detail.html" class="product-card">
+                <div class="product-image-container">
+                    <img src="https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?q=80&w=2000&auto=format&fit=crop"
+                        alt="Product" class="product-image">
+                    <button class="product-save-btn"><i data-lucide="bookmark"
+                            style="width: 1.25rem; fill: currentColor;"></i></button>
+                </div>
+                <div class="product-info">
+                    <h3 class="product-name">Polaroid Camera</h3>
+                    <span class="product-price">$85.00</span>
+                    <div class="product-meta">
+                        <span class="meta-item"><i data-lucide="heart" style="width: 1rem;"></i> 32</span>
+                        <span class="meta-item"><i data-lucide="map-pin" style="width: 1rem;"></i> Arts Block</span>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Product 3 -->
+            <a href="product-detail.html" class="product-card">
+                <div class="product-image-container">
+                    <img src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?q=80&w=2000&auto=format&fit=crop"
+                        alt="Product" class="product-image">
+                    <button class="product-save-btn"><i data-lucide="bookmark"
+                            style="width: 1.25rem; fill: currentColor;"></i></button>
+                </div>
+                <div class="product-info">
+                    <h3 class="product-name">Green Sofa</h3>
+                    <span class="product-price">$120.00</span>
+                    <div class="product-meta">
+                        <span class="meta-item"><i data-lucide="heart" style="width: 1rem;"></i> 15</span>
+                        <span class="meta-item"><i data-lucide="map-pin" style="width: 1rem;"></i> Off-campus</span>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <footer class="site-footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <a href="index.html" class="logo">UniMarket</a>
+                    <p>The trusted marketplace for university students. Buy, sell, and connect safely on campus.</p>
+                    <div class="footer-socials">
+                        <a href="#" class="social-btn"><i data-lucide="twitter" style="width: 1.2rem;"></i></a>
+                        <a href="#" class="social-btn"><i data-lucide="facebook" style="width: 1.2rem;"></i></a>
+                        <a href="#" class="social-btn"><i data-lucide="instagram" style="width: 1.2rem;"></i></a>
+                        <a href="#" class="social-btn"><i data-lucide="github" style="width: 1.2rem;"></i></a>
+                    </div>
+                </div>
+                <div class="footer-col">
+                    <h4>Company</h4>
+                    <ul>
+                        <li><a href="#">About</a></li>
+                        <li><a href="#">Features</a></li>
+                        <li><a href="#">Works</a></li>
+                        <li><a href="#">Career</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Help</h4>
+                    <ul>
+                        <li><a href="#">Customer Support</a></li>
+                        <li><a href="#">Delivery Details</a></li>
+                        <li><a href="#">Terms & Conditions</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>FAQ</h4>
+                    <ul>
+                        <li><a href="#">Account</a></li>
+                        <li><a href="#">Manage Deliveries</a></li>
+                        <li><a href="#">Orders</a></li>
+                        <li><a href="#">Payments</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>UniMarket © 2000-2023, All Rights Reserved</p>
+                <div class="payment-methods flex gap-4">
+                    <div style="width: 40px; height: 25px; background: #f0f0f0; border-radius: 4px;"></div>
+                    <div style="width: 40px; height: 25px; background: #f0f0f0; border-radius: 4px;"></div>
+                    <div style="width: 40px; height: 25px; background: #f0f0f0; border-radius: 4px;"></div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/app.js"></script>
+</body>
+
+</html>
