@@ -41,7 +41,7 @@ from datetime import datetime
 from backend.database import get_db, init_db
 from backend.models import User, University, Product, ProductImage, SavedItem, Category
 from backend.schemas import (
-    UserRegister, UserLogin, UserResponse, LoginResponse,
+    UserRegister, UserLogin, UserResponse, LoginResponse, UserUpdate,
     ProductCreate, ProductUpdate, ProductResponse, ProductListResponse,
     SavedItemToggle, SavedItemResponse, UploadResponse,
     SellerInfo, CategoryResponse, ProductImageResponse
@@ -269,6 +269,96 @@ def get_me(current_user: User = Depends(get_current_user)):
         "bio": current_user.bio,
         "profileImage": current_user.profile_image,
         "phone": current_user.phone
+    }
+
+@app.get("/api/users/{user_id}", response_model=UserResponse)
+def get_user(user_id: int, db: Session = Depends(get_db)):
+    """
+    Get user profile by ID.
+    
+    PARAMETERS:
+    - user_id: The ID of the user to retrieve
+    
+    RETURNS: User's profile data
+    """
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    return {
+        "id": user.id,
+        "fullName": user.full_name,
+        "email": user.email,
+        "username": user.username,
+        "bio": user.bio,
+        "profileImage": user.profile_image,
+        "phone": user.phone
+    }
+
+@app.put("/api/users/{user_id}", response_model=UserResponse)
+def update_user(
+    user_id: int,
+    user_data: UserUpdate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Update user profile (own profile only).
+    
+    REQUIRES: Valid JWT token in Authorization header
+    Format: Authorization: Bearer <token>
+    
+    PARAMETERS:
+    - user_id: ID of the user to update (must match current user)
+    
+    REQUEST BODY:
+    {
+        "fullName": "New Full Name" (optional),
+        "bio": "New biography" (optional),
+        "avatarUrl": "/uploads/products/image.jpg" (optional)
+    }
+    
+    RETURNS: Updated user profile
+    
+    SECURITY:
+    - User can only update their own profile
+    - Cannot update email or username
+    """
+    # Check if user is trying to update their own profile
+    if current_user.id != user_id:
+        raise HTTPException(
+            status_code=403,
+            detail="You can only update your own profile"
+        )
+    
+    # Get the user to update
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Update fields if provided
+    if user_data.fullName is not None:
+        user.full_name = user_data.fullName
+    
+    if user_data.bio is not None:
+        user.bio = user_data.bio
+    
+    if user_data.avatarUrl is not None:
+        user.profile_image = user_data.avatarUrl
+    
+    # Save changes to database
+    db.commit()
+    db.refresh(user)
+    
+    # Return updated user
+    return {
+        "id": user.id,
+        "fullName": user.full_name,
+        "email": user.email,
+        "username": user.username,
+        "bio": user.bio,
+        "profileImage": user.profile_image,
+        "phone": user.phone
     }
 
 # =============================================================================

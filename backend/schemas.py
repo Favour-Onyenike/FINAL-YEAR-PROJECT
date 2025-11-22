@@ -116,6 +116,30 @@ class UserResponse(BaseModel):
     class Config:
         from_attributes = True  # Convert database models to this schema
 
+class UserUpdate(BaseModel):
+    """
+    Schema for updating user profile.
+    
+    USED BY: PUT /api/users/{user_id} request
+    
+    FIELDS:
+    - fullName: User's full name (optional, 2-255 chars)
+    - bio: User's biography (optional, max 5000 chars)
+    - avatarUrl: URL to profile picture (optional)
+    
+    All fields are optional - only update fields that are provided.
+    
+    EXAMPLE REQUEST:
+    {
+        "fullName": "John Doe",
+        "bio": "I'm a student at Baze University",
+        "avatarUrl": "/uploads/products/abc123.jpg"
+    }
+    """
+    fullName: Optional[str] = Field(None, min_length=2, max_length=255)
+    bio: Optional[str] = Field(None, max_length=5000)
+    avatarUrl: Optional[str] = None
+
 class LoginResponse(BaseModel):
     """
     Schema for login response.
