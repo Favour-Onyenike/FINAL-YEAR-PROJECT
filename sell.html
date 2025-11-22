@@ -436,6 +436,17 @@ TROUBLESHOOTING:
                 
                 // Step 2: Create product with uploaded images
                 const token = localStorage.getItem('token');
+                
+                // Map category name to ID
+                const categoryMap = {
+                    'Electronics': 1,
+                    'Textbooks': 2,
+                    'Clothing': 3,
+                    'Furniture': 4,
+                    'Other': 5
+                };
+                const categoryId = categoryMap[category] || 5;
+                
                 const productResponse = await fetch('/api/products', {
                     method: 'POST',
                     headers: {
@@ -446,24 +457,32 @@ TROUBLESHOOTING:
                         name: productName,
                         description: description,
                         price: price,
-                        category: category,
+                        categoryId: categoryId,
                         condition: condition,
                         size: size,
                         color: color,
-                        images: imageUrls.map(url => ({ imageUrl: url }))
+                        images: imageUrls
                     })
                 });
                 
                 if (!productResponse.ok) {
-                    const error = await productResponse.json();
-                    throw new Error(error.detail || 'Failed to create listing');
+                    let errorMessage = 'Failed to create listing';
+                    try {
+                        const error = await productResponse.json();
+                        errorMessage = error.detail || error.message || errorMessage;
+                    } catch (e) {
+                        // Response is not JSON, use status
+                        errorMessage = `Server error: ${productResponse.status}`;
+                    }
+                    throw new Error(errorMessage);
                 }
                 
                 alert('✅ Listing created successfully!');
                 window.location.href = 'profile.html';
             } catch (error) {
                 console.error('Error creating listing:', error);
-                alert(`❌ Error: ${error.message}`);
+                const errorMsg = error instanceof Error ? error.message : String(error);
+                alert(`❌ Error: ${errorMsg}`);
             }
         });
     </script>
