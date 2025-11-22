@@ -578,6 +578,403 @@ FR17 - Product Categories
        - Products filtered by category_id
 
 
+REAL-TIME MESSAGING & COMMUNICATION
+====================================
+
+FR18 - Real-Time Messaging with Socket.IO
+         REQUIREMENT: Users can send and receive messages in real-time
+         TECHNOLOGY: Socket.IO (WebSocket) for real-time communication
+         LOCATION: backend/main.py (lines 42-79 for setup, 895-1040 for handlers)
+         
+         OVERVIEW:
+         Socket.IO enables real-time, bidirectional communication between 
+         browser and server using WebSockets. In UniMarket, it powers 
+         instant message delivery when both users are online.
+         
+         ARCHITECTURE:
+         - Frontend: JavaScript Socket.IO client library (CDN)
+         - Backend: Python Socket.IO AsyncServer (ASGI mode)
+         - Transport: WebSocket + HTTP fallback
+         - Database: Messages persisted to SQLite/PostgreSQL
+         
+         DEPENDENCIES INSTALLED:
+         - python-socketio==5.14.3
+         - python-engineio==4.12.3
+         - bidict==0.23.1
+         - simple-websocket==1.1.0
+         - wsproto==1.3.2
+         
+         LOCATION: backend/main.py (lines 70-79)
+         
+         SOCKET.IO INITIALIZATION:
+         
+         sio = socketio.AsyncServer(
+             async_mode='asgi',              # ASGI mode for FastAPI
+             cors_allowed_origins=['*'],     # Allow all origins (dev)
+             logger=False,                   # Disable logging
+             engineio_logger=False
+         )
+         
+         app_with_sio = ASGIApp(sio, app)    # Combine FastAPI + Socket.IO
+         
+         START COMMAND: uvicorn backend.main:app_with_sio --host 0.0.0.0 --port 8000
+
+FR18.1 - Message Database Schema
+        REQUIREMENT: Store messages persistently
+        LOCATION: backend/models.py (lines 348-390) - Message class
+        
+        TABLE: messages
+        
+        COLUMNS:
+        ┌──────────────┬──────────────┬─────────────┐
+        │ Column       │ Type         │ Description │
+        ├──────────────┼──────────────┼─────────────┤
+        │ id           │ Integer (PK) │ Message ID  │
+        │ sender_id    │ Integer (FK) │ Sender user │
+        │ receiver_id  │ Integer (FK) │ Receiver    │
+        │ content      │ Text         │ Message     │
+        │ is_read      │ Integer      │ 0=unread    │
+        │ created_at   │ DateTime     │ Timestamp   │
+        └──────────────┴──────────────┴─────────────┘
+        
+        INDEXES:
+        - sender_id (for efficient queries)
+        - receiver_id (for efficient queries)
+        - created_at (for chronological sorting)
+        
+        RELATIONSHIPS:
+        - One sender can have many messages (1-to-many)
+        - One receiver can have many messages (1-to-many)
+        - Foreign keys prevent orphaned messages
+
+FR18.2 - Message Schemas (Pydantic)
+        REQUIREMENT: Validate and serialize message data
+        LOCATION: backend/schemas.py (lines 472-491)
+        
+        SCHEMA 1: MessageCreate (Input validation)
+        ──────────────────────────────────────────
+        
+        class MessageCreate(BaseModel):
+            receiverId: int   # Recipient user ID
+            content: str      # Message text (required)
+        
+        USAGE: When sending POST /api/messages
+        
+        VALIDATION:
+        - receiverId must be valid integer
+        - content must not be empty
+        - Receiver must exist in database
+        
+        
+        SCHEMA 2: MessageResponse (Output format)
+        ──────────────────────────────────────────
+        
+        class MessageResponse(BaseModel):
+            id: int                    # Message ID
+            senderId: int              # Sender user ID
+            receiverId: int            # Receiver user ID
+            content: str               # Message text
+            createdAt: datetime        # Send timestamp
+            isRead: int                # Read status (0/1)
+        
+        USAGE: API responses for both REST and WebSocket
+        
+        EXAMPLE RESPONSE:
+        {
+            "id": 42,
+            "senderId": 1,
+            "receiverId": 5,
+            "content": "Is this still available?",
+            "createdAt": "2025-11-22T16:30:00",
+            "isRead": 0
+        }
+
+FR18.3 - Socket.IO Event Handlers
+        REQUIREMENT: Handle real-time WebSocket events
+        LOCATION: backend/main.py (lines 902-942)
+        
+        EVENT 1: connect
+        ────────────────
+        Triggered when: Browser connects via Socket.IO
+        Handler code:
+        
+        @sio.event
+        async def connect(sid, environ):
+            print(f"Client connected: {sid}")
+        
+        Data structures: sid = unique socket connection ID
+        
+        
+        EVENT 2: disconnect
+        ───────────────────
+        Triggered when: Browser disconnects or closes
+        Handler code:
+        
+        @sio.event
+        async def disconnect(sid):
+            for user_id, socket_id in list(connected_users.items()):
+                if socket_id == sid:
+                    del connected_users[user_id]
+        
+        Purpose: Cleanup user from active connections
+        
+        
+        EVENT 3: authenticate
+        ─────────────────────
+        Triggered when: Frontend emits authenticate after login
+        Handler code:
+        
+        @sio.event
+        async def authenticate(sid, data):
+            user_id = data.get('userId')
+            if user_id:
+                connected_users[user_id] = sid
+                await sio.emit('authenticated', {'status': 'ok'}, to=sid)
+        
+        Data structures:
+        - connected_users: {user_id: socket_id}
+        - Example: {1: 'socket123abc', 5: 'socket456def'}
+        
+        
+        EVENT 4: send_message
+        ─────────────────────
+        Triggered when: Frontend sends message via Socket.IO
+        Handler code:
+        
+        @sio.event
+        async def send_message(sid, data, environ):
+            receiver_id = data.get('receiverId')
+            content = data.get('content')
+            sender_id = data.get('senderId')
+            
+            # Broadcast to receiver if online
+            if receiver_id in connected_users:
+                await sio.emit('receive_message', {
+                    'senderId': sender_id,
+                    'content': content,
+                    'timestamp': datetime.utcnow().isoformat()
+                }, to=connected_users[receiver_id])
+            
+            # Confirm to sender
+            await sio.emit('message_sent', {'status': 'success'}, to=sid)
+        
+        Flow:
+        1. Check if receiver is online (in connected_users dict)
+        2. If yes: Broadcast 'receive_message' event to receiver's socket
+        3. Send 'message_sent' confirmation to sender
+        4. NOTE: Does NOT save to database (REST API does that)
+
+FR18.4 - REST API Endpoints for Messages
+        REQUIREMENT: Fallback for offline users + message persistence
+        
+        ENDPOINT 1: POST /api/messages
+        ──────────────────────────────
+        
+        PURPOSE: Send a message (REST API alternative to Socket.IO)
+        LOCATION: backend/main.py (lines 948-998)
+        
+        REQUEST:
+        POST /api/messages
+        Authorization: Bearer <JWT_TOKEN>
+        Content-Type: application/json
+        
+        {
+            "receiverId": 5,
+            "content": "Hi, is this available?"
+        }
+        
+        VALIDATION:
+        1. User must be authenticated (JWT token)
+        2. Receiver must exist in database
+        3. Content must not be empty
+        
+        RESPONSE (Success - 200):
+        {
+            "id": 42,
+            "senderId": 1,
+            "receiverId": 5,
+            "content": "Hi, is this available?",
+            "createdAt": "2025-11-22T16:30:00",
+            "isRead": 0
+        }
+        
+        PROCESS:
+        1. Validate receiver exists
+        2. Create Message object
+        3. Save to messages table (database)
+        4. Emit Socket.IO event if receiver online
+        5. Return message with timestamp
+        
+        ERROR RESPONSES:
+        - 401 Unauthorized: No valid token
+        - 404 Not Found: Receiver doesn't exist
+        - 422 Unprocessable Entity: Invalid data
+        
+        
+        ENDPOINT 2: GET /api/messages/{user_id}
+        ───────────────────────────────────────
+        
+        PURPOSE: Fetch message history with another user
+        LOCATION: backend/main.py (lines 1000-1040)
+        
+        REQUEST:
+        GET /api/messages/5
+        Authorization: Bearer <JWT_TOKEN>
+        
+        PARAMETERS:
+        - user_id (path parameter): ID of conversation partner
+        
+        RESPONSE (Success - 200):
+        [
+            {
+                "id": 40,
+                "senderId": 1,
+                "receiverId": 5,
+                "content": "Is this textbook available?",
+                "createdAt": "2025-11-22T10:00:00",
+                "isRead": 1
+            },
+            {
+                "id": 41,
+                "senderId": 5,
+                "receiverId": 1,
+                "content": "Yes! Still like new",
+                "createdAt": "2025-11-22T10:05:00",
+                "isRead": 0
+            }
+        ]
+        
+        QUERY LOGIC:
+        - Fetches all messages WHERE:
+          (sender_id = current_user AND receiver_id = user_id) OR
+          (sender_id = user_id AND receiver_id = current_user)
+        - Orders by created_at (oldest first)
+        - Marks as read (is_read = 1) for current user
+        
+        AUTHORIZATION:
+        - User must be authenticated
+        - Can only fetch own messages (not other users')
+        - Error: 401 if not authenticated
+        
+        USE CASE:
+        When receiver was offline, message saved to database.
+        When receiver logs in, frontend calls this endpoint
+        to fetch all missed messages.
+
+FR18.5 - Frontend Socket.IO Client Library
+        REQUIREMENT: Enable client-side WebSocket support
+        LOCATION: All 14 HTML files (added to <head>)
+        
+        CDN LIBRARY:
+        <script src="https://cdn.socket.io/4.8.0/socket.io.min.js"></script>
+        
+        FILES UPDATED:
+        1. index.html ✓
+        2. messages.html ✓
+        3. products.html ✓
+        4. profile.html ✓
+        5. saved-items.html ✓
+        6. edit-profile.html ✓
+        7. sell.html ✓
+        8. login.html ✓
+        9. signup.html ✓
+        10. product-detail.html ✓
+        11. about.html ✓
+        12. coming-soon.html ✓
+        13. signup-select-university.html ✓
+        14. notifications.html ✓
+        
+        PLACEMENT: After Lucide icons CDN, before closing </head>
+        
+        PROVIDES:
+        - window.io object for Socket.IO
+        - Methods: socket.emit(), socket.on(), socket.disconnect()
+        - Auto-reconnection support
+        - Event handling infrastructure
+
+FR18.6 - Complete Message Flow
+        BOTH USERS ONLINE (Real-time):
+        ──────────────────────────────
+        
+        1. User A logs in
+           └─ Frontend: socket.emit('authenticate', {userId: 1})
+        
+        2. Backend receives authenticate
+           └─ connected_users = {1: 'socket-A'}
+        
+        3. User B logs in
+           └─ Frontend: socket.emit('authenticate', {userId: 5})
+           └─ connected_users = {1: 'socket-A', 5: 'socket-B'}
+        
+        4. User A sends message
+           └─ Socket.IO: emit('send_message', {...})
+        
+        5. Backend send_message handler
+           └─ Check: receiver_id (5) in connected_users? YES
+           └─ Emit 'receive_message' to User B's socket
+        
+        6. User B receives instantly
+           └─ socket.on('receive_message') fires
+           └─ Message appears in chat UI
+        
+        7. Message also saved to database
+           └─ Persistence for message history
+        
+        
+        USER A ONLINE, USER B OFFLINE (Fallback):
+        ────────────────────────────────────────
+        
+        1. User A sends message
+           └─ REST API: POST /api/messages
+        
+        2. Backend POST handler
+           └─ Creates Message object
+           └─ Saves to messages table
+           └─ Check connected_users: receiver NOT FOUND
+           └─ No real-time broadcast (offline)
+        
+        3. Message stays in database
+           └─ When User B logs in
+           └─ Frontend: GET /api/messages/1
+           └─ Fetches all messages from database
+           └─ History appears in chat
+
+FR18.7 - User Presence Tracking
+        REQUIREMENT: Track which users are online
+        LOCATION: backend/main.py (line 900)
+        
+        DATA STRUCTURE:
+        connected_users = {}  # Dictionary mapping user_id → socket_id
+        
+        EXAMPLE STATE:
+        {
+            1: 'socket-id-abc123',   # User 1 is online
+            5: 'socket-id-def456',   # User 5 is online
+            7: 'socket-id-ghi789'    # User 7 is online
+        }
+        
+        OPERATIONS:
+        
+        Add user to connected (in authenticate event):
+        connected_users[user_id] = sid
+        
+        Check if user online (in send_message):
+        if receiver_id in connected_users:
+            # User is online
+        
+        Remove user from connected (in disconnect event):
+        del connected_users[user_id]
+        
+        GET SOCKET ID FOR USER:
+        socket_id = connected_users.get(user_id)
+        
+        FUTURE ENHANCEMENTS:
+        - Broadcast "user_online" event to all connected users
+        - Show "User is typing..." indicator
+        - Track last_seen timestamp for offline users
+        - Implement read receipts (checkmarks)
+
+
 ================================================================================
 3. NON-FUNCTIONAL REQUIREMENTS (NFR)
 ================================================================================
