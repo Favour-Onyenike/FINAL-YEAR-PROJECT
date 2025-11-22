@@ -292,6 +292,7 @@
     background: var(--background);
     display: flex;
     flex-direction: column;
+    overflow-y: auto;
     animation: slideIn 0.3s ease-out;
 }
 
