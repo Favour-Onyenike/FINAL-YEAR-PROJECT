@@ -2314,3 +2314,48 @@ textarea.input-with-padding {
 .password-toggle:active {
     color: var(--primary);
 }
+
+/* =========================================
+   Status Indicator Styles
+   ========================================= */
+.status-indicator {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 50px;
+    margin-top: 1rem;
+}
+
+.status-indicator.hidden {
+    display: none;
+}
+
+.status-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    color: var(--primary);
+}
+
+.status-icon.loading {
+    animation: spin 1s linear infinite;
+    color: var(--primary);
+}
+
+.status-icon.success {
+    animation: none;
+    color: var(--success);
+}
+
+.status-icon.error {
+    animation: none;
+    color: var(--destructive);
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}

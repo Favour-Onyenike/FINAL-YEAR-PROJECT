@@ -48,6 +48,10 @@
                 </div>
 
                 <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Log in</button>
+                
+                <div id="status-indicator" class="status-indicator hidden">
+                    <i id="status-icon" data-lucide="loader" class="status-icon loading"></i>
+                </div>
             </form>
 
             <div class="auth-footer">
@@ -74,6 +78,42 @@
             // Re-render lucide icons
             lucide.createIcons();
         }
+        
+        // Show status indicator with loading spinner
+        function showStatusLoading() {
+            const indicator = document.getElementById('status-indicator');
+            const icon = document.getElementById('status-icon');
+            icon.setAttribute('data-lucide', 'loader');
+            icon.className = 'status-icon loading';
+            indicator.classList.remove('hidden');
+            lucide.createIcons();
+        }
+        
+        // Show success checkmark
+        function showStatusSuccess() {
+            const icon = document.getElementById('status-icon');
+            icon.setAttribute('data-lucide', 'check-circle');
+            icon.className = 'status-icon success';
+            lucide.createIcons();
+        }
+        
+        // Show error X
+        function showStatusError() {
+            const icon = document.getElementById('status-icon');
+            icon.setAttribute('data-lucide', 'x-circle');
+            icon.className = 'status-icon error';
+            lucide.createIcons();
+            
+            // Hide error after 3 seconds
+            setTimeout(() => {
+                document.getElementById('status-indicator').classList.add('hidden');
+            }, 3000);
+        }
+        
+        // Hide status indicator
+        function hideStatusIndicator() {
+            document.getElementById('status-indicator').classList.add('hidden');
+        }
 
         // Form Validation
         const form = document.getElementById('login-form');
@@ -97,11 +137,12 @@
             emailError.classList.add('hidden');
             emailInput.style.borderColor = 'var(--input)';
 
-            // Disable button and show loading state
+            // Show loading indicator and disable button
             const btn = form.querySelector('button');
             const originalText = btn.textContent;
             btn.textContent = 'Logging in...';
             btn.disabled = true;
+            showStatusLoading();
 
             try {
                 // Call backend API through frontend server proxy (port 5000 -> 8000)
@@ -119,7 +160,9 @@
                 const data = await response.json();
 
                 if (response.ok) {
-                    // Login successful
+                    // Show success checkmark
+                    showStatusSuccess();
+                    
                     // Store JWT token and user info
                     localStorage.setItem('token', data.access_token);
                     localStorage.setItem('user', JSON.stringify({
@@ -129,15 +172,20 @@
                         email: data.user.email
                     }));
                     
-                    window.location.href = 'profile.html';
+                    // Redirect after showing success
+                    setTimeout(() => {
+                        window.location.href = 'profile.html';
+                    }, 800);
                 } else {
-                    // Login failed
+                    // Login failed - show error X
+                    showStatusError();
                     alert(`❌ Login failed: ${data.detail || 'Invalid email or password'}`);
                     btn.textContent = originalText;
                     btn.disabled = false;
                 }
             } catch (error) {
                 console.error('Login error:', error);
+                showStatusError();
                 alert('❌ Connection error. Please try again.');
                 btn.textContent = originalText;
                 btn.disabled = false;
