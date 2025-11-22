@@ -63,11 +63,22 @@ UniMarket employs a client-server architecture with a clear separation between t
    - Users can create accounts with full name, email (@bazeuniversity.edu.ng), and password
    - **Password Requirements**: Minimum 6 characters, 1 uppercase letter, 1 number
    - Confirm password field with validation
-   - Eye icon toggle to show/hide passwords
+   - Eye icon toggle to show/hide passwords on both forms
+   - **Green loading icon** → Success checkmark or error X for visual feedback
    - Accounts are saved to SQLite database
    - JWT tokens issued and stored for authenticated sessions
    - Users can log in and access profile page
    - Auto-login after signup for seamless experience
+5. **Dynamic User Profiles**:
+   - Each new signup creates their own profile page with their name/username
+   - Profile page loads user data from localStorage on signup
+   - Users can edit their profile (name, bio) from "Edit Profile" button
+   - New users start with blank bio saying "No bio yet"
+   - Each user's profile is independent and shows only their data
+6. **API Proxy**:
+   - Frontend server (port 5000) now proxies /api/* requests to backend (port 8000)
+   - Enables API calls from embedded Replit domain without "connection error"
+   - Seamless authentication flow for signup and login
 
 ## External Dependencies
 - **FastAPI**: Python web framework for building the backend API.

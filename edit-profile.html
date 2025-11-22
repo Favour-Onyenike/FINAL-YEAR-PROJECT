@@ -39,10 +39,10 @@
         <h1 style="font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem;">Edit Profile</h1>
         <p style="color: var(--muted); margin-bottom: 2rem;">Update your profile information.</p>
 
-        <form class="form-card">
+        <form class="form-card" id="edit-profile-form">
             <div class="form-group" style="text-align: center;">
                 <div class="profile-avatar" style="margin: 0 auto 1rem; position: relative;">
-                    <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=2000&auto=format&fit=crop"
+                    <img id="edit-avatar-img" src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=2000&auto=format&fit=crop"
                         alt="Avatar">
                     <button type="button" class="btn-icon btn-primary" style="position: absolute; bottom: 0; right: 0;">
                         <i data-lucide="camera" style="width: 1rem;"></i>
@@ -53,18 +53,19 @@
 
             <div class="form-group">
                 <label class="form-label">Full Name</label>
-                <input type="text" class="input" value="John Doe" required>
+                <input type="text" id="edit-fullname" class="input" placeholder="Your Full Name" required>
             </div>
 
             <div class="form-group">
                 <label class="form-label">Username</label>
-                <input type="text" class="input" value="johndoe" required>
+                <input type="text" id="edit-username" class="input" placeholder="Your Username" required disabled>
+                <p style="font-size: 0.75rem; color: var(--muted); margin-top: 0.25rem;">Username cannot be changed</p>
             </div>
 
             <div class="form-group">
                 <label class="form-label">Bio</label>
-                <textarea class="input"
-                    placeholder="Tell us about yourself...">Engineering student at Baze University. Selling textbooks and electronics.</textarea>
+                <textarea id="edit-bio" class="input"
+                    placeholder="Tell us about yourself..."></textarea>
             </div>
 
             <div class="form-actions">
@@ -83,6 +84,91 @@
     </footer>
 
     <script src="js/app.js"></script>
+    <script>
+        // Load user profile data for editing
+        function loadUserData() {
+            const user = JSON.parse(localStorage.getItem('user'));
+            
+            if (!user) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            // Load user data from localStorage
+            document.getElementById('edit-fullname').value = user.name || '';
+            document.getElementById('edit-username').value = user.username || '';
+            
+            // Try to load additional profile data from backend
+            const token = localStorage.getItem('token');
+            if (token) {
+                fetch(`/api/users/${user.id}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.bio) {
+                        document.getElementById('edit-bio').value = data.bio;
+                    }
+                    if (data.avatar_url) {
+                        document.getElementById('edit-avatar-img').src = data.avatar_url;
+                    }
+                })
+                .catch(err => console.log('Could not load extended profile data'));
+            }
+        }
+        
+        // Handle form submission
+        document.getElementById('edit-profile-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const user = JSON.parse(localStorage.getItem('user'));
+            const token = localStorage.getItem('token');
+            
+            if (!token) {
+                alert('Please log in to update your profile');
+                return;
+            }
+            
+            const fullName = document.getElementById('edit-fullname').value;
+            const bio = document.getElementById('edit-bio').value;
+            
+            // Update localStorage with new name
+            user.name = fullName;
+            localStorage.setItem('user', JSON.stringify(user));
+            
+            // Try to save to backend
+            try {
+                const response = await fetch(`/api/users/${user.id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        fullName: fullName,
+                        bio: bio
+                    })
+                });
+                
+                if (response.ok) {
+                    alert('✅ Profile updated successfully!');
+                    window.location.href = 'profile.html';
+                } else {
+                    const error = await response.json();
+                    alert(`Error: ${error.detail || 'Could not update profile'}`);
+                }
+            } catch (error) {
+                console.log('Could not save to backend, but local data was updated');
+                alert('✅ Profile updated locally! (Backend save pending)');
+                window.location.href = 'profile.html';
+            }
+        });
+        
+        // Load profile data when page loads
+        loadUserData();
+    </script>
 </body>
 
 </html>
