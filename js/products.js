@@ -262,10 +262,53 @@ function displayError() {
 function updateResultsCount(total, page, limit) {
     const start = (page - 1) * limit + 1;
     const end = Math.min(page * limit, total);
-    const countElement = document.querySelector('.products-header p');
+    const countElement = document.getElementById('results-count');
     
     if (countElement) {
         countElement.textContent = `Showing ${start}-${end} of ${total} results`;
+    }
+    
+    // Update filter status
+    updateFilterStatus();
+}
+
+// =============================================================================
+// UPDATE FILTER STATUS
+// =============================================================================
+/**
+ * Show/hide the "View All Products" button based on active filters
+ * Updates the title to reflect current filter state
+ */
+function updateFilterStatus() {
+    const hasFilters = currentFilters.category || 
+                      currentFilters.minPrice > 0 || 
+                      currentFilters.maxPrice < 10000 || 
+                      currentFilters.condition;
+    
+    const viewAllBtn = document.getElementById('view-all-btn');
+    const titleElement = document.getElementById('products-title');
+    
+    if (hasFilters) {
+        // Show the "View All Products" button
+        if (viewAllBtn) viewAllBtn.style.display = 'inline-flex';
+        
+        // Update title to show filtered view
+        if (titleElement) {
+            const filterText = [];
+            if (currentFilters.category) filterText.push(`${currentFilters.category}`);
+            if (currentFilters.minPrice > 0 || currentFilters.maxPrice < 10000) {
+                filterText.push(`₦${currentFilters.minPrice}-₦${currentFilters.maxPrice}`);
+            }
+            if (currentFilters.condition) filterText.push(currentFilters.condition);
+            
+            titleElement.textContent = `Filtered Results: ${filterText.join(' • ')}`;
+        }
+    } else {
+        // Hide the "View All Products" button
+        if (viewAllBtn) viewAllBtn.style.display = 'none';
+        
+        // Reset title
+        if (titleElement) titleElement.textContent = 'All Products';
     }
 }
 
@@ -395,6 +438,14 @@ function clearAllFilters() {
     document.querySelectorAll('input[name="color"]').forEach(cb => cb.checked = false);
     document.querySelectorAll('input[name="sub-category"]').forEach(cb => cb.checked = false);
     
+    // Hide the "View All Products" button
+    const viewAllBtn = document.getElementById('view-all-btn');
+    if (viewAllBtn) viewAllBtn.style.display = 'none';
+    
+    // Reset title
+    const titleElement = document.getElementById('products-title');
+    if (titleElement) titleElement.textContent = 'All Products';
+    
     fetchProducts();
 }
 
@@ -430,6 +481,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (mobileCategorySelect) {
             mobileCategorySelect.value = urlCategory;
         }
+    }
+    
+    // Add click handler for "View All Products" button
+    const viewAllBtn = document.getElementById('view-all-btn');
+    if (viewAllBtn) {
+        viewAllBtn.addEventListener('click', clearAllFilters);
     }
     
     // Fetch products

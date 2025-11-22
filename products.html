@@ -307,8 +307,12 @@ NEXT STEPS FROM HERE:
             <!-- List Header -->
             <div class="products-header">
                 <div>
-                    <h1 style="font-size: 1.5rem; font-weight: 700;">All Products</h1>
-                    <p style="color: var(--muted); font-size: 0.9rem;">Showing 1-12 of 48 results</p>
+                    <h1 id="products-title" style="font-size: 1.5rem; font-weight: 700;">All Products</h1>
+                    <p id="results-count" style="color: var(--muted); font-size: 0.9rem;">Showing 1-12 of 48 results</p>
+                    <button id="view-all-btn" class="btn btn-outline" style="margin-top: 0.75rem; display: none;">
+                        <i data-lucide="x" style="width: 1rem; margin-right: 0.5rem;"></i>
+                        View All Products
+                    </button>
                 </div>
                 <div class="flex items-center gap-2">
                     <!-- Mobile Filter Button -->
