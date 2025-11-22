@@ -137,6 +137,22 @@ bash start.sh
 - **Soft Deletes**: Products marked deleted, not permanently removed
 
 ## Recent Changes
+- **2025-11-22**: Currency Updated to Nigerian Naira
+  - Changed all prices from USD ($) to Nigerian Naira (₦)
+  - Updated hardcoded prices in index.html, products.html, product-detail.html
+  - Updated dynamic price formatting in js/products.js
+  - All prices now display as ₦X.XX across the entire app
+
+- **2025-11-22**: Fixed Sort & Filter Functionality
+  - Added event listeners for sort dropdown in products.html
+  - Connected category, condition, and price filters to JavaScript functions
+  - All filters now properly call fetchProducts() to reload data from API
+
+- **2025-11-22**: Fixed Homepage Performance Issue
+  - Added Lucide Icons library to <head> of index.html
+  - Removed duplicate script tag to prevent errors
+  - Homepage now loads quickly without JavaScript errors
+
 - **2025-11-22**: Comprehensive Documentation Added
   - Added detailed inline comments to all backend files (database.py, models.py, auth.py, schemas.py, main.py)
   - Added comprehensive JavaScript documentation (app.js, products.js)
