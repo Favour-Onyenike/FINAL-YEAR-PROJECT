@@ -26,12 +26,12 @@
 # =============================================================================
 # uvicorn = ASGI server that runs FastAPI
 # backend.main:app = Run the FastAPI app from backend/main.py
-# --host 127.0.0.1 = Listen on localhost only (for backend)
+# --host 0.0.0.0 = Listen on all interfaces (accessible from frontend)
 # --port 8000 = Listen on port 8000
 # & = Run in background so we can start frontend too
 
 echo "Starting FastAPI backend on port 8000..."
-uvicorn backend.main:app --host 127.0.0.1 --port 8000 &
+uvicorn backend.main:app --host 0.0.0.0 --port 8000 &
 
 # =============================================================================
 # START FRONTEND SERVER

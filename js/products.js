@@ -24,16 +24,17 @@
 /**
  * API_URL determines where to send requests
  * 
- * In development: Send to localhost:8000/api
- * In production: Send to same domain (different port)
+ * Works in both development (localhost) and production (Replit/custom domain):
+ * - Uses the same hostname as the current page
+ * - Always connects to port 8000
+ * - Works with: localhost, Replit domains, custom domains
  * 
- * WHY THIS IS NEEDED:
- * - Development: Frontend and backend on different ports
- * - Production: Frontend served from same domain as backend
+ * WHY THIS APPROACH:
+ * - No hardcoded hostnames
+ * - Works everywhere without configuration
+ * - Frontend and backend use same domain, different ports
  */
-const API_URL = window.location.hostname === 'localhost' 
-    ? 'http://localhost:8000/api' 
-    : `${window.location.protocol}//${window.location.hostname}:8000/api`;
+const API_URL = `${window.location.protocol}//${window.location.hostname}:8000/api`;
 
 // =============================================================================
 // CURRENT FILTER STATE
