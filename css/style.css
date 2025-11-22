@@ -2493,3 +2493,44 @@ textarea.input-with-padding {
         transform: rotate(360deg);
     }
 }
+
+/* =============================================================================
+   NOTIFICATION BADGE - Unread Messages Indicator
+   ============================================================================= */
+
+.notification-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background-color: #ef4444;
+    color: white;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    border: 2px solid var(--background);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    animation: pulse 2s infinite;
+}
+
+.notification-badge.hidden {
+    display: none;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
+    }
+    50% {
+        box-shadow: 0 2px 8px rgba(239, 68, 68, 0.6);
+    }
+}
+
+/* Position badge relative to nav-icon */
+#logged-in-actions .btn-icon {
+    position: relative;
+}

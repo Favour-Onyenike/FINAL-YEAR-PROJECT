@@ -334,3 +334,75 @@ function requireLogin() {
         window.location.href = '/login.html';
     }
 }
+
+/* =============================================================================
+   UNREAD MESSAGE BADGE - Shows notification for new messages
+   ============================================================================= */
+
+/**
+ * Fetch unread message count and update the notification badge
+ * Called on page load and when new messages arrive
+ */
+async function updateMessageBadge() {
+    try {
+        const token = getToken();
+        const userId = localStorage.getItem('userId');
+        
+        if (!token || !userId) return; // User not logged in
+        
+        // Get all users to check for messages
+        const response = await fetch('/api/users', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (!response.ok) return;
+        
+        const users = await response.json();
+        let unreadCount = 0;
+        
+        // Check messages with each user for unread count
+        for (let user of users) {
+            if (user.id === parseInt(userId)) continue; // Skip current user
+            
+            try {
+                const msgResponse = await fetch(`/api/messages/${user.id}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (msgResponse.ok) {
+                    const messages = await msgResponse.json();
+                    // Count unread messages (is_read = 0 and we are receiver)
+                    for (let msg of messages) {
+                        if (msg.isRead === 0 && msg.receiverId === parseInt(userId)) {
+                            unreadCount++;
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error checking messages:', error);
+            }
+        }
+        
+        // Update badge
+        const badge = document.getElementById('message-badge');
+        if (badge) {
+            if (unreadCount > 0) {
+                badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+    } catch (error) {
+        console.error('Error updating message badge:', error);
+    }
+}
+
+/**
+ * Update message badge when page loads (if user is logged in)
+ */
+document.addEventListener('DOMContentLoaded', () => {
+    if (isLoggedIn()) {
+        updateMessageBadge();
+    }
+});
