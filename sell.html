@@ -120,15 +120,17 @@
             </div>
 
             <div class="form-group">
-                <label class="form-label">Product Images (Up to 5)</label>
+                <label class="form-label">Product Images (3-5 required) *</label>
                 <div class="image-uploader" onclick="document.getElementById('file-input').click()">
                     <i data-lucide="upload"
                         style="width: 3rem; height: 3rem; margin: 0 auto 1rem; color: var(--muted);"></i>
                     <p style="font-weight: 600; margin-bottom: 0.5rem;">Click to upload images</p>
-                    <p style="font-size: 0.875rem; color: var(--muted);">PNG, JPG up to 10MB</p>
+                    <p style="font-size: 0.875rem; color: var(--muted);">PNG, JPG up to 10MB (Minimum 3, Maximum 5)</p>
                 </div>
                 <input type="file" id="file-input" accept="image/*" multiple style="display: none;">
                 <div class="image-preview-grid" id="image-preview"></div>
+                <p id="image-count-display" style="font-size: 0.875rem; color: var(--muted); margin-top: 0.5rem;">0 images selected</p>
+                <p id="image-error" style="font-size: 0.875rem; color: #ef4444; margin-top: 0.5rem; display: none;"></p>
             </div>
 
             <div class="form-actions">
@@ -188,6 +190,7 @@
             const files = Array.from(e.target.files).slice(0, 5);
             selectedFiles = files;
             displayImages();
+            updateImageCount();
         });
 
         function displayImages() {
@@ -213,11 +216,42 @@
         function removeImage(index) {
             selectedFiles.splice(index, 1);
             displayImages();
+            updateImageCount();
+        }
+
+        function updateImageCount() {
+            const countDisplay = document.getElementById('image-count-display');
+            const errorDisplay = document.getElementById('image-error');
+            const count = selectedFiles.length;
+            
+            countDisplay.textContent = `${count} image${count !== 1 ? 's' : ''} selected`;
+            
+            // Show error if less than 3 or more than 5
+            if (count > 0 && count < 3) {
+                errorDisplay.textContent = `⚠️ Minimum 3 images required (${count} selected)`;
+                errorDisplay.style.display = 'block';
+            } else if (count > 5) {
+                errorDisplay.textContent = `⚠️ Maximum 5 images allowed (${count} selected)`;
+                errorDisplay.style.display = 'block';
+            } else {
+                errorDisplay.style.display = 'none';
+            }
         }
 
         // Form submission
         document.getElementById('sell-form').addEventListener('submit', async (e) => {
             e.preventDefault();
+            
+            // Validate image count (3-5 required)
+            if (selectedFiles.length < 3) {
+                alert(`❌ Please upload at least 3 images. You have selected ${selectedFiles.length} image${selectedFiles.length !== 1 ? 's' : ''}.`);
+                return;
+            }
+            
+            if (selectedFiles.length > 5) {
+                alert(`❌ Maximum 5 images allowed. You have selected ${selectedFiles.length} images.`);
+                return;
+            }
             
             // Get form data
             const formData = new FormData(e.target);
