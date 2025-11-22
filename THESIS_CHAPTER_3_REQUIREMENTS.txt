@@ -929,6 +929,599 @@ TESTING SCENARIOS (Functional):
 
 
 ================================================================================
+5A. DETAILED DATABASE ARCHITECTURE & DESIGN
+================================================================================
+
+DATABASE OVERVIEW:
+==================
+UniMarket uses a relational database with 6 main tables organized in a 
+normalized structure following Third Normal Form (3NF) principles.
+
+DATABASE CHOICE:
+- Development: SQLite (file-based, zero configuration)
+- Production: PostgreSQL (scalable, multi-user, robust)
+- ORM: SQLAlchemy (database-agnostic, prevents SQL injection)
+
+DATABASE FILE LOCATION (Development):
+- File: unimarket.db (in project root)
+- Size: Grows as users/products added (typically starts <1MB)
+- Portability: Single file, easy to backup/transfer
+
+
+ENTITY-RELATIONSHIP (ER) DIAGRAM:
+==================================
+
+This is the complete database structure showing all tables and relationships:
+
+┌─────────────────────────────────────────────────────────────────────┐
+│                         UNIVERSITIES TABLE                         │
+├─────────────────────────────────────────────────────────────────────┤
+│ id (PK)             → Integer, unique identifier                   │
+│ name                → "Baze University", "Lagos State University"  │
+│ domain              → "@bazeuniversity.edu.ng" (UNIQUE)            │
+│                                                                     │
+│ Purpose: Organize users by university, enforce email domains       │
+│ Relationships: ←── User (one uni has many users)                   │
+└─────────────────────────────────────────────────────────────────────┘
+                              ▲
+                              │ ONE
+                              │
+                        ONE │ university_id (FK)
+                            ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                          USERS TABLE                               │
+├─────────────────────────────────────────────────────────────────────┤
+│ id (PK)              → Integer, auto-increment                     │
+│ full_name            → "John Doe" (2-255 chars, required)          │
+│ username             → "johndoe" (3-100 chars, UNIQUE, indexed)    │
+│ email                → "john@bazeuniversity.edu.ng" (UNIQUE, idx) │
+│ password_hash        → bcrypt hash (never plain text!)             │
+│ university_id (FK)   → Points to universities.id                   │
+│ bio                  → Optional biography (Text, nullable)         │
+│ profile_image        → URL to avatar (/uploads/products/*.jpg)     │
+│ phone                → Optional phone number                       │
+│ created_at           → Timestamp when account created              │
+│                                                                     │
+│ Purpose: Store user accounts and profiles                          │
+│ Relationships:                                                      │
+│   ├──→ University (many users per uni)                            │
+│   ├──→ Product (user can create many products)                    │
+│   └──→ SavedItem (user can save many products)                    │
+└─────────────────────────────────────────────────────────────────────┘
+        ▲                              ▲                    ▲
+        │ ONE                          │ ONE               │ ONE
+        │                              │                   │
+    id (PK)                      seller_id (FK)        user_id (FK)
+        │ MANY                         │ MANY             │ MANY
+        │                              ▼                   ▼
+        │              ┌────────────────────────────────────────┐
+        └─────────────→│        PRODUCTS TABLE                  │
+                       ├────────────────────────────────────────┤
+                       │ id (PK)                → Auto-increment │
+                       │ name                   → Product name   │
+                       │ description            → Full details   │
+                       │ price                  → Float (₦ price)│
+                       │ category_id (FK)       → Category link  │
+                       │ seller_id (FK)  ──────→ Who sells it   │
+                       │ location               → Location (Baze)│
+                       │ condition              → New/Like New.. │
+                       │ size                   → Optional (S,M)│
+                       │ color                  → Optional color │
+                       │ status      → "available"/"sold"/"del" │
+                       │ created_at, updated_at → Timestamps    │
+                       │                                        │
+                       │ Purpose: Store product listings         │
+                       │ Relationships:                          │
+                       │   ├──→ User (seller)                   │
+                       │   ├──→ Category                        │
+                       │   ├──→ ProductImage (1 to many)       │
+                       │   └──→ SavedItem (many saved by users) │
+                       └────────────────────────────────────────┘
+                                ▲           ▲
+                                │ ONE       │ ONE
+                                │           │
+                      product_id (FK)  category_id (FK)
+                                │ MANY       │ MANY
+                                │           │
+                    ┌──────────────┐    ┌──────────────┐
+                    │ PRODUCT_     │    │  CATEGORIES  │
+                    │ IMAGES TABLE │    │  TABLE       │
+                    ├──────────────┤    ├──────────────┤
+                    │ id (PK)      │    │ id (PK)      │
+                    │ product_id   │    │ name (UNIQUE)│
+                    │ image_url    │    │              │
+                    │ is_primary   │    │ Purpose:     │
+                    │ created_at   │    │ Organize     │
+                    │              │    │ products by  │
+                    │ Purpose:     │    │ category     │
+                    │ Store images │    │              │
+                    │ for products │    │ Relationships│
+                    │ (3-5 per     │    │   Product    │
+                    │ product)     │    │   (many)     │
+                    │              │    │              │
+                    │ Relationships│    └──────────────┘
+                    │ → Product    │
+                    └──────────────┘
+                                ▲
+                                │
+                         product_id (FK)
+                                │
+                       ┌─────────────────────────────────┐
+                       │   SAVED_ITEMS TABLE             │
+                       │   (Many-to-Many Junction)       │
+                       ├─────────────────────────────────┤
+                       │ id (PK)      → Auto-increment   │
+                       │ user_id (FK) → Which user saved │
+                       │ product_id   → Which product    │
+                       │ created_at   → When saved       │
+                       │                                 │
+                       │ Purpose: Link users to saved    │
+                       │ products (wishlist/bookmarks)   │
+                       │                                 │
+                       │ Relationships:                  │
+                       │   ├──→ User (bookmark list)     │
+                       │   └──→ Product (saved by users) │
+                       └─────────────────────────────────┘
+
+
+TABLE SPECIFICATIONS & DETAILS:
+================================
+
+1. UNIVERSITIES TABLE
+   Location: backend/models.py (lines 55-82)
+   Rows: 1-5 (one per supported university)
+   
+   PURPOSE: Define allowed universities and their email domains
+   
+   COLUMNS:
+   ┌─────────────┬──────────────┬────────────────────────────┐
+   │ Column      │ Type         │ Details                    │
+   ├─────────────┼──────────────┼────────────────────────────┤
+   │ id (PK)     │ Integer      │ Primary key, indexed       │
+   │ name        │ String(255)  │ "Baze University"          │
+   │ domain      │ String(255)  │ @bazeuniversity.edu.ng     │
+   │             │              │ UNIQUE (no duplicates)     │
+   └─────────────┴──────────────┴────────────────────────────┘
+   
+   INDEXES:
+   - PRIMARY KEY on id (automatic)
+   - UNIQUE on domain (automatic)
+   
+   INITIAL DATA (SEEDED):
+   - ID: 1, Name: "Baze University", Domain: "bazeuniversity.edu.ng"
+   
+   QUERIES:
+   - Get uni by email domain: SELECT * FROM universities WHERE domain = "@bazeuniversity.edu.ng"
+   - Get all unis: SELECT * FROM universities
+
+
+2. USERS TABLE
+   Location: backend/models.py (lines 87-151)
+   Rows: Grows with each signup (1 row per student)
+   
+   PURPOSE: Store student accounts, authentication, and profile info
+   
+   COLUMNS:
+   ┌──────────────────┬──────────────┬─────────────────────────┐
+   │ Column           │ Type         │ Details                 │
+   ├──────────────────┼──────────────┼─────────────────────────┤
+   │ id (PK)          │ Integer      │ Auto-increment          │
+   │ full_name        │ String(255)  │ Real name, required     │
+   │ username         │ String(100)  │ UNIQUE, indexed, login  │
+   │ email            │ String(255)  │ UNIQUE, indexed         │
+   │ password_hash    │ String(255)  │ bcrypt hash (72 chars)  │
+   │ university_id    │ Integer (FK) │ Foreign key to univ.    │
+   │ bio              │ Text         │ Optional biography      │
+   │ profile_image    │ String(500)  │ Avatar URL, nullable    │
+   │ phone            │ String(20)   │ Phone number, optional  │
+   │ created_at       │ DateTime     │ Account creation time   │
+   └──────────────────┴──────────────┴─────────────────────────┘
+   
+   INDEXES:
+   - PRIMARY KEY on id
+   - UNIQUE on username (fast login lookups)
+   - UNIQUE on email (prevent duplicate emails)
+   - FOREIGN KEY on university_id (referential integrity)
+   
+   CONSTRAINTS:
+   - full_name: NOT NULL (required)
+   - username: NOT NULL, UNIQUE (required, no duplicates)
+   - email: NOT NULL, UNIQUE (required, no duplicates)
+   - password_hash: NOT NULL (required)
+   - university_id: NOT NULL, FOREIGN KEY
+   
+   EXAMPLE ROW:
+   ┌────┬──────────────┬────────┬──────────────────────────────┬──────┐
+   │ id │ full_name    │ uname  │ email                        │ ... │
+   ├────┼──────────────┼────────┼──────────────────────────────┼──────┤
+   │ 1  │ John Doe     │ john   │ john@bazeuniversity.edu.ng   │ ... │
+   │ 2  │ Jane Smith   │ jane   │ jane@bazeuniversity.edu.ng   │ ... │
+   └────┴──────────────┴────────┴──────────────────────────────┴──────┘
+   
+   QUERIES:
+   - Login: SELECT * FROM users WHERE email = ? (indexed)
+   - Find by username: SELECT * FROM users WHERE username = ? (indexed)
+   - Get user profile: SELECT * FROM users WHERE id = ?
+   - Count users per uni: SELECT COUNT(*) FROM users WHERE university_id = 1
+
+
+3. CATEGORIES TABLE
+   Location: backend/models.py (lines 156-178)
+   Rows: 5 (fixed)
+   
+   PURPOSE: Define product categories for organization
+   
+   COLUMNS:
+   ┌─────────┬──────────────┬──────────────────────┐
+   │ Column  │ Type         │ Details              │
+   ├─────────┼──────────────┼──────────────────────┤
+   │ id (PK) │ Integer      │ Auto-increment       │
+   │ name    │ String(100)  │ UNIQUE, "Textbooks" │
+   └─────────┴──────────────┴──────────────────────┘
+   
+   INDEXES:
+   - PRIMARY KEY on id
+   - UNIQUE on name (fast lookups by category)
+   
+   INITIAL DATA (SEEDED):
+   - ID: 1, Name: "Textbooks"
+   - ID: 2, Name: "Electronics"
+   - ID: 3, Name: "Clothing"
+   - ID: 4, Name: "Furniture"
+   - ID: 5, Name: "Other"
+   
+   QUERIES:
+   - List all categories: SELECT * FROM categories
+   - Get products in category: SELECT * FROM products WHERE category_id = 2
+
+
+4. PRODUCTS TABLE
+   Location: backend/models.py (lines 183-264)
+   Rows: Grows with each listing (1 row per product)
+   
+   PURPOSE: Store product listings
+   
+   COLUMNS:
+   ┌──────────────┬──────────────┬──────────────────────────┐
+   │ Column       │ Type         │ Details                  │
+   ├──────────────┼──────────────┼──────────────────────────┤
+   │ id (PK)      │ Integer      │ Auto-increment           │
+   │ name         │ String(255)  │ Product name, indexed    │
+   │ description  │ Text         │ Long product details     │
+   │ price        │ Float        │ Price in Nigerian Naira  │
+   │ category_id  │ Integer (FK) │ Category link            │
+   │ seller_id    │ Integer (FK) │ Who's selling (user.id)  │
+   │ location     │ String(255)  │ Where located, optional  │
+   │ condition    │ String(50)   │ New/Like New/Good/Fair   │
+   │ size         │ String(50)   │ Size (for clothing)      │
+   │ color        │ String(50)   │ Color, optional          │
+   │ status       │ String(50)   │ available/sold/deleted   │
+   │ created_at   │ DateTime     │ When listed              │
+   │ updated_at   │ DateTime     │ Last modified            │
+   └──────────────┴──────────────┴──────────────────────────┘
+   
+   INDEXES:
+   - PRIMARY KEY on id
+   - INDEX on name (for search queries)
+   - INDEX on created_at (for sorting)
+   - FOREIGN KEY on category_id
+   - FOREIGN KEY on seller_id
+   
+   EXAMPLE ROW:
+   ┌────┬──────────────────┬───────┬────────────┬────┬──────────────┐
+   │ id │ name             │ price │ seller_id  │... │ status       │
+   ├────┼──────────────────┼───────┼────────────┼────┼──────────────┤
+   │ 1  │ Calculus Book    │ 3500  │ 1          │... │ available    │
+   │ 2  │ Laptop           │ 45000 │ 2          │... │ available    │
+   │ 3  │ Old Textbook     │ 1500  │ 1          │... │ sold         │
+   └────┴──────────────────┴───────┴────────────┴────┴──────────────┘
+   
+   SOFT DELETE STRATEGY:
+   - Product never actually deleted from database
+   - status = "deleted" hides it from queries
+   - Can be restored later if needed
+   - Preserves history for analytics
+   
+   QUERIES:
+   - List all available: SELECT * FROM products WHERE status = "available"
+   - Search by name: SELECT * FROM products WHERE name LIKE %search%
+   - User's products: SELECT * FROM products WHERE seller_id = 1
+   - Filter by category & price: SELECT * FROM products WHERE category_id = 2 AND price BETWEEN 0 AND 5000
+
+
+5. PRODUCT_IMAGES TABLE
+   Location: backend/models.py (lines 269-305)
+   Rows: 3-5 per product (3-5 images required per listing)
+   
+   PURPOSE: Store image URLs for products (one-to-many relationship)
+   
+   COLUMNS:
+   ┌──────────────┬──────────────┬──────────────────────────┐
+   │ Column       │ Type         │ Details                  │
+   ├──────────────┼──────────────┼──────────────────────────┤
+   │ id (PK)      │ Integer      │ Auto-increment           │
+   │ product_id   │ Integer (FK) │ Which product owns this  │
+   │ image_url    │ String(500)  │ Full path to image       │
+   │ is_primary   │ Integer      │ 1 = main image, 0 = not  │
+   │ created_at   │ DateTime     │ When uploaded            │
+   └──────────────┴──────────────┴──────────────────────────┘
+   
+   INDEXES:
+   - PRIMARY KEY on id
+   - FOREIGN KEY on product_id (cascade delete)
+   
+   CASCADE DELETE:
+   - If product is deleted, all images deleted too
+   - Prevents orphaned image records
+   
+   EXAMPLE ROWS (for Product ID 1):
+   ┌────┬──────────────┬───────────────────────────────┬────────────┐
+   │ id │ product_id   │ image_url                     │ is_primary │
+   ├────┼──────────────┼───────────────────────────────┼────────────┤
+   │ 1  │ 1            │ /uploads/products/uuid1.jpg   │ 1          │
+   │ 2  │ 1            │ /uploads/products/uuid2.jpg   │ 0          │
+   │ 3  │ 1            │ /uploads/products/uuid3.jpg   │ 0          │
+   └────┴──────────────┴───────────────────────────────┴────────────┘
+   
+   IMAGE STORAGE:
+   - Location: backend/uploads/products/
+   - Filename: UUID + original extension (e.g., 3fa85f64-5717-4562.jpg)
+   - No overwrites: UUID ensures unique filenames
+   - HTTP path: /uploads/products/3fa85f64-5717-4562.jpg
+   
+   QUERIES:
+   - Get all images for product: SELECT * FROM product_images WHERE product_id = 1
+   - Get primary image: SELECT * FROM product_images WHERE product_id = 1 AND is_primary = 1
+
+
+6. SAVED_ITEMS TABLE (Many-to-Many Junction)
+   Location: backend/models.py (lines 310-343)
+   Rows: Grows with each bookmark (no limit)
+   
+   PURPOSE: Link users to products they've saved (wishlist)
+   
+   COLUMNS:
+   ┌──────────────┬──────────────┬──────────────────────────┐
+   │ Column       │ Type         │ Details                  │
+   ├──────────────┼──────────────┼──────────────────────────┤
+   │ id (PK)      │ Integer      │ Auto-increment           │
+   │ user_id      │ Integer (FK) │ Which user saved it      │
+   │ product_id   │ Integer (FK) │ Which product was saved  │
+   │ created_at   │ DateTime     │ When saved               │
+   └──────────────┴──────────────┴──────────────────────────┘
+   
+   INDEXES:
+   - PRIMARY KEY on id
+   - FOREIGN KEY on user_id
+   - FOREIGN KEY on product_id
+   - UNIQUE constraint on (user_id, product_id) pair
+   
+   EXAMPLE ROWS:
+   ┌────┬─────────┬────────────┬──────────────────────┐
+   │ id │ user_id │ product_id │ created_at           │
+   ├────┼─────────┼────────────┼──────────────────────┤
+   │ 1  │ 1       │ 5          │ 2025-11-22 10:30:00  │
+   │ 2  │ 1       │ 10         │ 2025-11-22 10:45:00  │
+   │ 3  │ 2       │ 5          │ 2025-11-22 11:00:00  │
+   └────┴─────────┴────────────┴──────────────────────┘
+   
+   MANY-TO-MANY PATTERN:
+   - One user can save many products
+   - One product can be saved by many users
+   - This junction table connects them
+   
+   QUERIES:
+   - Get user's saved items: SELECT p.* FROM products p JOIN saved_items s ON p.id = s.product_id WHERE s.user_id = 1
+   - Check if user saved product: SELECT * FROM saved_items WHERE user_id = 1 AND product_id = 5
+   - Get who saved a product: SELECT u.* FROM users u JOIN saved_items s ON u.id = s.user_id WHERE s.product_id = 5
+
+
+DATA FLOW & RELATIONSHIPS:
+==========================
+
+1. USER REGISTRATION FLOW:
+   ┌──────────────┐
+   │ Frontend     │ POST /api/auth/register
+   │ signup.html  │────────────────────────→ Backend API
+   └──────────────┘                         ├─ Validate email domain
+                                            ├─ Hash password with bcrypt
+                                            ├─ Check username/email unique
+                                            └─ INSERT into users table
+                                                ↓
+                                           ┌────────────────────┐
+                                           │ USERS TABLE        │
+                                           │ New row created    │
+                                           │ with user data     │
+                                           └────────────────────┘
+
+2. PRODUCT CREATION FLOW:
+   ┌──────────────┐
+   │ Frontend     │ 1. POST /api/upload (3-5 images)
+   │ sell.html    │────────────────────────→ Backend
+   └──────────────┘                         ├─ Validate image files
+                                            ├─ Save to /uploads/products/
+                                            └─ Return URLs
+                                                ↓
+                                           Returns image URLs
+                                                ↓
+                                        2. POST /api/products
+                                           ├─ INSERT into products table
+                                           ├─ INSERT into product_images table (3-5 rows)
+                                           └─ Return product object
+
+3. PRODUCT SEARCH FLOW:
+   ┌──────────────────────┐
+   │ Frontend             │ GET /api/products?search=book&category=1&priceMax=5000
+   │ products.html        │─────────────────────→ Backend
+   └──────────────────────┘                      ├─ Query products table
+                                                 ├─ Filter by name LIKE
+                                                 ├─ Filter by category_id
+                                                 ├─ Filter by price range
+                                                 ├─ JOIN with product_images
+                                                 ├─ JOIN with users (seller info)
+                                                 └─ Return product array
+                                                      ↓
+                                                ┌────────────────────┐
+                                                │ Products returned  │
+                                                │ with images &      │
+                                                │ seller info        │
+                                                └────────────────────┘
+
+4. BOOKMARK/SAVED ITEMS FLOW:
+   ┌──────────────────────┐
+   │ Frontend             │ POST /api/saved-items/toggle
+   │ product-detail.html  │────────────────────────→ Backend
+   └──────────────────────┘                        ├─ Check if already saved
+                                                   ├─ If not: INSERT into saved_items
+                                                   ├─ If yes: DELETE from saved_items
+                                                   └─ Return toggle result
+
+
+NORMALIZATION & DESIGN PRINCIPLES:
+===================================
+
+DATABASE NORMALIZATION (3NF):
+The schema follows Third Normal Form (3NF):
+
+1. First Normal Form (1NF):
+   ✓ All columns contain atomic (indivisible) values
+   ✓ No repeating groups
+   ✓ Example: Product images in separate table, not array in product row
+
+2. Second Normal Form (2NF):
+   ✓ All non-key attributes depend on the entire primary key
+   ✓ No partial dependencies
+   ✓ Example: product_images.image_url depends on product_id
+
+3. Third Normal Form (3NF):
+   ✓ No transitive dependencies
+   ✓ Non-key attributes depend only on primary key
+   ✓ Example: categories.name not in products (avoids data duplication)
+
+BENEFITS OF NORMALIZATION:
+- Eliminates data redundancy (saves space)
+- Maintains data integrity (one source of truth)
+- Simplifies updates (change once, everywhere)
+- Prevents anomalies (insertion, deletion, update)
+
+DENORMALIZATION DECISIONS:
+Some columns could be denormalized for performance:
+- Example: Storing category_name directly in products table
+- Trade-off: Save query joins vs. data consistency risk
+- Current decision: Keep normalized (correctness > performance)
+- Future: Cache layer (Redis) for performance if needed
+
+
+INDEXES & PERFORMANCE:
+======================
+
+CURRENT INDEXES:
+┌─────────────────┬──────────┬────────────────────────────┐
+│ Table           │ Column   │ Purpose                    │
+├─────────────────┼──────────┼────────────────────────────┤
+│ users           │ id       │ Primary key (auto)         │
+│ users           │ username │ Fast login lookups         │
+│ users           │ email    │ Fast email lookups         │
+│ products        │ id       │ Primary key (auto)         │
+│ products        │ name     │ Search by product name     │
+│ products        │ created_ │ Sort by newest first       │
+│                 │ at       │                            │
+│ categories      │ id       │ Primary key (auto)         │
+│ categories      │ name     │ Fast category lookups      │
+│ universities    │ id       │ Primary key (auto)         │
+│ universities    │ domain   │ Unique email domains       │
+└─────────────────┴──────────┴────────────────────────────┘
+
+INDEX STRATEGY:
+- Index all primary keys (automatic)
+- Index all foreign keys (for JOIN performance)
+- Index columns used in WHERE clauses (search, filter)
+- Index columns used in ORDER BY (sorting)
+- Index UNIQUE columns (enforces uniqueness, speeds lookup)
+
+QUERY OPTIMIZATION:
+Slow query example:
+  SELECT * FROM products WHERE name LIKE '%book%'
+  (Without index: scans all rows)
+
+Fast query example:
+  SELECT * FROM products WHERE id = 1
+  (With index: instant lookup)
+
+Future optimization:
+  - Database: Add composite indexes
+  - Example: INDEX on (seller_id, created_at) for "user's products sorted by date"
+  - Add full-text search index for product names
+  - Use EXPLAIN ANALYZE to identify slow queries
+
+
+DATABASE STATISTICS:
+====================
+
+Storage Capacity (SQLite):
+- Theoretical limit: 140 TB (very large!)
+- Practical limit: Depends on host storage
+- Current usage: < 1 MB (empty database)
+
+Scale Estimates:
+- 1,000 users: ~200 KB
+- 10,000 products: ~500 KB
+- 100,000 products: ~5 MB
+
+When to migrate to PostgreSQL:
+- > 10,000 products
+- > 100 concurrent users
+- Need replication/backup
+- Need advanced features (full-text search, JSON, etc.)
+
+
+DATABASE MIGRATION PLAN (SQLite → PostgreSQL):
+===============================================
+
+The architecture is designed for easy migration:
+
+Step 1: Set environment variable
+  export DATABASE_URL="postgresql://user:pass@host:5432/unimarket"
+
+Step 2: No code changes needed!
+  - SQLAlchemy handles it automatically
+  - All ORM queries remain identical
+  - No SQL to rewrite
+
+Step 3: Initialize PostgreSQL
+  - Create database: CREATE DATABASE unimarket;
+  - Run: python -c "from backend.database import init_db; init_db()"
+  - Tables created automatically
+  - Data seeded automatically
+
+Step 4: Migrate existing SQLite data (if needed)
+  - Export from SQLite
+  - Import to PostgreSQL
+  - Tools: pgloader, python script with SQLAlchemy
+
+
+BACKUP & RECOVERY:
+==================
+
+SQLite Backup (development):
+- File: unimarket.db
+- Backup: Copy the file
+- Restore: Replace with backup copy
+
+PostgreSQL Backup (production):
+  # Backup
+  pg_dump unimarket > backup.sql
+  
+  # Restore
+  psql unimarket < backup.sql
+
+Automated backups (recommended for production):
+- AWS RDS automated backups
+- Daily PostgreSQL dumps
+- Replicate to S3 or cloud storage
+
+
+================================================================================
 6. IMPLEMENTATION CHECKLIST & CODE LOCATIONS
 ================================================================================
 
