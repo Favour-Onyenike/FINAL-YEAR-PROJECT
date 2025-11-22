@@ -205,8 +205,10 @@ NEXT STEP: User redirected to products.html (shop page) after login
                 const expiration = parseInt(expirationTime);
                 
                 if (now < expiration) {
-                    // Token is still valid, auto-login by redirecting to profile
-                    window.location.href = 'profile.html';
+                    // Token is still valid, auto-login by redirecting
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const returnTo = urlParams.get('returnTo') || 'profile.html';
+                    window.location.href = returnTo;
                     return;
                 } else {
                     // Token expired, clear stored data
@@ -291,7 +293,10 @@ NEXT STEP: User redirected to products.html (shop page) after login
                     
                     // Redirect after showing success
                     setTimeout(() => {
-                        window.location.href = 'profile.html';
+                        // Check if there's a returnTo parameter in the URL
+                        const urlParams = new URLSearchParams(window.location.search);
+                        const returnTo = urlParams.get('returnTo') || 'profile.html';
+                        window.location.href = returnTo;
                     }, 800);
                 } else {
                     // Login failed - show error X

@@ -267,8 +267,8 @@ NEXT STEPS FROM HERE:
             const token = localStorage.getItem('token');
             
             if (!user || !token) {
-                // User not logged in - redirect to login
-                window.location.href = 'login.html';
+                // User not logged in - redirect to login and return to this page after login
+                window.location.href = 'login.html?returnTo=saved-items.html';
                 return true;
             }
             
