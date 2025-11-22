@@ -485,14 +485,20 @@ async function updateMessageBadge() {
         
         // Update badge - show just a red dot if unread messages exist
         const badge = document.getElementById('message-badge');
+        console.log('Badge element:', badge, 'Unread count:', unreadCount);
         if (badge) {
             if (unreadCount > 0) {
                 badge.textContent = '●';
                 badge.classList.remove('hidden');
                 badge.style.fontSize = '0.75rem';
+                badge.style.color = '#ef4444';
+                console.log('✅ Badge updated with unread count:', unreadCount);
             } else {
                 badge.classList.add('hidden');
+                console.log('No unread messages');
             }
+        } else {
+            console.warn('Message badge element not found on this page');
         }
     } catch (error) {
         console.error('Error updating message badge:', error);
@@ -506,6 +512,12 @@ async function updateMessageBadge() {
 document.addEventListener('DOMContentLoaded', () => {
     if (isLoggedIn()) {
         updateMessageBadge();
+        // Check for new messages every 5 seconds
+        setInterval(() => {
+            if (isLoggedIn()) {
+                updateMessageBadge();
+            }
+        }, 5000);
     }
     
     // Global search functionality

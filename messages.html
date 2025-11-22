@@ -362,6 +362,10 @@
 
         socket.on('receive_message', (data) => {
             console.log('Received message:', data);
+            // Update the message badge when new message arrives
+            if (typeof updateMessageBadge === 'function') {
+                updateMessageBadge();
+            }
             // If message is from current conversation, load new messages
             if (currentConversationUserId && data.senderId == currentConversationUserId) {
                 loadMessages(currentConversationUserId);
