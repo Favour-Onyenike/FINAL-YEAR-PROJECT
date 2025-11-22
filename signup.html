@@ -286,7 +286,7 @@ NEXT STEP: User redirected to profile.html after successful signup
                     if (loginResponse.ok) {
                         const loginData = await loginResponse.json();
                         // Store JWT token and user info
-                        localStorage.setItem('token', loginData.access_token);
+                        localStorage.setItem('token', loginData.token);
                         localStorage.setItem('user', JSON.stringify({
                             id: loginData.user.id,
                             name: loginData.user.fullName,
