@@ -40,7 +40,14 @@
 
                 <div class="form-group">
                     <label class="form-label">Password</label>
-                    <input type="password" class="input" placeholder="••••••••" required>
+                    <input type="password" class="input" id="password-input" placeholder="••••••••" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Confirm Password</label>
+                    <input type="password" class="input" id="confirm-password-input" placeholder="••••••••" required>
+                    <p class="text-sm text-red-500 hidden" id="password-error"
+                        style="color: var(--destructive); font-size: 0.8rem; margin-top: 0.25rem;">Passwords do not match</p>
                 </div>
 
                 <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Create an
@@ -64,13 +71,17 @@
         const form = document.getElementById('signup-form');
         const emailInput = document.getElementById('email-input');
         const emailError = document.getElementById('email-error');
+        const passwordInput = document.getElementById('password-input');
+        const confirmPasswordInput = document.getElementById('confirm-password-input');
+        const passwordError = document.getElementById('password-error');
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
 
             const fullName = form.querySelector('input[type="text"]').value;
             const email = emailInput.value.toLowerCase();
-            const password = form.querySelector('input[type="password"]').value;
+            const password = passwordInput.value;
+            const confirmPassword = confirmPasswordInput.value;
 
             // Validate email domain
             if (!email.endsWith('@bazeuniversity.edu.ng')) {
@@ -79,7 +90,7 @@
                 return;
             }
 
-            // Reset error
+            // Reset email error
             emailError.classList.add('hidden');
             emailInput.style.borderColor = 'var(--input)';
 
@@ -88,6 +99,19 @@
                 alert('Password must be at least 6 characters long');
                 return;
             }
+
+            // Validate passwords match
+            if (password !== confirmPassword) {
+                passwordError.classList.remove('hidden');
+                passwordInput.style.borderColor = 'var(--destructive)';
+                confirmPasswordInput.style.borderColor = 'var(--destructive)';
+                return;
+            }
+
+            // Reset password error
+            passwordError.classList.add('hidden');
+            passwordInput.style.borderColor = 'var(--input)';
+            confirmPasswordInput.style.borderColor = 'var(--input)';
 
             // Disable button and show loading state
             const btn = form.querySelector('button');
