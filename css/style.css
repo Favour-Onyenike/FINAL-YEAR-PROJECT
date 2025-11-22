@@ -391,10 +391,10 @@ textarea.input {
     .search-bar.expanded {
         position: absolute;
         top: 0.75rem;
-        left: 1rem;
-        right: 1rem;
-        width: auto;
-        max-width: none;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 85%;
+        max-width: 400px;
     }
 
     .search-bar.expanded .input {
