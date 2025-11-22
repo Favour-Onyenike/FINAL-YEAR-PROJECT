@@ -67,7 +67,7 @@
             <div class="profile-info">
                 <div class="flex items-center gap-4" style="margin-bottom: 1rem;">
                     <h1 class="profile-username" id="profile-username" style="margin-bottom: 0;">Loading...</h1>
-                    <a href="edit-profile.html" class="btn btn-outline">Edit Profile</a>
+                    <a id="edit-profile-btn" href="edit-profile.html" class="btn btn-outline hidden">Edit Profile</a>
                 </div>
 
                 <div class="profile-stats">
@@ -90,15 +90,15 @@
 
         <!-- Tabs -->
         <div class="profile-tabs">
-            <button class="profile-tab active" onclick="switchTab('listings')">My Listings</button>
-            <button class="profile-tab" onclick="switchTab('saved')">Saved</button>
+            <button class="profile-tab active" onclick="switchTab('listings')" id="listings-tab">Listings</button>
+            <button class="profile-tab" onclick="switchTab('saved')" id="saved-tab" class="hidden">Saved</button>
         </div>
 
         <!-- Tab Content: My Listings -->
         <div class="profile-tab-content" id="listings-content">
             <div class="flex justify-between items-center" style="margin-bottom: 2rem;">
-                <h2 style="font-size: 1.5rem; font-weight: 700;">My Listings</h2>
-                <a href="sell.html" class="btn btn-primary">
+                <h2 style="font-size: 1.5rem; font-weight: 700;" id="listings-title">Listings</h2>
+                <a href="sell.html" class="btn btn-primary hidden" id="new-listing-btn">
                     <i data-lucide="plus" style="width: 1rem; margin-right: 0.5rem;"></i> New Listing
                 </a>
             </div>
@@ -227,41 +227,76 @@
 
     <script src="js/app.js"></script>
     <script>
+        // Get profile user ID from URL parameter
+        function getProfileUserId() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('userId') || null;
+        }
+        
         // Load user profile data
         function loadUserProfile() {
-            const user = JSON.parse(localStorage.getItem('user'));
+            const currentUser = JSON.parse(localStorage.getItem('user'));
+            const profileUserId = getProfileUserId();
             
-            if (!user) {
+            // Determine whose profile to show
+            const userId = profileUserId || (currentUser ? currentUser.id : null);
+            const isOwnProfile = currentUser && userId === currentUser.id;
+            
+            if (!userId) {
                 window.location.href = 'login.html';
                 return;
             }
             
-            // Update profile header with user data
-            document.getElementById('profile-username').textContent = user.username || 'User';
-            document.getElementById('profile-fullname').textContent = user.name || 'Your Name';
-            
-            // Load user bio and avatar from backend if available
+            // Fetch profile data
             const token = localStorage.getItem('token');
-            if (token) {
-                fetch(`/api/users/${user.id}`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.bio) {
-                        document.getElementById('profile-bio').textContent = data.bio;
-                    }
-                    if (data.avatar_url) {
-                        document.getElementById('profile-avatar-img').src = data.avatar_url;
-                    }
-                    // Update stats
-                    document.getElementById('profile-listings-count').textContent = data.listings_count || 0;
-                    document.getElementById('profile-sales-count').textContent = data.sales_count || 0;
-                })
-                .catch(err => console.log('Could not load extended profile data'));
-            }
+            fetch(`/api/users/${userId}`, {
+                headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+            })
+            .then(res => res.json())
+            .then(data => {
+                // Update profile display
+                document.getElementById('profile-username').textContent = data.username || 'User';
+                document.getElementById('profile-fullname').textContent = data.fullName || data.full_name || 'User';
+                document.getElementById('profile-bio').textContent = data.bio || 'No bio yet.';
+                
+                if (data.avatar_url) {
+                    document.getElementById('profile-avatar-img').src = data.avatar_url;
+                }
+                
+                document.getElementById('profile-listings-count').textContent = data.listings_count || 0;
+                document.getElementById('profile-sales-count').textContent = data.sales_count || 0;
+                
+                // OWNER-ONLY FEATURES
+                if (isOwnProfile) {
+                    // Show edit profile button
+                    document.getElementById('edit-profile-btn').classList.remove('hidden');
+                    
+                    // Show saved items tab
+                    document.getElementById('saved-tab').classList.remove('hidden');
+                    
+                    // Show new listing button
+                    document.getElementById('new-listing-btn').classList.remove('hidden');
+                    
+                    // Update tab titles for owner
+                    document.getElementById('listings-title').textContent = 'My Listings';
+                    document.getElementById('listings-tab').textContent = 'My Listings';
+                } else {
+                    // Visitor viewing someone else's profile
+                    document.getElementById('listings-title').textContent = `${data.username}'s Listings`;
+                    document.getElementById('listings-tab').textContent = 'Listings';
+                }
+            })
+            .catch(err => {
+                console.log('Could not load profile data');
+                // Fall back to localStorage if backend unavailable
+                if (currentUser && isOwnProfile) {
+                    document.getElementById('profile-username').textContent = currentUser.username || 'User';
+                    document.getElementById('profile-fullname').textContent = currentUser.name || 'Your Name';
+                    document.getElementById('edit-profile-btn').classList.remove('hidden');
+                    document.getElementById('saved-tab').classList.remove('hidden');
+                    document.getElementById('new-listing-btn').classList.remove('hidden');
+                }
+            });
         }
         
         function switchTab(tabName) {
