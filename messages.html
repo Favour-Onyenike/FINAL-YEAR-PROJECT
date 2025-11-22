@@ -514,18 +514,26 @@
 
         // Format time for messages
         function formatMessageTime(dateStr) {
-            const date = new Date(dateStr);
-            const now = new Date();
-            
-            // Calculate difference in milliseconds
-            const diff = now.getTime() - date.getTime();
-            
-            // If less than 1 minute, show "just now"
-            if (diff < 60000) return 'just now';
-            
-            // For messages, show time of day or relative time
-            // Use local time formatting
-            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            try {
+                const date = new Date(dateStr);
+                
+                // Get current UTC time (convert browser local time to UTC)
+                const now = new Date();
+                const offsetMs = now.getTimezoneOffset() * 60 * 1000;
+                const nowUTC = new Date(now.getTime() + offsetMs);
+                
+                // Calculate difference in milliseconds
+                const diff = nowUTC.getTime() - date.getTime();
+                
+                // If less than 1 minute, show "just now"
+                if (diff < 60000) return 'just now';
+                
+                // For messages, show time of day
+                // Convert UTC date to local timezone for display
+                return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            } catch (e) {
+                return 'unknown time';
+            }
         }
 
         // Load messages with a specific user

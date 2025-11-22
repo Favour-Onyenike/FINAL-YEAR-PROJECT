@@ -272,24 +272,32 @@
         
         // Format date as relative time
         function formatDate(dateStr) {
-            // Parse the ISO string correctly
-            const date = new Date(dateStr);
-            const now = new Date();
-            
-            // Calculate difference in milliseconds and convert to seconds
-            let seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-            
-            // Handle negative differences (clock skew)
-            if (seconds < 0) seconds = 0;
-            
-            if (seconds < 60) return 'just now';
-            const minutes = Math.floor(seconds / 60);
-            if (minutes < 60) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
-            const hours = Math.floor(minutes / 60);
-            if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
-            const days = Math.floor(hours / 24);
-            if (days < 7) return `${days} day${days > 1 ? 's' : ''} ago`;
-            return date.toLocaleDateString();
+            try {
+                // Parse ISO string from backend (UTC)
+                const date = new Date(dateStr);
+                
+                // Get current UTC time (convert browser local time to UTC)
+                const now = new Date();
+                const offsetMs = now.getTimezoneOffset() * 60 * 1000;
+                const nowUTC = new Date(now.getTime() + offsetMs);
+                
+                // Calculate difference in milliseconds and convert to seconds
+                let seconds = Math.floor((nowUTC.getTime() - date.getTime()) / 1000);
+                
+                // Handle negative differences (clock skew)
+                if (seconds < 0) seconds = 0;
+                
+                if (seconds < 60) return 'just now';
+                const minutes = Math.floor(seconds / 60);
+                if (minutes < 60) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+                const hours = Math.floor(minutes / 60);
+                if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+                const days = Math.floor(hours / 24);
+                if (days < 7) return `${days} day${days > 1 ? 's' : ''} ago`;
+                return date.toLocaleDateString();
+            } catch (e) {
+                return 'unknown date';
+            }
         }
         
         // Render comments
