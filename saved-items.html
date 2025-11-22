@@ -261,23 +261,15 @@ NEXT STEPS FROM HERE:
 
     <script src="js/app.js"></script>
     <script>
-        // Protect saved-items page - only logged-in users can view
-        function checkAuthAccess() {
-            const user = localStorage.getItem('user');
-            const token = localStorage.getItem('token');
-            
-            if (!user || !token) {
-                // User not logged in - redirect to login and return to this page after login
-                window.location.href = 'login.html?returnTo=saved-items.html';
-                return true;
-            }
-            
-            return false;
-        }
-        
         // Load saved items from API
         async function loadSavedItems() {
             const token = localStorage.getItem('token');
+            
+            // If no token, redirect to login
+            if (!token) {
+                window.location.href = 'login.html?returnTo=saved-items.html';
+                return;
+            }
             
             try {
                 const response = await fetch('/api/saved-items', {
@@ -290,6 +282,10 @@ NEXT STEPS FROM HERE:
                 
                 if (!response.ok) {
                     if (response.status === 401) {
+                        // Token invalid/expired - clear and redirect to login
+                        localStorage.removeItem('token');
+                        localStorage.removeItem('user');
+                        localStorage.removeItem('tokenExpiration');
                         window.location.href = 'login.html?returnTo=saved-items.html';
                         return;
                     }
@@ -381,10 +377,8 @@ NEXT STEPS FROM HERE:
             }
         }
         
-        // Check access and load items when page loads
-        if (!checkAuthAccess()) {
-            loadSavedItems();
-        }
+        // Load items when page loads
+        loadSavedItems();
     </script>
 </body>
 
