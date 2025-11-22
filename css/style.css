@@ -258,8 +258,8 @@ textarea {
 /* Navbar Icons - Messages, Saved Items, Profile */
 #logged-in-actions .nav-icon {
     padding: 0 !important;
-    width: 24px !important;
-    height: 24px !important;
+    width: 20px !important;
+    height: 20px !important;
     font-weight: normal !important;
     display: flex !important;
     align-items: center !important;
@@ -267,9 +267,10 @@ textarea {
 }
 
 #logged-in-actions .nav-icon i[data-lucide] {
-    width: 20px !important;
-    height: 20px !important;
+    width: 18px !important;
+    height: 18px !important;
     flex-shrink: 0;
+    stroke-width: 1.5px;
 }
 
 /* Inputs */
