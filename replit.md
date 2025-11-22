@@ -55,10 +55,19 @@ UniMarket employs a client-server architecture with a clear separation between t
 - ✅ **Like Feature**: Completely removed - clean UI with save & comment only
 
 ### Recent Changes (2025-11-22)
-1. **Like Feature Removal**: All heart icons removed from homepage, products, profile, and saved-items pages
-2. **Image Validation**: Enforced 3-5 image minimum/maximum per product listing with live feedback
-3. **UI Cleanup**: All references to likes removed for a simpler, focused interface
-4. **Working Account Creation**: 
+1. **Profile Update Functionality**: Added backend PUT endpoint (PUT /api/users/{user_id}) and GET endpoint (GET /api/users/{user_id}) for profile management
+   - Full Name, Bio, and Avatar URL can now be updated
+   - Changes persist to database and are immediately visible
+2. **Desktop Logout Button**: Added logout button with sign-out icon to desktop navbar on all pages
+   - Visible when logged in: Messages, Saved Items, Profile, Log Out icons
+   - Matches mobile logout functionality
+3. **Removed Notification Icon**: Cleaned up desktop navbar by removing notification bell icon
+   - Messages section already handles all communication needs
+   - Navbar now shows: Messages, Saved Items, Profile, Log Out
+4. **Like Feature Removal**: All heart icons removed from homepage, products, profile, and saved-items pages
+5. **Image Validation**: Enforced 3-5 image minimum/maximum per product listing with live feedback
+6. **UI Cleanup**: All references to likes removed for a simpler, focused interface
+7. **Working Account Creation**: 
    - Signup and login forms now connected to real backend API
    - Users can create accounts with full name, email (@bazeuniversity.edu.ng), and password
    - **Password Requirements**: Minimum 6 characters, 1 uppercase letter, 1 number
