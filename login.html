@@ -274,7 +274,7 @@ NEXT STEP: User redirected to products.html (shop page) after login
                     const rememberMe = document.getElementById('remember-me-checkbox').checked;
                     
                     // Store JWT token and user info
-                    localStorage.setItem('token', data.access_token);
+                    localStorage.setItem('token', data.token);
                     localStorage.setItem('user', JSON.stringify({
                         id: data.user.id,
                         name: data.user.fullName,
