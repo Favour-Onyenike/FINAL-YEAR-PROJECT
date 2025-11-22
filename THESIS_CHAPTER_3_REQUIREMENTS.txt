@@ -7,7 +7,7 @@ STUDENT PROJECT: Final Year Thesis
 UNIVERSITY: Baze University
 TECHNOLOGY: Python (FastAPI) + JavaScript (HTML5/CSS3)
 DATABASE: SQLite (Development) / PostgreSQL (Production-ready)
-DEPLOYMENT: Replit Cloud Platform
+DEPLOYMENT: Cloud Platform (Linux Server)
 
 ================================================================================
 1. PROJECT OVERVIEW & BUSINESS CONTEXT
@@ -1814,7 +1814,6 @@ DOCUMENTATION LOCATIONS:
 - Backend code docs: inline + header comments
 - Frontend code docs: inline + header comments
 - Requirements mapping: THIS FILE (THESIS_CHAPTER_3_REQUIREMENTS.txt)
-- Architecture notes: replit.md
 - API Docs: Auto-generated at http://localhost:8000/docs (Swagger UI)
 
 
