@@ -67,6 +67,22 @@ UniMarket employs a client-server architecture with a clear separation between t
    - User presence tracking via `connected_users` dictionary
    - **UI/Functionality unchanged** - All existing features remain fully functional
 
+2. **Unread Message Badge Feature**: Added notification badge to message icon
+   - Red circular badge with count display on navbar message icon
+   - Pulsing animation to catch user attention
+   - Shows count of unread messages (99+ if more than 99)
+   - Auto-hides when all messages read
+   - Works on all pages (index, products, messages, profile, etc.)
+   - JavaScript function `updateMessageBadge()` refreshes on page load
+   - Improved error handling - won't block app if badge update fails
+
+3. **Messages Page Fixes & Improvements**:
+   - **Added missing `/api/users` endpoint**: Allows frontend to fetch all users for conversation list
+   - **Infinite loading fix**: Added 10-second timeout to prevent hang
+   - **Better error handling**: Shows error message instead of "Loading..." if request fails
+   - **Improved conversation loading**: Gracefully handles individual message fetch failures
+   - **Fixed updateMessageBadge()**: Better error handling and logging
+
 2. **Profile Update Functionality**: Added backend PUT endpoint (PUT /api/users/{user_id}) and GET endpoint (GET /api/users/{user_id}) for profile management
    - Full Name, Bio, and Avatar URL can now be updated
    - Changes persist to database and are immediately visible

@@ -348,14 +348,22 @@ async function updateMessageBadge() {
         const token = getToken();
         const userId = localStorage.getItem('userId');
         
-        if (!token || !userId) return; // User not logged in
+        if (!token || !userId) {
+            // Hide badge if not logged in
+            const badge = document.getElementById('message-badge');
+            if (badge) badge.classList.add('hidden');
+            return;
+        }
         
         // Get all users to check for messages
         const response = await fetch('/api/users', {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         
-        if (!response.ok) return;
+        if (!response.ok) {
+            console.warn('Failed to fetch users for message badge');
+            return;
+        }
         
         const users = await response.json();
         let unreadCount = 0;
@@ -379,7 +387,8 @@ async function updateMessageBadge() {
                     }
                 }
             } catch (error) {
-                console.error('Error checking messages:', error);
+                // Continue checking other users even if one fails
+                console.debug('Error checking messages with user', user.id);
             }
         }
         
@@ -395,6 +404,7 @@ async function updateMessageBadge() {
         }
     } catch (error) {
         console.error('Error updating message badge:', error);
+        // Don't block the rest of the app if badge update fails
     }
 }
 

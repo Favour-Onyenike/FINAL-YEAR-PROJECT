@@ -284,6 +284,32 @@ def get_me(current_user: User = Depends(get_current_user)):
         "phone": current_user.phone
     }
 
+@app.get("/api/users", response_model=List[UserResponse])
+def get_all_users(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Get all users (for messaging conversations).
+    
+    REQUIRES: Valid JWT token in Authorization header
+    
+    RETURNS: List of all users (excluding password)
+    """
+    users = db.query(User).all()
+    return [
+        {
+            "id": u.id,
+            "fullName": u.full_name,
+            "email": u.email,
+            "username": u.username,
+            "bio": u.bio,
+            "profileImage": u.profile_image,
+            "phone": u.phone
+        }
+        for u in users
+    ]
+
 @app.get("/api/users/{user_id}", response_model=UserResponse)
 def get_user(user_id: int, db: Session = Depends(get_db)):
     """
