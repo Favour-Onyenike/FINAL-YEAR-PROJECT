@@ -137,6 +137,15 @@ bash start.sh
 - **Soft Deletes**: Products marked deleted, not permanently removed
 
 ## Recent Changes
+- **2025-11-22**: Advanced Clothing Filters Added
+  - Implemented dynamic clothing-specific filters (only show when "Clothing" category selected)
+  - Added Sub-Category filter: Shirts, Trousers, Dresses, Skirts
+  - Added Size filter: XS, S, M, L, XL (checkboxes - multiple selection)
+  - Added Color filter: Red, Blue, Black, White (checkboxes - multiple selection)
+  - Frontend sends all filters as query parameters: sizes=M,L&colors=Red,Blue&subCategories=Shirts
+  - Connected "Apply Filter" button and clothing filter checkboxes to updateClothingFilters()
+  - Connected "Clear All" button to clearAllFilters() which resets all filters and UI
+
 - **2025-11-22**: Loading Spinners Added
   - Created css/loader.css with animated spinner
   - Added loader HTML to index.html, products.html, product-detail.html

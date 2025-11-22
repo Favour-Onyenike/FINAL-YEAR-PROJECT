@@ -80,7 +80,7 @@
         <aside class="filters-sidebar">
             <div class="flex items-center justify-between" style="margin-bottom: 1.5rem;">
                 <h3 style="font-family: var(--font-heading); font-weight: 700; font-size: 1.25rem;">Filters</h3>
-                <button class="btn-ghost" style="font-size: 0.875rem; padding: 0.25rem 0.5rem;">Clear All</button>
+                <button class="btn-ghost" style="font-size: 0.875rem; padding: 0.25rem 0.5rem;" onclick="clearAllFilters()">Clear All</button>
             </div>
 
             <!-- Category Filter -->
@@ -135,24 +135,36 @@
 
             <!-- Clothing Specific Filters (Hidden by default) -->
             <div class="filter-section hidden" id="clothing-filters">
-                <div class="filter-title">Size</div>
+                <!-- Sub-Category Filter -->
+                <div class="filter-title">Clothing Type</div>
                 <div class="filter-group">
-                    <label class="checkbox-label"><input type="checkbox" value="s"> Small</label>
-                    <label class="checkbox-label"><input type="checkbox" value="m"> Medium</label>
-                    <label class="checkbox-label"><input type="checkbox" value="l"> Large</label>
-                    <label class="checkbox-label"><input type="checkbox" value="xl"> XL</label>
+                    <label class="checkbox-label"><input type="checkbox" name="sub-category" value="Shirts"> Shirts</label>
+                    <label class="checkbox-label"><input type="checkbox" name="sub-category" value="Trousers"> Trousers</label>
+                    <label class="checkbox-label"><input type="checkbox" name="sub-category" value="Dresses"> Dresses</label>
+                    <label class="checkbox-label"><input type="checkbox" name="sub-category" value="Skirts"> Skirts</label>
                 </div>
 
+                <!-- Size Filter -->
+                <div class="filter-title" style="margin-top: 1rem;">Size</div>
+                <div class="filter-group">
+                    <label class="checkbox-label"><input type="checkbox" name="size" value="XS"> XS</label>
+                    <label class="checkbox-label"><input type="checkbox" name="size" value="S"> S</label>
+                    <label class="checkbox-label"><input type="checkbox" name="size" value="M"> M</label>
+                    <label class="checkbox-label"><input type="checkbox" name="size" value="L"> L</label>
+                    <label class="checkbox-label"><input type="checkbox" name="size" value="XL"> XL</label>
+                </div>
+
+                <!-- Color Filter -->
                 <div class="filter-title" style="margin-top: 1rem;">Color</div>
                 <div class="filter-group">
-                    <label class="checkbox-label"><input type="checkbox" value="black"> Black</label>
-                    <label class="checkbox-label"><input type="checkbox" value="white"> White</label>
-                    <label class="checkbox-label"><input type="checkbox" value="blue"> Blue</label>
-                    <label class="checkbox-label"><input type="checkbox" value="red"> Red</label>
+                    <label class="checkbox-label"><input type="checkbox" name="color" value="Red"> Red</label>
+                    <label class="checkbox-label"><input type="checkbox" name="color" value="Blue"> Blue</label>
+                    <label class="checkbox-label"><input type="checkbox" name="color" value="Black"> Black</label>
+                    <label class="checkbox-label"><input type="checkbox" name="color" value="White"> White</label>
                 </div>
             </div>
 
-            <button class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Apply Filter</button>
+            <button class="btn btn-primary" style="width: 100%; margin-top: 1rem;" onclick="updateClothingFilters()">Apply Filter</button>
         </aside>
 
         <!-- Main Content -->
@@ -434,6 +446,7 @@
         </div>
     </footer>
     <script src="js/app.js"></script>
+    <script src="js/products.js"></script>
     <script>
         // Clothing filter visibility
         const categorySelect = document.getElementById('category-select');
@@ -456,10 +469,27 @@
 
         if (priceRange && priceValue) {
             priceRange.addEventListener('input', (e) => {
-                priceValue.textContent = `$${e.target.value}`;
+                priceValue.textContent = `₦${e.target.value}`;
                 updatePriceRange(0, parseInt(e.target.value));
             });
         }
+
+        // Clothing filter listeners (Size, Color, Sub-Category checkboxes)
+        const sizeCheckboxes = document.querySelectorAll('input[name="size"]');
+        const colorCheckboxes = document.querySelectorAll('input[name="color"]');
+        const subCategoryCheckboxes = document.querySelectorAll('input[name="sub-category"]');
+        
+        sizeCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', updateClothingFilters);
+        });
+        
+        colorCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', updateClothingFilters);
+        });
+        
+        subCategoryCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', updateClothingFilters);
+        });
 
         // Condition filter listeners
         const conditionRadios = document.querySelectorAll('input[name="condition"]');
@@ -605,7 +635,7 @@
             const mobileSlider = document.getElementById('mobile-price-range');
             if (mobileSlider) {
                 mobileSlider.addEventListener('input', (e) => {
-                    document.getElementById('mobile-price-value').textContent = '$' + e.target.value;
+                    document.getElementById('mobile-price-value').textContent = '₦' + e.target.value;
                 });
             }
 

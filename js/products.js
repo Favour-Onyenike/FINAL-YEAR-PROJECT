@@ -51,7 +51,11 @@ let currentFilters = {
     condition: '',        // Selected condition (empty = all)
     sortBy: 'newest',     // Sort: newest, price-asc, price-desc
     page: 1,              // Current page number
-    limit: 20             // Results per page
+    limit: 20,            // Results per page
+    // Clothing-specific filters (for category = "Clothing")
+    sizes: [],            // Array of selected sizes (XS, S, M, L, XL)
+    colors: [],           // Array of selected colors (Red, Blue, Black, White)
+    subCategories: []     // Array of selected clothing types (Shirts, Trousers, Dresses, Skirts)
 };
 
 // =============================================================================
@@ -93,6 +97,24 @@ async function fetchProducts() {
         // Skip if 'all' or empty (no filter)
         if (currentFilters.condition && currentFilters.condition !== 'all') {
             params.append('condition', currentFilters.condition);
+        }
+        
+        // Add clothing-specific filters if Clothing is selected
+        if (currentFilters.category === 'Clothing') {
+            // Add sizes if any selected (comma-separated)
+            if (currentFilters.sizes.length > 0) {
+                params.append('sizes', currentFilters.sizes.join(','));
+            }
+            
+            // Add colors if any selected (comma-separated)
+            if (currentFilters.colors.length > 0) {
+                params.append('colors', currentFilters.colors.join(','));
+            }
+            
+            // Add sub-categories if any selected (comma-separated)
+            if (currentFilters.subCategories.length > 0) {
+                params.append('subCategories', currentFilters.subCategories.join(','));
+            }
         }
         
         // Add sorting method
@@ -325,6 +347,23 @@ function updatePriceRange(min, max) {
     fetchProducts();
 }
 
+function updateClothingFilters() {
+    // Get all selected sizes
+    const sizeCheckboxes = document.querySelectorAll('input[name="size"]:checked');
+    currentFilters.sizes = Array.from(sizeCheckboxes).map(cb => cb.value);
+    
+    // Get all selected colors
+    const colorCheckboxes = document.querySelectorAll('input[name="color"]:checked');
+    currentFilters.colors = Array.from(colorCheckboxes).map(cb => cb.value);
+    
+    // Get all selected sub-categories
+    const subCategoryCheckboxes = document.querySelectorAll('input[name="sub-category"]:checked');
+    currentFilters.subCategories = Array.from(subCategoryCheckboxes).map(cb => cb.value);
+    
+    currentFilters.page = 1;  // Reset to page 1
+    fetchProducts();
+}
+
 function clearAllFilters() {
     currentFilters = {
         category: '',
@@ -333,17 +372,27 @@ function clearAllFilters() {
         condition: '',
         sortBy: 'newest',
         page: 1,
-        limit: 20
+        limit: 20,
+        sizes: [],
+        colors: [],
+        subCategories: []
     };
     
     // Reset UI elements
-    const categorySelect = document.querySelector('[name="category"]');
-    const conditionSelect = document.querySelector('[name="condition"]');
-    const sortSelect = document.querySelector('[name="sortBy"]');
+    const categorySelect = document.querySelector('#category-select');
+    const conditionRadios = document.querySelectorAll('input[name="condition"]');
+    const priceRange = document.querySelector('#price-range');
+    const priceValue = document.querySelector('#price-value');
     
-    if (categorySelect) categorySelect.value = '';
-    if (conditionSelect) conditionSelect.value = '';
-    if (sortSelect) sortSelect.value = 'newest';
+    if (categorySelect) categorySelect.value = 'all';
+    if (conditionRadios) conditionRadios[0].checked = true;  // Check "Any"
+    if (priceRange) priceRange.value = 500;
+    if (priceValue) priceValue.textContent = '₦500';
+    
+    // Clear all clothing-specific checkboxes
+    document.querySelectorAll('input[name="size"]').forEach(cb => cb.checked = false);
+    document.querySelectorAll('input[name="color"]').forEach(cb => cb.checked = false);
+    document.querySelectorAll('input[name="sub-category"]').forEach(cb => cb.checked = false);
     
     fetchProducts();
 }
