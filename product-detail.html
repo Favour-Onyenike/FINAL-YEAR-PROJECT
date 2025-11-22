@@ -452,11 +452,62 @@
                 const product = await response.json();
                 const sellerId = product.seller.id;
                 
+                // Update product category
+                document.querySelector('.detail-category').textContent = product.category.name;
+                
+                // Update product title
+                document.querySelector('.detail-title').textContent = product.name;
+                
+                // Update product price
+                document.querySelector('.detail-price').textContent = `₦${product.price.toFixed(2)}`;
+                
+                // Update product description
+                const descriptionDiv = document.querySelector('.detail-description p');
+                if (descriptionDiv) {
+                    descriptionDiv.textContent = product.description;
+                }
+                
+                // Update seller info
+                const sellerCard = document.querySelector('.seller-card');
+                if (sellerCard) {
+                    const sellerAvatarImg = sellerCard.querySelector('.seller-avatar img');
+                    const sellerNameH4 = sellerCard.querySelector('.seller-info h4');
+                    
+                    if (sellerAvatarImg) {
+                        sellerAvatarImg.src = getImageUrl(product.seller.profileImage || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=2000&auto=format&fit=crop');
+                    }
+                    if (sellerNameH4) {
+                        sellerNameH4.textContent = `Sold by ${product.seller.fullName}`;
+                    }
+                }
+                
+                // Update product images
+                if (product.images && product.images.length > 0) {
+                    // Update main image (use first image)
+                    const mainImg = document.getElementById('main-img');
+                    if (mainImg) {
+                        mainImg.src = getImageUrl(product.images[0].imageUrl);
+                    }
+                    
+                    // Update thumbnails
+                    const galleryThumbnails = document.querySelector('.gallery-thumbnails');
+                    if (galleryThumbnails) {
+                        galleryThumbnails.innerHTML = product.images.map((img, index) => `
+                            <div class="thumbnail ${index === 0 ? 'active' : ''}" onclick="changeImage(this.querySelector('img').src)">
+                                <img src="${getImageUrl(img.imageUrl)}" alt="Thumbnail ${index + 1}">
+                            </div>
+                        `).join('');
+                    }
+                }
+                
                 // Set up View Profile button
                 const viewProfileBtn = document.getElementById('view-profile-btn');
                 if (viewProfileBtn) {
                     viewProfileBtn.href = `profile.html?userId=${sellerId}`;
                 }
+                
+                // Update page title
+                document.title = `${product.name} - UniMarket`;
                 
                 // Check if product is already saved by current user
                 checkIfSaved();
