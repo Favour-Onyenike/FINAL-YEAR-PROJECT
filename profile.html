@@ -179,10 +179,16 @@ NEXT STEPS FROM HERE:
                     <p id="profile-bio" style="color: var(--muted); max-width: 500px; margin: 0 auto;">No bio yet. Click "Edit Profile" to add one.</p>
                 </div>
                 
-                <a id="edit-profile-btn" href="edit-profile.html" class="btn btn-outline hidden">
-                    <i data-lucide="edit-2" style="width: 1rem; margin-right: 0.5rem;"></i>
-                    Edit Profile
-                </a>
+                <div style="display: flex; gap: 1rem;">
+                    <a id="edit-profile-btn" href="edit-profile.html" class="btn btn-outline hidden">
+                        <i data-lucide="edit-2" style="width: 1rem; margin-right: 0.5rem;"></i>
+                        Edit Profile
+                    </a>
+                    <button id="message-btn" class="btn btn-primary hidden">
+                        <i data-lucide="message-square" style="width: 1rem; margin-right: 0.5rem;"></i>
+                        Message
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -389,6 +395,12 @@ NEXT STEPS FROM HERE:
                     // Visitor viewing someone else's profile
                     document.getElementById('listings-title').textContent = `${data.username}'s Listings`;
                     document.getElementById('listings-tab').textContent = 'Listings';
+                    
+                    // Show message button for other users
+                    document.getElementById('message-btn').classList.remove('hidden');
+                    document.getElementById('message-btn').addEventListener('click', () => {
+                        window.location.href = `messages.html?userId=${userId}`;
+                    });
                 }
             })
             .catch(err => {

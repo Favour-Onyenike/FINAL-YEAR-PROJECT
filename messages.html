@@ -344,6 +344,12 @@
             currentUserId = JSON.parse(userDataStr).id;
         }
 
+        // Get userId from URL parameter (if coming from a profile)
+        function getTargetUserId() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('userId');
+        }
+        
         // Load conversations and messages on page load
         document.addEventListener('DOMContentLoaded', async () => {
             // Check if logged in (delay until DOM is ready)
@@ -355,6 +361,18 @@
             lucide.createIcons();
             initializeLayout();
             await loadConversations();
+            
+            // If coming from a profile, auto-select that user's conversation
+            const targetUserId = getTargetUserId();
+            if (targetUserId) {
+                // Wait a moment for conversations to load, then select the target user
+                setTimeout(() => {
+                    const targetUserData = allUsers[parseInt(targetUserId)];
+                    if (targetUserData) {
+                        selectConversation(parseInt(targetUserId), targetUserData.full_name || targetUserData.username);
+                    }
+                }, 500);
+            }
         });
 
         // Load all conversations (unique users with messages)
