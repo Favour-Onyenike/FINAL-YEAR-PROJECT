@@ -456,6 +456,7 @@ def get_products(
     maxPrice: Optional[float] = Query(None),  # Maximum price
     condition: Optional[str] = Query(None),  # Filter by condition (New, Like New, etc.)
     sortBy: Optional[str] = Query("newest"),  # Sort by: newest, price-asc, price-desc
+    userId: Optional[int] = Query(None),  # Filter by seller ID (show only user's listings)
     page: int = Query(1, ge=1),  # Page number (starts at 1)
     limit: int = Query(20, ge=1, le=100),  # Results per page
     db: Session = Depends(get_db)
@@ -464,7 +465,10 @@ def get_products(
     List all available products with filtering, sorting, and pagination.
     
     QUERY PARAMETERS (all optional):
-    ?q=textbook&category=Textbooks&minPrice=10&maxPrice=100&condition=Like New&sortBy=price-asc&page=1&limit=20
+    ?q=textbook&category=Textbooks&minPrice=10&maxPrice=100&condition=Like New&sortBy=price-asc&page=1&limit=20&userId=6
+    
+    SPECIAL PARAMETERS:
+    ?userId=6 - Show only products from user ID 6 (for "My Listings")
     
     RETURNS:
     {
@@ -476,7 +480,7 @@ def get_products(
     }
     
     HOW IT WORKS:
-    1. Start with query: Get all products where status="available"
+    1. Start with query: Get all products (or user's products if userId provided)
     2. Apply filters: Search text, category, price range, condition
     3. Apply sorting: newest, price ascending, or price descending
     4. Apply pagination: Skip to correct page, limit results
@@ -484,7 +488,11 @@ def get_products(
     6. Return paginated results
     """
     # Start with all available products (not deleted/sold)
-    query = db.query(Product).filter(Product.status == "available")
+    # OR if userId is provided, show only that user's products (regardless of status)
+    if userId:
+        query = db.query(Product).filter(Product.seller_id == userId)
+    else:
+        query = db.query(Product).filter(Product.status == "available")
     
     # SEARCH FILTER: Search in name or description
     if q:
