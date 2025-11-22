@@ -472,11 +472,11 @@
             }
 
             container.innerHTML = convos.map(user => `
-                <div class="conversation-item" onclick="selectConversation(${user.id}, '${user.full_name || user.username}')">
-                    <div class="conversation-avatar" style="width: 3rem; height: 3rem; background: var(--secondary); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                        ${user.profile_image ? `<img src="${getImageUrl(user.profile_image)}" alt="${user.username}">` : `<i data-lucide="user" style="width: 1.5rem; height: 1.5rem;"></i>`}
-                    </div>
-                    <div class="conversation-info">
+                <div class="conversation-item" style="position: relative;">
+                    <a href="profile.html?userId=${user.id}" class="conversation-avatar" style="width: 3rem; height: 3rem; background: var(--secondary); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; text-decoration: none; flex-shrink: 0;">
+                        ${user.profile_image ? `<img src="${getImageUrl(user.profile_image)}" alt="${user.username}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">` : `<i data-lucide="user" style="width: 1.5rem; height: 1.5rem;"></i>`}
+                    </a>
+                    <div class="conversation-info" onclick="selectConversation(${user.id}, '${user.full_name || user.username}')">
                         <div class="conversation-name">${user.full_name || user.username}</div>
                         <div class="conversation-product" style="font-size: 0.8rem;">@${user.username}</div>
                         <div class="conversation-last-message">${user.lastMessage?.substring(0, 50) || 'No messages'}</div>
@@ -498,6 +498,21 @@
             
             if (user.profile_image) {
                 document.getElementById('chat-header-avatar').innerHTML = `<img src="${getImageUrl(user.profile_image)}" alt="${userName}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+            }
+            
+            // Make header clickable to navigate to profile
+            const chatHeader = document.getElementById('chat-header');
+            if (chatHeader) {
+                // Remove old onclick if exists
+                chatHeader.onclick = null;
+                // Add onclick to navigate to profile (but not on back button)
+                chatHeader.addEventListener('click', (e) => {
+                    // Don't navigate if clicking the back button
+                    if (e.target.closest('.chat-header-back-btn')) {
+                        return;
+                    }
+                    window.location.href = `profile.html?userId=${userId}`;
+                });
             }
 
             // Enable input
