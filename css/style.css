@@ -255,6 +255,16 @@ textarea {
     height: 0.5rem;
 }
 
+/* Navbar Icons - Messages, Saved Items, Profile */
+.nav-icon {
+    padding: 0.125rem !important;
+}
+
+.nav-icon i[data-lucide] {
+    width: 0.6rem !important;
+    height: 0.6rem !important;
+}
+
 /* Inputs */
 .input {
     display: flex;
