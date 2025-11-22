@@ -222,16 +222,27 @@ NEXT STEP: User redirected to products.html (shop page) after login
         // Check for remembered login on page load
         checkRememberedLogin();
 
-        // Form Validation
-        const form = document.getElementById('login-form');
-        const emailInput = document.getElementById('email-input');
-        const emailError = document.getElementById('email-error');
+        // Function to set up form listener
+        function setupFormListener() {
+            const form = document.getElementById('login-form');
+            const emailInput = document.getElementById('email-input');
+            const emailError = document.getElementById('email-error');
+            
+            if (!form || !emailInput || !emailError) {
+                console.error('❌ Form elements not found!');
+                setTimeout(setupFormListener, 100); // Retry after 100ms
+                return;
+            }
+            
+            console.log('✅ Form listener attached successfully');
 
-        form.addEventListener('submit', async (e) => {
+            form.addEventListener('submit', async (e) => {
             e.preventDefault();
+            console.log('✅ Login form submitted!');
 
             const email = emailInput.value.toLowerCase().trim();
             const password = form.querySelector('input[type="password"]').value.trim();
+            console.log('Email:', email, 'Password length:', password.length);
 
             // Validate email domain
             if (!email.endsWith('@bazeuniversity.edu.ng')) {
@@ -312,7 +323,11 @@ NEXT STEP: User redirected to products.html (shop page) after login
                 btn.textContent = originalText;
                 btn.disabled = false;
             }
-        });
+            });
+        }
+        
+        // Call the function immediately (or it will retry if DOM not ready)
+        setupFormListener();
     </script>
 </body>
 
