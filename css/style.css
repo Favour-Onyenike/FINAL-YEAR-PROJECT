@@ -380,7 +380,7 @@ textarea.input {
     .search-bar {
         display: flex;
         align-items: center;
-        margin-right: 0.25rem;
+        margin-right: 0rem;
     }
 
     .search-bar .input {
