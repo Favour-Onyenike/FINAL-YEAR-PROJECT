@@ -357,15 +357,20 @@ textarea.input {
     cursor: pointer;
     display: flex;
     align-items: center;
+    width: 100%;
 }
 
 .search-icon {
-    position: relative;
+    position: absolute;
     color: var(--muted);
     width: 1.25rem;
     height: 1.25rem;
     cursor: pointer;
     flex-shrink: 0;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
 }
 
 .search-bar .input {
