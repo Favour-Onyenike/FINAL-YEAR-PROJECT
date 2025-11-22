@@ -137,6 +137,18 @@ bash start.sh
 - **Soft Deletes**: Products marked deleted, not permanently removed
 
 ## Recent Changes
+- **2025-11-22**: Empty State UI Improvements
+  - Added "View All Products" link when no products match filter/search
+  - Shows on both desktop and mobile
+  - Helps users clear filters and browse all items
+  - Link takes them back to products page with no filters
+
+- **2025-11-22**: Mobile Filter Modal Made Scrollable
+  - Filter modal can now scroll when content exceeds screen height
+  - Header stays visible at top
+  - "Apply" and "Cancel" buttons stay at bottom
+  - All filter options are accessible on mobile
+
 - **2025-11-22**: Seller Listing Form Enhanced for Better Filtering
   - Updated sell.html to ask sellers for appropriate details
   - When seller selects "Clothing" category, dynamic fields appear:

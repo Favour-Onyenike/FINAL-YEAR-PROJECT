@@ -163,7 +163,8 @@ function displayProducts(products) {
             <div style="grid-column: 1 / -1; text-align: center; padding: 3rem;">
                 <i data-lucide="package" style="width: 4rem; height: 4rem; margin: 0 auto 1rem; opacity: 0.5;"></i>
                 <h3 style="font-size: 1.5rem; margin-bottom: 0.5rem;">No products found</h3>
-                <p style="color: var(--muted);">Try adjusting your filters</p>
+                <p style="color: var(--muted); margin-bottom: 1.5rem;">Try adjusting your filters</p>
+                <a href="products.html" class="btn btn-primary">View All Products</a>
             </div>
         `;
         lucide.createIcons();
