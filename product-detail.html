@@ -272,9 +272,15 @@
         
         // Format date as relative time
         function formatDate(dateStr) {
+            // Parse the ISO string correctly
             const date = new Date(dateStr);
             const now = new Date();
-            const seconds = Math.floor((now - date) / 1000);
+            
+            // Calculate difference in milliseconds and convert to seconds
+            let seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+            
+            // Handle negative differences (clock skew)
+            if (seconds < 0) seconds = 0;
             
             if (seconds < 60) return 'just now';
             const minutes = Math.floor(seconds / 60);

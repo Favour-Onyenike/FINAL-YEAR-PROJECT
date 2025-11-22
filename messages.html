@@ -512,6 +512,22 @@
             });
         }
 
+        // Format time for messages
+        function formatMessageTime(dateStr) {
+            const date = new Date(dateStr);
+            const now = new Date();
+            
+            // Calculate difference in milliseconds
+            const diff = now.getTime() - date.getTime();
+            
+            // If less than 1 minute, show "just now"
+            if (diff < 60000) return 'just now';
+            
+            // For messages, show time of day or relative time
+            // Use local time formatting
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+
         // Load messages with a specific user
         async function loadMessages(userId) {
             try {
@@ -543,7 +559,7 @@
 
             container.innerHTML = messages.map(msg => {
                 const isMe = msg.senderId === currentUserId;
-                const time = new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                const time = formatMessageTime(msg.createdAt);
                 
                 return `
                     <div class="message ${isMe ? 'me' : ''}">
