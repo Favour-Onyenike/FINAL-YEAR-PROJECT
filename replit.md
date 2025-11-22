@@ -137,6 +137,13 @@ bash start.sh
 - **Soft Deletes**: Products marked deleted, not permanently removed
 
 ## Recent Changes
+- **2025-11-22**: Like Feature Removed - Save & Comment Only
+  - Removed all like/heart icons from frontend (index.html, products.html)
+  - Users can now only **save products** (bookmark icon) and **comment**
+  - Cleaner, simpler interface focused on core interactions
+  - No backend like endpoints were present (not implemented)
+  - All product metadata preserved (location, condition, etc.)
+
 - **2025-11-22**: Major Performance Optimization & Fixes
   - **Image Compression**: Reduced from 35.5MB to 9MB (75% savings!)
     * cloths.jpg: 18.8MB → 3.7MB (80% saved)
