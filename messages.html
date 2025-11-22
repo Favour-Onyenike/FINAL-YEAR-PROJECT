@@ -474,10 +474,10 @@
             container.innerHTML = convos.map(user => `
                 <div class="conversation-item" style="position: relative;">
                     <a href="profile.html?userId=${user.id}" class="conversation-avatar" style="width: 3rem; height: 3rem; background: var(--secondary); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; text-decoration: none; flex-shrink: 0; overflow: hidden;">
-                        ${user.profile_image ? `<img src="${getImageUrl(user.profile_image)}" alt="${user.username}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block;">` : `<i data-lucide="user" style="width: 1.5rem; height: 1.5rem;"></i>`}
+                        ${user.profileImage ? `<img src="${getImageUrl(user.profileImage)}" alt="${user.username}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block;">` : `<i data-lucide="user" style="width: 1.5rem; height: 1.5rem;"></i>`}
                     </a>
-                    <div class="conversation-info" onclick="selectConversation(${user.id}, '${user.full_name || user.username}')">
-                        <div class="conversation-name">${user.full_name || user.username}</div>
+                    <div class="conversation-info" onclick="selectConversation(${user.id}, '${user.fullName || user.username}')">
+                        <div class="conversation-name">${user.fullName || user.username}</div>
                         <div class="conversation-product" style="font-size: 0.8rem;">@${user.username}</div>
                         <div class="conversation-last-message">${user.lastMessage?.substring(0, 50) || 'No messages'}</div>
                     </div>
@@ -492,12 +492,12 @@
             currentConversationUserId = userId;
             
             // Update header
-            const user = allUsers[userId] || { full_name: userName };
-            document.getElementById('chat-header-name').textContent = user.full_name || userName;
+            const user = allUsers[userId] || { fullName: userName };
+            document.getElementById('chat-header-name').textContent = user.fullName || userName;
             document.getElementById('chat-header-product').textContent = `@${user.username || 'user'}`;
             
-            if (user.profile_image) {
-                document.getElementById('chat-header-avatar').innerHTML = `<img src="${getImageUrl(user.profile_image)}" alt="${userName}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+            if (user.profileImage) {
+                document.getElementById('chat-header-avatar').innerHTML = `<img src="${getImageUrl(user.profileImage)}" alt="${userName}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
             }
             
             // Make header clickable to navigate to profile
