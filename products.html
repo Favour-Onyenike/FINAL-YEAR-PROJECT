@@ -104,9 +104,9 @@
                 <div class="filter-group">
                     <input type="range" min="0" max="1000" value="500" class="range-slider" id="price-range">
                     <div class="range-values">
-                        <span>$0</span>
-                        <span id="price-value">$500</span>
-                        <span>$1000+</span>
+                        <span>₦0</span>
+                        <span id="price-value">₦500</span>
+                        <span>₦1000+</span>
                     </div>
                 </div>
             </div>
@@ -234,9 +234,9 @@
                         <div class="filter-group">
                             <input type="range" min="0" max="1000" value="500" class="range-slider" id="mobile-price-range">
                             <div class="range-values">
-                                <span>$0</span>
-                                <span id="mobile-price-value">$500</span>
-                                <span>$1000+</span>
+                                <span>₦0</span>
+                                <span id="mobile-price-value">₦500</span>
+                                <span>₦1000+</span>
                             </div>
                         </div>
                     </div>
@@ -260,6 +260,37 @@
                             <label class="checkbox-label">
                                 <input type="radio" name="mobile-condition" value="Fair"> Fair
                             </label>
+                        </div>
+                    </div>
+
+                    <!-- Mobile Clothing Specific Filters (Hidden by default) -->
+                    <div class="filter-section hidden" id="mobile-clothing-filters">
+                        <!-- Sub-Category Filter -->
+                        <div class="filter-title">Clothing Type</div>
+                        <div class="filter-group">
+                            <label class="checkbox-label"><input type="checkbox" name="mobile-sub-category" value="Shirts"> Shirts</label>
+                            <label class="checkbox-label"><input type="checkbox" name="mobile-sub-category" value="Trousers"> Trousers</label>
+                            <label class="checkbox-label"><input type="checkbox" name="mobile-sub-category" value="Dresses"> Dresses</label>
+                            <label class="checkbox-label"><input type="checkbox" name="mobile-sub-category" value="Skirts"> Skirts</label>
+                        </div>
+
+                        <!-- Size Filter -->
+                        <div class="filter-title" style="margin-top: 1rem;">Size</div>
+                        <div class="filter-group">
+                            <label class="checkbox-label"><input type="checkbox" name="mobile-size" value="XS"> XS</label>
+                            <label class="checkbox-label"><input type="checkbox" name="mobile-size" value="S"> S</label>
+                            <label class="checkbox-label"><input type="checkbox" name="mobile-size" value="M"> M</label>
+                            <label class="checkbox-label"><input type="checkbox" name="mobile-size" value="L"> L</label>
+                            <label class="checkbox-label"><input type="checkbox" name="mobile-size" value="XL"> XL</label>
+                        </div>
+
+                        <!-- Color Filter -->
+                        <div class="filter-title" style="margin-top: 1rem;">Color</div>
+                        <div class="filter-group">
+                            <label class="checkbox-label"><input type="checkbox" name="mobile-color" value="Red"> Red</label>
+                            <label class="checkbox-label"><input type="checkbox" name="mobile-color" value="Blue"> Blue</label>
+                            <label class="checkbox-label"><input type="checkbox" name="mobile-color" value="Black"> Black</label>
+                            <label class="checkbox-label"><input type="checkbox" name="mobile-color" value="White"> White</label>
                         </div>
                     </div>
 
@@ -448,15 +479,17 @@
     <script src="js/app.js"></script>
     <script src="js/products.js"></script>
     <script>
-        // Clothing filter visibility
+        // Clothing filter visibility for DESKTOP and MOBILE
         const categorySelect = document.getElementById('category-select');
         const clothingFilters = document.getElementById('clothing-filters');
+        const mobileCategorySelect = document.getElementById('mobile-category-select');
+        const mobileClothingFilters = document.getElementById('mobile-clothing-filters');
         const priceRange = document.getElementById('price-range');
         const priceValue = document.getElementById('price-value');
 
         if (categorySelect && clothingFilters) {
             categorySelect.addEventListener('change', (e) => {
-                // Show/hide clothing-specific filters
+                // Show/hide clothing-specific filters on desktop
                 if (e.target.value === 'Clothing') {
                     clothingFilters.classList.remove('hidden');
                 } else {
@@ -467,6 +500,17 @@
             });
         }
 
+        if (mobileCategorySelect && mobileClothingFilters) {
+            mobileCategorySelect.addEventListener('change', (e) => {
+                // Show/hide clothing-specific filters on mobile
+                if (e.target.value === 'Clothing') {
+                    mobileClothingFilters.classList.remove('hidden');
+                } else {
+                    mobileClothingFilters.classList.add('hidden');
+                }
+            });
+        }
+
         if (priceRange && priceValue) {
             priceRange.addEventListener('input', (e) => {
                 priceValue.textContent = `₦${e.target.value}`;
@@ -474,7 +518,7 @@
             });
         }
 
-        // Clothing filter listeners (Size, Color, Sub-Category checkboxes)
+        // Clothing filter listeners (Size, Color, Sub-Category checkboxes) - DESKTOP
         const sizeCheckboxes = document.querySelectorAll('input[name="size"]');
         const colorCheckboxes = document.querySelectorAll('input[name="color"]');
         const subCategoryCheckboxes = document.querySelectorAll('input[name="sub-category"]');
@@ -489,6 +533,29 @@
         
         subCategoryCheckboxes.forEach(checkbox => {
             checkbox.addEventListener('change', updateClothingFilters);
+        });
+
+        // Clothing filter listeners for MOBILE
+        const mobileSizeCheckboxes = document.querySelectorAll('input[name="mobile-size"]');
+        const mobileColorCheckboxes = document.querySelectorAll('input[name="mobile-color"]');
+        const mobileSubCategoryCheckboxes = document.querySelectorAll('input[name="mobile-sub-category"]');
+        
+        mobileSizeCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', () => {
+                // Mobile filters will be applied when user clicks Apply button
+            });
+        });
+        
+        mobileColorCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', () => {
+                // Mobile filters will be applied when user clicks Apply button
+            });
+        });
+        
+        mobileSubCategoryCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', () => {
+                // Mobile filters will be applied when user clicks Apply button
+            });
         });
 
         // Condition filter listeners
@@ -613,12 +680,26 @@
             const condition = document.querySelector('input[name="mobile-condition"]:checked').value;
             const priceRange = document.getElementById('mobile-price-range').value;
 
+            // Get mobile clothing-specific filters
+            const mobileSubCategoryCheckboxes = document.querySelectorAll('input[name="mobile-sub-category"]:checked');
+            const mobileSizeCheckboxes = document.querySelectorAll('input[name="mobile-size"]:checked');
+            const mobileColorCheckboxes = document.querySelectorAll('input[name="mobile-color"]:checked');
+
+            const mobileSubCategories = Array.from(mobileSubCategoryCheckboxes).map(cb => cb.value);
+            const mobileSizes = Array.from(mobileSizeCheckboxes).map(cb => cb.value);
+            const mobileColors = Array.from(mobileColorCheckboxes).map(cb => cb.value);
+
             // Update currentFilters (from products.js)
             if (typeof currentFilters !== 'undefined') {
                 currentFilters.category = category === 'all' ? '' : category;
                 currentFilters.condition = condition === 'all' ? '' : condition;
                 currentFilters.maxPrice = parseInt(priceRange);
                 currentFilters.page = 1;
+                
+                // Update clothing-specific filters
+                currentFilters.subCategories = mobileSubCategories;
+                currentFilters.sizes = mobileSizes;
+                currentFilters.colors = mobileColors;
 
                 // Fetch products with new filters
                 if (typeof fetchProducts === 'function') {
