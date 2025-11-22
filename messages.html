@@ -597,11 +597,13 @@
             container.innerHTML = messages.map(msg => {
                 const isMe = msg.senderId === currentUserId;
                 const time = formatMessageTime(msg.createdAt);
+                const sender = allUsers[msg.senderId] || {};
+                const hasProfilePic = sender.profileImage && !isMe;
                 
                 return `
                     <div class="message ${isMe ? 'me' : ''}">
-                        <div class="message-avatar" style="width: 2rem; height: 2rem; background: var(--secondary); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                            <i data-lucide="user" style="width: 1rem; height: 1rem;"></i>
+                        <div class="message-avatar" style="width: 2rem; height: 2rem; background: var(--secondary); border-radius: 50%; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                            ${hasProfilePic ? `<img src="${getImageUrl(sender.profileImage)}" alt="${sender.username}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block;">` : `<i data-lucide="user" style="width: 1rem; height: 1rem;"></i>`}
                         </div>
                         <div>
                             <div class="message-bubble">${msg.content}</div>
