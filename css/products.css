@@ -233,3 +233,119 @@
     text-transform: uppercase;
     letter-spacing: 0.05em;
 }
+
+/* =========================================
+   Mobile Filter Button & Modal
+   ========================================= */
+
+.mobile-filter-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border: 1px solid var(--border);
+    background: var(--background);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.mobile-filter-btn:hover {
+    border-color: var(--foreground);
+    background: var(--secondary);
+}
+
+/* Hide mobile filter button on desktop */
+@media (min-width: 1024px) {
+    .mobile-filter-btn {
+        display: none;
+    }
+}
+
+/* Filter Modal Styles */
+.filter-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+}
+
+.filter-modal.open {
+    display: flex;
+}
+
+.filter-modal-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1;
+}
+
+.filter-modal-content {
+    position: relative;
+    z-index: 2;
+    margin-left: auto;
+    width: 100%;
+    max-width: 350px;
+    height: 100vh;
+    background: var(--background);
+    display: flex;
+    flex-direction: column;
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+    }
+    to {
+        transform: translateX(0);
+    }
+}
+
+.filter-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.filter-modal-header h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+.filter-modal-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    border-radius: var(--radius);
+    transition: background 0.2s;
+}
+
+.filter-modal-close:hover {
+    background: var(--secondary);
+}
+
+.filter-modal-content > .filter-section {
+    padding: 1.5rem;
+}
+
+.filter-modal-content > div:last-child {
+    padding: 0 1.5rem 1.5rem 1.5rem;
+    margin-top: auto;
+}
+
+/* Hide desktop sidebar on mobile */
+@media (max-width: 1023px) {
+    .filters-sidebar {
+        display: none !important;
+    }
+}

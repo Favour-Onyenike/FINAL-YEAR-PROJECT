@@ -167,12 +167,85 @@
                     <p style="color: var(--muted); font-size: 0.9rem;">Showing 1-12 of 48 results</p>
                 </div>
                 <div class="flex items-center gap-2">
+                    <!-- Mobile Filter Button -->
+                    <button class="mobile-filter-btn" id="mobile-filter-btn" onclick="toggleFilterModal()">
+                        <i data-lucide="sliders-horizontal" style="width: 1.25rem;"></i>
+                    </button>
+                    
                     <span style="font-size: 0.9rem; color: var(--muted);">Sort by:</span>
                     <select class="input" style="width: auto;" id="sort-select">
                         <option value="newest">Newest</option>
                         <option value="price-asc">Price: Low to High</option>
                         <option value="price-desc">Price: High to Low</option>
                     </select>
+                </div>
+            </div>
+
+            <!-- Mobile Filter Modal -->
+            <div class="filter-modal" id="filter-modal">
+                <div class="filter-modal-overlay" onclick="closeFilterModal()"></div>
+                <div class="filter-modal-content">
+                    <div class="filter-modal-header">
+                        <h2>Filters</h2>
+                        <button class="filter-modal-close" onclick="closeFilterModal()">
+                            <i data-lucide="x" style="width: 1.5rem;"></i>
+                        </button>
+                    </div>
+
+                    <!-- Category Filter -->
+                    <div class="filter-section">
+                        <div class="filter-title">Category</div>
+                        <div class="filter-group">
+                            <select class="input" id="mobile-category-select">
+                                <option value="all">All Categories</option>
+                                <option value="Textbooks">Textbooks</option>
+                                <option value="Electronics">Electronics</option>
+                                <option value="Clothing">Clothing</option>
+                                <option value="Furniture">Furniture</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Price Filter -->
+                    <div class="filter-section">
+                        <div class="filter-title">Price Range</div>
+                        <div class="filter-group">
+                            <input type="range" min="0" max="1000" value="500" class="range-slider" id="mobile-price-range">
+                            <div class="range-values">
+                                <span>$0</span>
+                                <span id="mobile-price-value">$500</span>
+                                <span>$1000+</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Condition Filter -->
+                    <div class="filter-section">
+                        <div class="filter-title">Condition</div>
+                        <div class="filter-group">
+                            <label class="checkbox-label">
+                                <input type="radio" name="mobile-condition" value="all" checked> Any
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="radio" name="mobile-condition" value="New"> New
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="radio" name="mobile-condition" value="Like New"> Like New
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="radio" name="mobile-condition" value="Good"> Good
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="radio" name="mobile-condition" value="Fair"> Fair
+                            </label>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                        <button class="btn btn-primary" style="flex: 1;" onclick="applyMobileFilters()">Apply</button>
+                        <button class="btn btn-ghost" style="flex: 1;" onclick="closeFilterModal()">Cancel</button>
+                    </div>
                 </div>
             </div>
 
@@ -446,6 +519,74 @@
             }
         }
     </script>
+
+    <!-- Mobile Filter Modal Script -->
+    <script>
+        /**
+         * Toggle the mobile filter modal open/closed
+         */
+        function toggleFilterModal() {
+            const modal = document.getElementById('filter-modal');
+            modal.classList.toggle('open');
+            // Prevent body scroll when modal is open
+            if (modal.classList.contains('open')) {
+                document.body.style.overflow = 'hidden';
+            } else {
+                document.body.style.overflow = '';
+            }
+        }
+
+        /**
+         * Close the mobile filter modal
+         */
+        function closeFilterModal() {
+            const modal = document.getElementById('filter-modal');
+            modal.classList.remove('open');
+            document.body.style.overflow = '';
+        }
+
+        /**
+         * Apply filters from mobile modal
+         */
+        function applyMobileFilters() {
+            // Get selected values from mobile filter inputs
+            const category = document.getElementById('mobile-category-select').value;
+            const condition = document.querySelector('input[name="mobile-condition"]:checked').value;
+            const priceRange = document.getElementById('mobile-price-range').value;
+
+            // Update currentFilters (from products.js)
+            if (typeof currentFilters !== 'undefined') {
+                currentFilters.category = category === 'all' ? '' : category;
+                currentFilters.condition = condition === 'all' ? '' : condition;
+                currentFilters.maxPrice = parseInt(priceRange);
+                currentFilters.page = 1;
+
+                // Fetch products with new filters
+                if (typeof fetchProducts === 'function') {
+                    fetchProducts();
+                }
+            }
+
+            // Close the modal
+            closeFilterModal();
+        }
+
+        // Update price display when slider changes
+        document.addEventListener('DOMContentLoaded', () => {
+            const mobileSlider = document.getElementById('mobile-price-range');
+            if (mobileSlider) {
+                mobileSlider.addEventListener('input', (e) => {
+                    document.getElementById('mobile-price-value').textContent = '$' + e.target.value;
+                });
+            }
+
+            // Re-initialize Lucide icons for the modal
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        });
+    </script>
+
     <script src="js/products.js"></script>
 </body>
 
