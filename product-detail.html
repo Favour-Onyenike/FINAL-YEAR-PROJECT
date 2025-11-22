@@ -38,8 +38,31 @@
             </div>
 
             <div class="user-actions">
-                <a href="login.html" class="nav-link">Log In</a>
-                <a href="signup-select-university.html" class="btn btn-primary">Sign Up</a>
+                <!-- Logged Out State -->
+                <div id="logged-out-actions">
+                    <a href="login.html" class="btn btn-ghost">Log In</a>
+                    <a href="signup-select-university.html" class="btn btn-primary">Sign Up</a>
+                </div>
+                
+                <!-- Logged In State -->
+                <div id="logged-in-actions" class="hidden" style="display: flex; gap: 1rem; align-items: center;">
+                    <a href="messages.html" class="btn-icon btn-ghost nav-icon" title="Messages">
+                        <i data-lucide="message-square"></i>
+                        <span class="notification-badge hidden" id="message-badge">0</span>
+                    </a>
+                    <a href="saved-items.html" class="btn-icon btn-ghost nav-icon" title="Saved Items">
+                        <i data-lucide="bookmark"></i>
+                    </a>
+                    <div class="profile-dropdown" style="position: relative;">
+                        <button class="btn-icon btn-ghost nav-icon profile-dropdown-trigger" title="Profile">
+                            <i data-lucide="user"></i>
+                        </button>
+                        <div class="profile-dropdown-menu">
+                            <a href="profile.html" class="dropdown-item">View Profile</a>
+                            <button onclick="logout()" class="dropdown-item logout-btn">Log Out</button>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <button class="mobile-menu-btn">
