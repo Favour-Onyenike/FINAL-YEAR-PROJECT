@@ -156,8 +156,8 @@
             btn.disabled = true;
 
             try {
-                // Call real backend API
-                const response = await fetch('http://127.0.0.1:8000/api/auth/register', {
+                // Call backend API through frontend server proxy (port 5000 -> 8000)
+                const response = await fetch('/api/auth/register', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -178,7 +178,7 @@
                     alert('✅ Account created successfully! Logging in...');
                     
                     // Auto-login after registration
-                    const loginResponse = await fetch('http://127.0.0.1:8000/api/auth/login', {
+                    const loginResponse = await fetch('/api/auth/login', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',

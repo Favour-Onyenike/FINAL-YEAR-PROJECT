@@ -27,10 +27,14 @@ HOW IT WORKS:
 import http.server
 import socketserver
 import os
+import urllib.request
+import urllib.error
+import json
 
 # Port to listen on
 # Frontend must be accessible at http://0.0.0.0:5000/
 PORT = 5000
+BACKEND_URL = "http://localhost:8000"
 
 # =============================================================================
 # CUSTOM REQUEST HANDLER
@@ -52,6 +56,87 @@ class NoCacheHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
     - Pragma: no-cache (for HTTP/1.0 compatibility)
     - Expires: 0 (already expired)
     """
+    
+    def do_GET(self):
+        """
+        Handle GET requests.
+        Proxy /api/* requests to backend, serve static files normally.
+        """
+        if self.path.startswith('/api/'):
+            self._proxy_api_request('GET')
+        else:
+            super().do_GET()
+    
+    def do_POST(self):
+        """
+        Handle POST requests.
+        Proxy /api/* requests to backend.
+        """
+        if self.path.startswith('/api/'):
+            self._proxy_api_request('POST')
+        else:
+            super().do_POST()
+    
+    def do_PUT(self):
+        """Handle PUT requests (proxy to backend)."""
+        if self.path.startswith('/api/'):
+            self._proxy_api_request('PUT')
+        else:
+            super().do_PUT()
+    
+    def do_DELETE(self):
+        """Handle DELETE requests (proxy to backend)."""
+        if self.path.startswith('/api/'):
+            self._proxy_api_request('DELETE')
+        else:
+            super().do_DELETE()
+    
+    def _proxy_api_request(self, method):
+        """
+        Proxy API requests to backend server on port 8000.
+        This allows /api/* requests to work from the frontend server on port 5000.
+        """
+        try:
+            # Build full URL for backend (self.path already includes query string)
+            full_url = BACKEND_URL + self.path
+            
+            # Read request body if present
+            content_length = int(self.headers.get('Content-Length', 0))
+            body = self.rfile.read(content_length) if content_length > 0 else None
+            
+            # Create request with proper headers
+            req = urllib.request.Request(
+                full_url,
+                data=body,
+                method=method,
+                headers={k: v for k, v in self.headers.items() if k.lower() != 'host'}
+            )
+            req.add_header('Host', 'localhost:8000')
+            
+            # Send request to backend
+            with urllib.request.urlopen(req) as response:
+                status = response.status
+                headers = dict(response.headers)
+                content = response.read()
+        except urllib.error.HTTPError as e:
+            status = e.code
+            headers = dict(e.headers)
+            content = e.read()
+        except Exception as e:
+            # Return 502 Bad Gateway if connection fails
+            self.send_response(502)
+            self.send_header('Content-Type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps({'detail': str(e)}).encode())
+            return
+        
+        # Send response
+        self.send_response(status)
+        for header, value in headers.items():
+            if header.lower() not in ['connection', 'transfer-encoding']:
+                self.send_header(header, value)
+        self.end_headers()
+        self.wfile.write(content)
     
     def end_headers(self):
         """
