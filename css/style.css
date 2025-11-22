@@ -256,13 +256,15 @@ textarea {
 }
 
 /* Navbar Icons - Messages, Saved Items, Profile */
-.nav-icon {
-    padding: 0.125rem !important;
+#logged-in-actions .nav-icon {
+    padding: 0 !important;
+    width: 20px !important;
+    height: 20px !important;
 }
 
-.nav-icon i[data-lucide] {
-    width: 0.6rem !important;
-    height: 0.6rem !important;
+#logged-in-actions .nav-icon i[data-lucide] {
+    width: 16px !important;
+    height: 16px !important;
 }
 
 /* Inputs */
