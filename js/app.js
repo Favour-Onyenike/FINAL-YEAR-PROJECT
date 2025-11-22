@@ -374,12 +374,7 @@ async function updateMessageBadge() {
         
         if (!response.ok) {
             console.warn('Failed to fetch users for message badge. Status:', response.status);
-            // If 401, user token might be invalid - redirect to login
-            if (response.status === 401) {
-                console.warn('Unauthorized - token may be expired');
-                localStorage.removeItem('token');
-                localStorage.removeItem('userId');
-            }
+            // Don't clear token - just skip badge update
             return;
         }
         
