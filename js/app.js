@@ -1,14 +1,21 @@
 /**
  * UniMarket Global Scripts
+ * Handles UI interactions, animations, and global functionality.
  */
 
 // Initialize Lucide Icons
 lucide.createIcons();
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Re-initialize icons after DOM is ready (for dynamically added elements)
+    /**
+     * Re-initialize icons after DOM is ready
+     * Ensures icons are rendered for any dynamically added elements.
+     */
     lucide.createIcons();
 
+    /* =========================================
+       Mobile Menu Toggle
+       ========================================= */
     // Mobile Menu Toggle
     const menuBtn = document.querySelector('.hamburger-menu');
     const mobileMenu = document.querySelector('.mobile-menu');
@@ -19,6 +26,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    /* =========================================
+       Sticky Header Shadow on Scroll
+       ========================================= */
     // Sticky Header Shadow on Scroll
     const header = document.querySelector('.header');
     if (header) {
@@ -31,7 +41,15 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Animated Counter for Hero Stats
+    /* =========================================
+       Animated Counter for Hero Stats
+       ========================================= */
+    /**
+     * Animates a counter from 0 to a target number.
+     * @param {HTMLElement} element - The element to update.
+     * @param {number} target - The target number to reach.
+     * @param {number} duration - The duration of the animation in milliseconds.
+     */
     const animateCounter = (element, target, duration = 2000) => {
         const start = 0;
         const increment = target / (duration / 16);
@@ -63,9 +81,15 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }, { threshold: 0.5 });
 
-        observer.observe(document.querySelector('.hero-stats'));
+        const heroStatsContainer = document.querySelector('.hero-stats');
+        if (heroStatsContainer) {
+            observer.observe(heroStatsContainer);
+        }
     }
 
+    /* =========================================
+       Save Button Toggle
+       ========================================= */
     // Save Button Toggle
     document.querySelectorAll('.save-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
@@ -82,6 +106,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    /* =========================================
+       Newsletter Form Submission
+       ========================================= */
     // Newsletter Form Submission
     const newsletterForm = document.querySelector('.newsletter-form');
     if (newsletterForm) {
@@ -101,6 +128,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    /* =========================================
+       User Authentication Check
+       ========================================= */
     // Check if user is logged in (from localStorage)
     const user = localStorage.getItem('user');
     const authButtons = document.getElementById('auth-buttons');
@@ -111,30 +141,37 @@ document.addEventListener('DOMContentLoaded', () => {
         userMenu.style.display = 'flex';
     }
 
+    /* =========================================
+       Shop Dropdown Functionality
+       ========================================= */
     // Shop Dropdown Functionality
     const dropdown = document.querySelector('.nav-dropdown');
     const trigger = document.querySelector('.nav-dropdown-trigger');
     const menu = document.querySelector('.dropdown-menu');
 
     if (dropdown && trigger && menu) {
+        // Toggle dropdown on click
         trigger.addEventListener('click', function (e) {
             e.preventDefault();
             e.stopPropagation();
             dropdown.classList.toggle('open');
         });
 
+        // Close dropdown when clicking an item
         menu.querySelectorAll('.dropdown-item').forEach(function (item) {
             item.addEventListener('click', function () {
                 dropdown.classList.remove('open');
             });
         });
 
+        // Close dropdown when clicking outside
         document.addEventListener('click', function (e) {
             if (!dropdown.contains(e.target)) {
                 dropdown.classList.remove('open');
             }
         });
 
+        // Close dropdown on Escape key
         document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape') {
                 dropdown.classList.remove('open');
