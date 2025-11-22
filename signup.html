@@ -77,14 +77,13 @@
         function togglePassword(inputId, toggleId) {
             const input = document.getElementById(inputId);
             const toggle = document.getElementById(toggleId);
-            const icon = toggle.querySelector('i');
             
             if (input.type === 'password') {
                 input.type = 'text';
-                icon.setAttribute('data-lucide', 'eye-off');
+                toggle.innerHTML = '<i data-lucide="eye-off" style="width: 1.2rem; height: 1.2rem;"></i>';
             } else {
                 input.type = 'password';
-                icon.setAttribute('data-lucide', 'eye');
+                toggle.innerHTML = '<i data-lucide="eye" style="width: 1.2rem; height: 1.2rem;"></i>';
             }
             
             // Re-render lucide icons
