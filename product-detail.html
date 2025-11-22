@@ -153,9 +153,9 @@
             </div>
 
             <div class="detail-actions">
-                <button class="btn btn-primary flex-1">
-                    <i data-lucide="message-square" style="width: 1.2rem; margin-right: 0.5rem;"></i> Contact Seller
-                </button>
+                <a href="#" id="view-profile-btn" class="btn btn-primary flex-1" style="text-decoration: none; display: flex; align-items: center; justify-content: center;">
+                    <i data-lucide="user" style="width: 1.2rem; margin-right: 0.5rem;"></i> View Profile
+                </a>
                 <button class="btn btn-outline">
                     <i data-lucide="bookmark" style="width: 1.2rem;"></i>
                 </button>
@@ -436,12 +436,34 @@
             loadComments();
         }
         
+        // Load product data and setup View Profile button
+        async function loadProductData() {
+            if (!productId) return;
+            
+            try {
+                const response = await fetch(`/api/products/${productId}`);
+                if (!response.ok) throw new Error('Failed to load product');
+                
+                const product = await response.json();
+                const sellerId = product.seller.id;
+                
+                // Set up View Profile button
+                const viewProfileBtn = document.getElementById('view-profile-btn');
+                if (viewProfileBtn) {
+                    viewProfileBtn.href = `profile.html?userId=${sellerId}`;
+                }
+            } catch (error) {
+                console.error('Error loading product data:', error);
+            }
+        }
+        
         // Hide loader when page is fully loaded
         window.addEventListener('load', () => {
             const loader = document.getElementById('loader');
             if (loader) {
                 loader.classList.add('hidden');
             }
+            loadProductData();
             initializeComments();
         });
         
