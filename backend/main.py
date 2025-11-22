@@ -40,12 +40,12 @@ import socketio  # Real-time websocket communication
 
 # Import database and authentication functions
 from backend.database import get_db, init_db
-from backend.models import User, University, Product, ProductImage, SavedItem, Category, Message
+from backend.models import User, University, Product, ProductImage, SavedItem, Category, Message, Comment
 from backend.schemas import (
     UserRegister, UserLogin, UserResponse, LoginResponse, UserUpdate,
     ProductCreate, ProductUpdate, ProductResponse, ProductListResponse,
     SavedItemToggle, SavedItemResponse, UploadResponse, MessageCreate, MessageResponse,
-    SellerInfo, CategoryResponse, ProductImageResponse
+    SellerInfo, CategoryResponse, ProductImageResponse, CommentCreate, CommentResponse
 )
 from backend.auth import (
     get_password_hash, verify_password, create_access_token, get_current_user
@@ -1050,3 +1050,96 @@ def get_messages(
         }
         for m in messages
     ]
+
+# =============================================================================
+# COMMENT ENDPOINTS (Product Comments/Questions)
+# =============================================================================
+
+@app.post("/api/products/{product_id}/comments", response_model=CommentResponse)
+def create_comment(
+    product_id: int,
+    comment_data: CommentCreate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Create a new comment on a product"""
+    # Check if product exists
+    product = db.query(Product).filter(Product.id == product_id).first()
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    
+    # Create new comment
+    new_comment = Comment(
+        product_id=product_id,
+        author_id=current_user.id,
+        content=comment_data.content
+    )
+    
+    db.add(new_comment)
+    db.commit()
+    db.refresh(new_comment)
+    
+    return {
+        "id": new_comment.id,
+        "productId": new_comment.product_id,
+        "authorId": new_comment.author_id,
+        "content": new_comment.content,
+        "createdAt": new_comment.created_at,
+        "author": {
+            "id": current_user.id,
+            "fullName": current_user.full_name,
+            "username": current_user.username,
+            "email": current_user.email,
+            "bio": current_user.bio,
+            "profileImage": current_user.profile_image,
+            "phone": current_user.phone
+        }
+    }
+
+@app.get("/api/products/{product_id}/comments", response_model=List[CommentResponse])
+def get_comments(
+    product_id: int,
+    db: Session = Depends(get_db)
+):
+    """Get all comments for a product"""
+    comments = db.query(Comment).filter(Comment.product_id == product_id).order_by(Comment.created_at.desc()).all()
+    
+    return [
+        {
+            "id": c.id,
+            "productId": c.product_id,
+            "authorId": c.author_id,
+            "content": c.content,
+            "createdAt": c.created_at,
+            "author": {
+                "id": c.author.id,
+                "fullName": c.author.full_name,
+                "username": c.author.username,
+                "email": c.author.email,
+                "bio": c.author.bio,
+                "profileImage": c.author.profile_image,
+                "phone": c.author.phone
+            }
+        }
+        for c in comments
+    ]
+
+@app.delete("/api/comments/{comment_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_comment(
+    comment_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Delete a comment (only author or seller can delete)"""
+    comment = db.query(Comment).filter(Comment.id == comment_id).first()
+    if not comment:
+        raise HTTPException(status_code=404, detail="Comment not found")
+    
+    # Check if current user is the author or the product seller
+    if comment.author_id != current_user.id and comment.product.seller_id != current_user.id:
+        raise HTTPException(status_code=403, detail="You can only delete your own comments")
+    
+    db.delete(comment)
+    db.commit()
+    
+    return None

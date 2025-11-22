@@ -486,3 +486,23 @@ class MessageResponse(BaseModel):
     
     class Config:
         from_attributes = True
+
+# =============================================================================
+# COMMENT SCHEMAS (Product Comments/Questions)
+# =============================================================================
+
+class CommentCreate(BaseModel):
+    """Schema for creating a new comment"""
+    content: str
+
+class CommentResponse(BaseModel):
+    """Schema for comment response"""
+    id: int
+    productId: int
+    authorId: int
+    content: str
+    createdAt: datetime
+    author: UserResponse
+    
+    class Config:
+        from_attributes = True

@@ -172,45 +172,24 @@
 
     <!-- Comments Section -->
     <div class="container comments-section">
-        <h3 style="font-size: 1.5rem; font-weight: 700;">Comments (3)</h3>
+        <h3 style="font-size: 1.5rem; font-weight: 700;">Comments <span id="comment-count">(0)</span></h3>
 
-        <div class="comment-list">
-            <!-- Comment 1 -->
-            <div class="comment-item">
-                <div class="comment-avatar">
-                    <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=2000&auto=format&fit=crop"
-                        alt="User">
-                </div>
-                <div class="comment-content">
-                    <div class="comment-header">
-                        <span class="comment-author">Sarah Williams</span>
-                        <span class="comment-date">2 days ago</span>
-                    </div>
-                    <p class="comment-text">Is this still available?</p>
-                </div>
-            </div>
-
-            <!-- Comment 2 -->
-            <div class="comment-item">
-                <div class="comment-avatar">
-                    <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=2000&auto=format&fit=crop"
-                        alt="Seller">
-                </div>
-                <div class="comment-content">
-                    <div class="comment-header">
-                        <span class="comment-author">Alex Johnson (Seller)</span>
-                        <span class="comment-date">1 day ago</span>
-                    </div>
-                    <p class="comment-text">Yes, it is! Send me a message if you're interested.</p>
-                </div>
-            </div>
+        <div class="comment-list" id="comment-list">
+            <!-- Comments will be loaded here by JavaScript -->
         </div>
 
-        <div class="comment-form">
-            <textarea class="comment-input" placeholder="Ask a question..."></textarea>
-            <button class="btn btn-primary btn-icon comment-submit">
+        <!-- Comment Form (Hidden if not logged in) -->
+        <div class="comment-form" id="comment-form">
+            <textarea class="comment-input" id="comment-input" placeholder="Ask a question..."></textarea>
+            <button class="btn btn-primary btn-icon comment-submit" id="comment-submit-btn">
                 <i data-lucide="send" style="width: 1rem;"></i>
             </button>
+        </div>
+        
+        <!-- Login Prompt (Shown if not logged in) -->
+        <div id="comment-login-prompt" style="display: none; padding: 1.5rem; background: var(--secondary); border-radius: 8px; text-align: center;">
+            <p style="margin-bottom: 1rem;">Sign in to leave a comment</p>
+            <a href="login.html?returnTo=product-detail.html" class="btn btn-primary">Sign In</a>
         </div>
     </div>
 
@@ -273,12 +252,197 @@
 
     <script src="js/app.js"></script>
     <script>
+        // Get product ID from URL
+        const productId = new URLSearchParams(window.location.search).get('id');
+        
+        // Get current user info from localStorage
+        function getCurrentUser() {
+            const user = localStorage.getItem('user');
+            return user ? JSON.parse(user) : null;
+        }
+        
+        // Load comments from API
+        async function loadComments() {
+            if (!productId) return;
+            
+            try {
+                const response = await fetch(`/api/products/${productId}/comments`);
+                if (!response.ok) throw new Error('Failed to load comments');
+                
+                const comments = await response.json();
+                renderComments(comments);
+                
+                // Update comment count
+                document.getElementById('comment-count').textContent = `(${comments.length})`;
+            } catch (error) {
+                console.error('Error loading comments:', error);
+            }
+        }
+        
+        // Format date as relative time
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            const now = new Date();
+            const seconds = Math.floor((now - date) / 1000);
+            
+            if (seconds < 60) return 'just now';
+            const minutes = Math.floor(seconds / 60);
+            if (minutes < 60) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+            const hours = Math.floor(minutes / 60);
+            if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+            const days = Math.floor(hours / 24);
+            if (days < 7) return `${days} day${days > 1 ? 's' : ''} ago`;
+            return date.toLocaleDateString();
+        }
+        
+        // Render comments
+        function renderComments(comments) {
+            const commentList = document.getElementById('comment-list');
+            const currentUser = getCurrentUser();
+            
+            if (comments.length === 0) {
+                commentList.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 2rem;">No comments yet. Be the first to ask a question!</p>';
+                return;
+            }
+            
+            commentList.innerHTML = comments.map(comment => {
+                const isAuthor = currentUser && currentUser.id === comment.authorId;
+                const profileImage = comment.author.profileImage || 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=2000&auto=format&fit=crop';
+                
+                return `
+                    <div class="comment-item">
+                        <div class="comment-avatar">
+                            <img src="${profileImage}" alt="${comment.author.fullName}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                        </div>
+                        <div class="comment-content" style="flex: 1;">
+                            <div class="comment-header">
+                                <span class="comment-author">${comment.author.fullName}</span>
+                                <span class="comment-date">${formatDate(comment.createdAt)}</span>
+                                ${isAuthor ? `<button class="btn-delete-comment" data-comment-id="${comment.id}" style="font-size: 0.875rem; color: var(--destructive); cursor: pointer; border: none; background: none; padding: 0; margin-left: auto;">Delete</button>` : ''}
+                            </div>
+                            <p class="comment-text">${comment.content}</p>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            // Add delete event listeners
+            document.querySelectorAll('.btn-delete-comment').forEach(btn => {
+                btn.addEventListener('click', (e) => deleteComment(e.target.dataset.commentId));
+            });
+        }
+        
+        // Submit comment
+        async function submitComment() {
+            const currentUser = getCurrentUser();
+            if (!currentUser) {
+                // Show login prompt
+                document.getElementById('comment-form').style.display = 'none';
+                document.getElementById('comment-login-prompt').style.display = 'block';
+                return;
+            }
+            
+            const content = document.getElementById('comment-input').value.trim();
+            if (!content) {
+                alert('Please write a comment');
+                return;
+            }
+            
+            if (!productId) {
+                alert('Product not found');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/products/${productId}/comments`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({ content })
+                });
+                
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        alert('Please sign in to comment');
+                        localStorage.removeItem('token');
+                        localStorage.removeItem('user');
+                        window.location.href = `login.html?returnTo=product-detail.html?id=${productId}`;
+                        return;
+                    }
+                    throw new Error('Failed to post comment');
+                }
+                
+                // Clear input and reload comments
+                document.getElementById('comment-input').value = '';
+                loadComments();
+            } catch (error) {
+                console.error('Error posting comment:', error);
+                alert('Failed to post comment');
+            }
+        }
+        
+        // Delete comment
+        async function deleteComment(commentId) {
+            if (!confirm('Delete this comment?')) return;
+            
+            try {
+                const response = await fetch(`/api/comments/${commentId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        alert('Please sign in');
+                        window.location.href = `login.html?returnTo=product-detail.html?id=${productId}`;
+                        return;
+                    }
+                    throw new Error('Failed to delete comment');
+                }
+                
+                loadComments();
+            } catch (error) {
+                console.error('Error deleting comment:', error);
+                alert('Failed to delete comment');
+            }
+        }
+        
+        // Initialize comments
+        function initializeComments() {
+            const currentUser = getCurrentUser();
+            
+            if (currentUser) {
+                document.getElementById('comment-form').style.display = 'flex';
+                document.getElementById('comment-login-prompt').style.display = 'none';
+            } else {
+                document.getElementById('comment-form').style.display = 'none';
+                document.getElementById('comment-login-prompt').style.display = 'block';
+            }
+            
+            // Add event listener to submit button
+            document.getElementById('comment-submit-btn').addEventListener('click', submitComment);
+            
+            // Allow submitting with Ctrl+Enter or Cmd+Enter
+            document.getElementById('comment-input').addEventListener('keydown', (e) => {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                    submitComment();
+                }
+            });
+            
+            loadComments();
+        }
+        
         // Hide loader when page is fully loaded
         window.addEventListener('load', () => {
             const loader = document.getElementById('loader');
             if (loader) {
                 loader.classList.add('hidden');
             }
+            initializeComments();
         });
         
         // Simple gallery script

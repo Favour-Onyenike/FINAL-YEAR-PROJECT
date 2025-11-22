@@ -149,6 +149,9 @@ class User(Base):
     
     # Relationship: This user has saved many products
     saved_items = relationship("SavedItem", back_populates="user")
+    
+    # Relationship: This user has written many comments
+    comments = relationship("Comment", back_populates="author")
 
 # =============================================================================
 # CATEGORY TABLE (Product categories)
@@ -262,6 +265,9 @@ class Product(Base):
     
     # Relationship: This product is saved by many users
     saved_by = relationship("SavedItem", back_populates="product")
+    
+    # Relationship: This product has many comments
+    comments = relationship("Comment", back_populates="product", cascade="all, delete-orphan")
 
 # =============================================================================
 # PRODUCT IMAGE TABLE (Photos of products)
@@ -387,3 +393,45 @@ class Message(Base):
     
     # Relationship: Receiver user
     receiver = relationship("User", foreign_keys=[receiver_id])
+
+# =============================================================================
+# COMMENT TABLE (Product Comments/Questions)
+# =============================================================================
+class Comment(Base):
+    """
+    Represents a comment on a product listing.
+    Users can ask questions or leave comments on product listings.
+    
+    COLUMNS:
+    - id: Primary key
+    - product_id: Which product is being commented on
+    - author_id: Who wrote the comment
+    - content: The comment text
+    - created_at: When the comment was posted
+    
+    RELATIONSHIPS:
+    - product: The product this comment is on
+    - author: The user who wrote the comment
+    """
+    __tablename__ = "comments"
+    
+    # Unique ID for each comment
+    id = Column(Integer, primary_key=True, index=True)
+    
+    # Foreign key: Which product is this comment on?
+    product_id = Column(Integer, ForeignKey("products.id"), nullable=False, index=True)
+    
+    # Foreign key: Who wrote this comment?
+    author_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    
+    # The comment text content
+    content = Column(Text, nullable=False)
+    
+    # When the comment was created
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+    
+    # Relationship: This comment belongs to one product
+    product = relationship("Product", back_populates="comments")
+    
+    # Relationship: This comment was written by one user
+    author = relationship("User", back_populates="comments")
