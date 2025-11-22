@@ -609,6 +609,15 @@
 
             try {
                 const token = getToken();
+                console.log('Sending message - Token exists:', !!token, 'Conversation user:', currentConversationUserId, 'Content:', content.substring(0,20));
+                
+                if (!token) {
+                    console.error('ERROR: No token found! User must log in.');
+                    alert('❌ You are not logged in. Please log in again.');
+                    window.location.href = '/login.html';
+                    return;
+                }
+
                 const response = await fetch('/api/messages', {
                     method: 'POST',
                     headers: {
@@ -621,8 +630,11 @@
                     })
                 });
 
+                console.log('Message response status:', response.status);
+
                 if (response.ok) {
                     input.value = '';
+                    console.log('✅ Message sent successfully');
                     await loadMessages(currentConversationUserId);
                     
                     // Also emit via Socket.IO for real-time
@@ -631,9 +643,14 @@
                         receiverId: currentConversationUserId,
                         content: content
                     });
+                } else {
+                    const errorData = await response.json().catch(() => ({}));
+                    console.error('❌ Message send failed:', response.status, errorData);
+                    alert(`❌ Failed to send message: ${response.status}`);
                 }
             } catch (error) {
                 console.error('Error sending message:', error);
+                alert('❌ Error: ' + error.message);
             }
         }
 
