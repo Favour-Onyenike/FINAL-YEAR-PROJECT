@@ -136,6 +136,16 @@ def init_db():
             ]
             db.add_all(categories)  # Add all categories to session
             db.commit()  # Save to database
+        
+        # ===== UPDATE: Set all existing products location to "Baze University" =====
+        # For existing products that may have different locations, update them
+        # Since only Baze University students can sell, all products are at Baze
+        existing_products = db.query(Product).all()
+        for product in existing_products:
+            if not product.location or product.location != "Baze University":
+                product.location = "Baze University"
+        if existing_products:
+            db.commit()
     finally:
         # Always close the session when done
         db.close()

@@ -491,7 +491,7 @@ def create_product(
         price=product_data.price,
         category_id=product_data.categoryId,
         seller_id=current_user.id,  # Set seller to current user
-        location=product_data.location,
+        location="Baze University",  # All products are at Baze University (only sellers from Baze)
         condition=product_data.condition,
         size=product_data.size,
         color=product_data.color,
