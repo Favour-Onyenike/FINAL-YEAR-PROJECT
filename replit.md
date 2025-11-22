@@ -137,6 +137,12 @@ bash start.sh
 - **Soft Deletes**: Products marked deleted, not permanently removed
 
 ## Recent Changes
+- **2025-11-22**: Loading Spinners Added
+  - Created css/loader.css with animated spinner
+  - Added loader HTML to index.html, products.html, product-detail.html
+  - Loader shows while page is loading, hides automatically when page fully loads
+  - Each page has custom loading message (Loading..., Loading products..., etc.)
+
 - **2025-11-22**: Currency Updated to Nigerian Naira
   - Changed all prices from USD ($) to Nigerian Naira (₦)
   - Updated hardcoded prices in index.html, products.html, product-detail.html

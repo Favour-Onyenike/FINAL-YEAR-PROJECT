@@ -355,5 +355,14 @@ function clearAllFilters() {
  * When products.html loads, fetch and display initial products
  */
 document.addEventListener('DOMContentLoaded', () => {
+    // Hide loader when products page loads
+    window.addEventListener('load', () => {
+        const loader = document.getElementById('loader');
+        if (loader) {
+            loader.classList.add('hidden');
+        }
+    });
+    
+    // Fetch products
     fetchProducts();
 });

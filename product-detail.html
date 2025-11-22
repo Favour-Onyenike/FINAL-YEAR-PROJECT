@@ -6,10 +6,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Engineering Mechanics - UniMarket</title>
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/loader.css">
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 
 <body>
+
+    <!-- Loader -->
+    <div class="loader-container" id="loader">
+        <div>
+            <div class="spinner"></div>
+            <p class="loader-text loader-message">Loading product...</p>
+        </div>
+    </div>
 
     <!-- Header -->
     <header class="site-header">
@@ -223,6 +232,14 @@
 
     <script src="js/app.js"></script>
     <script>
+        // Hide loader when page is fully loaded
+        window.addEventListener('load', () => {
+            const loader = document.getElementById('loader');
+            if (loader) {
+                loader.classList.add('hidden');
+            }
+        });
+        
         // Simple gallery script
         function changeImage(src) {
             document.getElementById('main-img').src = src;
