@@ -368,7 +368,22 @@ function logout() {
  * Used before making authenticated API requests
  */
 function getToken() {
-    return localStorage.getItem('token');
+    const token = localStorage.getItem('token');
+    
+    // If token is literally "undefined" (broken from old code), clear it and force login
+    if (token === 'undefined' || token === 'null' || !token) {
+        console.log('❌ BROKEN TOKEN DETECTED! Clearing localStorage and redirecting to login...');
+        localStorage.clear();
+        
+        // Only redirect if not already on login/signup
+        const currentPage = window.location.pathname;
+        if (!currentPage.includes('login') && !currentPage.includes('signup')) {
+            window.location.href = '/login.html';
+        }
+        return null;
+    }
+    
+    return token;
 }
 
 /**
