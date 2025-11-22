@@ -245,6 +245,14 @@ textarea {
 .btn-icon {
     padding: 0.5rem;
     border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-icon i[data-lucide] {
+    width: 1.25rem;
+    height: 1.25rem;
 }
 
 /* Inputs */
