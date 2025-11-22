@@ -47,7 +47,7 @@ const API_URL = `${window.location.protocol}//${window.location.hostname}:8000/a
 let currentFilters = {
     category: '',          // Selected category name (empty = all)
     minPrice: 0,          // Minimum price filter
-    maxPrice: 1000,       // Maximum price filter
+    maxPrice: 10000,      // Maximum price filter (₦10,000 Naira)
     condition: '',        // Selected condition (empty = all)
     sortBy: 'newest',     // Sort: newest, price-asc, price-desc
     page: 1,              // Current page number
@@ -369,7 +369,7 @@ function clearAllFilters() {
     currentFilters = {
         category: '',
         minPrice: 0,
-        maxPrice: 1000,
+        maxPrice: 10000,
         condition: '',
         sortBy: 'newest',
         page: 1,
@@ -387,8 +387,8 @@ function clearAllFilters() {
     
     if (categorySelect) categorySelect.value = 'all';
     if (conditionRadios) conditionRadios[0].checked = true;  // Check "Any"
-    if (priceRange) priceRange.value = 500;
-    if (priceValue) priceValue.textContent = '₦500';
+    if (priceRange) priceRange.value = 5000;
+    if (priceValue) priceValue.textContent = '₦5000';
     
     // Clear all clothing-specific checkboxes
     document.querySelectorAll('input[name="size"]').forEach(cb => cb.checked = false);
