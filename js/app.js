@@ -522,6 +522,26 @@ function initializeGlobalSearch() {
 }
 
 /**
+ * Check authentication and navigate to a page
+ * If user is not logged in, redirect to login page
+ * If logged in, navigate to the target page
+ * @param {string} targetPage - The page to navigate to (e.g., 'sell.html')
+ */
+function checkAuthAndNavigate(targetPage) {
+    const token = localStorage.getItem('token');
+    const user = localStorage.getItem('user');
+    
+    // Check if user is authenticated
+    if (!token || !user) {
+        // Not logged in - redirect to login page
+        window.location.href = 'login.html';
+    } else {
+        // Logged in - navigate to target page
+        window.location.href = targetPage;
+    }
+}
+
+/**
  * Perform search and redirect to products page
  * @param {string} query - Search query from user
  */
