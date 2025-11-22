@@ -370,8 +370,17 @@ textarea.input {
 
 .search-bar .input {
     padding-left: 2.75rem;
-    display: none;
-    width: 0;
+    display: block;
+    width: auto;
+    min-width: 250px;
+}
+
+/* Desktop: Show full search bar */
+@media (min-width: 768px) {
+    .search-bar .input {
+        display: block;
+        width: auto;
+    }
 }
 
 /* Mobile: Show only icon initially */
