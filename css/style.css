@@ -386,6 +386,11 @@ textarea.input {
     background: none;
     border: none;
     cursor: pointer;
+    color: black;
+}
+
+.mobile-menu-btn i {
+    color: black;
 }
 
 .mobile-menu {
