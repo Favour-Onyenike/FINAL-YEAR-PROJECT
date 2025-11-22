@@ -10,6 +10,7 @@
  * - Animated counter for hero statistics
  * - Navigation bar state management
  * - Logout functionality
+ * - Helper function to convert relative image paths to backend URLs
  * 
  * HOW IT WORKS:
  * 1. Wait for page to load (DOMContentLoaded)
@@ -17,6 +18,25 @@
  * 3. Attach event listeners to interactive elements
  * 4. Handle user interactions (clicks, scrolls, etc.)
  */
+
+// =============================================================================
+// IMAGE URL HELPER - CONVERT RELATIVE PATHS TO BACKEND URLs
+// =============================================================================
+// In Replit, frontend is on port 5000, backend is on port 8000
+// Product images and user avatars are stored on backend, so relative paths need to be converted
+function getImageUrl(imagePath) {
+    // If already a full URL or empty, return as-is
+    if (!imagePath || imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+        return imagePath;
+    }
+    
+    // Convert relative path to backend URL
+    const currentUrl = new URL(window.location.href);
+    const backendUrl = new URL(currentUrl);
+    backendUrl.port = '8000';
+    backendUrl.pathname = imagePath;
+    return backendUrl.toString();
+}
 
 // =============================================================================
 // LUCIDE ICONS INITIALIZATION

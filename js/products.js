@@ -183,7 +183,7 @@ function displayProducts(products) {
         <a href="product-detail.html?id=${product.id}" class="product-card">
             <!-- Product Image -->
             <div class="product-image-container">
-                <img src="${product.images[0]?.imageUrl || 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?q=80&w=800'}" 
+                <img src="${getImageUrl(product.images[0]?.imageUrl || 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?q=80&w=800')}" 
                      alt="${product.name}" 
                      class="product-image">
                 
