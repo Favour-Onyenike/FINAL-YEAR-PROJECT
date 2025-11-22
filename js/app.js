@@ -49,6 +49,13 @@ document.addEventListener('DOMContentLoaded', () => {
             // Toggle 'open' class to show/hide menu
             mobileMenu.classList.toggle('open');
         });
+        
+        // Close mobile menu when any link is clicked
+        mobileMenu.querySelectorAll('a, button').forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.classList.remove('open');
+            });
+        });
     }
 
     /* =========================================
@@ -179,6 +186,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const token = localStorage.getItem('token');
         const loggedOutActions = document.getElementById('logged-out-actions');
         const loggedInActions = document.getElementById('logged-in-actions');
+        const mobileLoggedOutActions = document.getElementById('mobile-logged-out-actions');
+        const mobileLoggedInActions = document.getElementById('mobile-logged-in-actions');
         
         if (loggedOutActions && loggedInActions) {
             if (token) {
@@ -189,6 +198,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 // User is not logged in - Show login/signup buttons, hide icons
                 loggedOutActions.classList.remove('hidden');
                 loggedInActions.classList.add('hidden');
+            }
+        }
+        
+        // Update mobile menu auth state
+        if (mobileLoggedOutActions && mobileLoggedInActions) {
+            if (token) {
+                // User is logged in - Show authenticated links, hide login/signup
+                mobileLoggedOutActions.classList.add('hidden');
+                mobileLoggedInActions.classList.remove('hidden');
+            } else {
+                // User is not logged in - Show login/signup buttons, hide authenticated links
+                mobileLoggedOutActions.classList.remove('hidden');
+                mobileLoggedInActions.classList.add('hidden');
             }
         }
     }

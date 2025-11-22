@@ -174,11 +174,27 @@ NEXT STEPS FROM HERE:
     <!-- Mobile Menu -->
     <div class="mobile-menu">
         <div class="flex flex-col gap-4">
-            <a href="products.html" class="nav-link" style="font-size: 1.25rem;">Shop</a>
-            <a href="#" class="nav-link" style="font-size: 1.25rem;">About</a>
-            <hr style="border-color: var(--border);">
-            <a href="login.html" class="nav-link" style="font-size: 1.25rem;">Log In</a>
-            <a href="signup-select-university.html" class="btn btn-primary" style="width: 100%;">Sign Up</a>
+            <!-- Logged Out State -->
+            <div id="mobile-logged-out-actions">
+                <a href="products.html" class="nav-link" style="font-size: 1.1rem; padding: 0.5rem 0;">Shop</a>
+                <a href="about.html" class="nav-link" style="font-size: 1.1rem; padding: 0.5rem 0;">About</a>
+                <hr style="border-color: var(--border); margin: 0.5rem 0;">
+                <a href="login.html" class="btn btn-ghost" style="text-align: center; width: 100%;">Log In</a>
+                <a href="signup-select-university.html" class="btn btn-primary" style="text-align: center; width: 100%;">Sign Up</a>
+            </div>
+            
+            <!-- Logged In State -->
+            <div id="mobile-logged-in-actions" class="hidden">
+                <a href="products.html" class="nav-link" style="font-size: 1.1rem; padding: 0.5rem 0;">Shop</a>
+                <a href="about.html" class="nav-link" style="font-size: 1.1rem; padding: 0.5rem 0;">About</a>
+                <hr style="border-color: var(--border); margin: 0.5rem 0;">
+                <a href="sell.html" class="nav-link" style="font-size: 1.1rem; padding: 0.5rem 0;">Sell</a>
+                <a href="messages.html" class="nav-link" style="font-size: 1.1rem; padding: 0.5rem 0;">Messages</a>
+                <a href="saved-items.html" class="nav-link" style="font-size: 1.1rem; padding: 0.5rem 0;">Saved Items</a>
+                <a href="profile.html" class="nav-link" style="font-size: 1.1rem; padding: 0.5rem 0;">Profile</a>
+                <hr style="border-color: var(--border); margin: 0.5rem 0;">
+                <button onclick="logout()" class="btn btn-outline" style="text-align: center; width: 100%;">Log Out</button>
+            </div>
         </div>
     </div>
 
