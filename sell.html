@@ -405,19 +405,66 @@ TROUBLESHOOTING:
                 return;
             }
             
-            // Get form data
-            const formData = new FormData(e.target);
-            const productName = document.querySelector('input[placeholder*="Engineering"]').value;
-            const description = document.querySelector('textarea').value;
-            const price = parseFloat(document.getElementById('price-input').value);
-            const category = document.getElementById('category-select').value;
-            const condition = document.getElementById('condition-select').value;
-            const size = document.getElementById('size-select').value || null;
-            const color = document.getElementById('color-input').value || null;
-            
-            // For now, show success message (backend integration would go here)
-            alert('Listing created successfully!');
-            window.location.href = 'profile.html';
+            try {
+                // Get form data
+                const productName = document.querySelector('input[placeholder*="Engineering"]').value;
+                const description = document.querySelector('textarea').value;
+                const price = parseFloat(document.getElementById('price-input').value);
+                const category = document.getElementById('category-select').value;
+                const condition = document.getElementById('condition-select').value;
+                const size = document.getElementById('size-select').value || null;
+                const color = document.getElementById('color-input').value || null;
+                
+                // Step 1: Upload all images
+                const imageUrls = [];
+                for (const file of selectedFiles) {
+                    const uploadFormData = new FormData();
+                    uploadFormData.append('file', file);
+                    
+                    const uploadResponse = await fetch('/api/upload', {
+                        method: 'POST',
+                        body: uploadFormData
+                    });
+                    
+                    if (!uploadResponse.ok) {
+                        throw new Error('Failed to upload image');
+                    }
+                    
+                    const uploadData = await uploadResponse.json();
+                    imageUrls.push(uploadData.imageUrl);
+                }
+                
+                // Step 2: Create product with uploaded images
+                const token = localStorage.getItem('token');
+                const productResponse = await fetch('/api/products', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        name: productName,
+                        description: description,
+                        price: price,
+                        category: category,
+                        condition: condition,
+                        size: size,
+                        color: color,
+                        images: imageUrls.map(url => ({ imageUrl: url }))
+                    })
+                });
+                
+                if (!productResponse.ok) {
+                    const error = await productResponse.json();
+                    throw new Error(error.detail || 'Failed to create listing');
+                }
+                
+                alert('✅ Listing created successfully!');
+                window.location.href = 'profile.html';
+            } catch (error) {
+                console.error('Error creating listing:', error);
+                alert(`❌ Error: ${error.message}`);
+            }
         });
     </script>
 </body>

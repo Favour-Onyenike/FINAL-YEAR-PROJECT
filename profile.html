@@ -446,8 +446,63 @@ NEXT STEPS FROM HERE:
             event.target.classList.add('active');
         }
         
+        // Load user's product listings
+        async function loadUserListings() {
+            const currentUser = JSON.parse(localStorage.getItem('user'));
+            const profileUserId = getProfileUserId();
+            const userId = profileUserId || (currentUser ? currentUser.id : null);
+            
+            if (!userId) return;
+            
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`/api/products?userId=${userId}`, {
+                    headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+                });
+                
+                if (!response.ok) throw new Error('Failed to load listings');
+                
+                const products = await response.json();
+                const listingsGrid = document.getElementById('listings-grid');
+                
+                if (products.length === 0) {
+                    listingsGrid.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; color: var(--muted); padding: 2rem;">No listings yet. <a href="sell.html">Create your first listing!</a></p>';
+                    return;
+                }
+                
+                // Display products
+                listingsGrid.innerHTML = products.map(product => `
+                    <a href="product-detail.html?id=${product.id}" class="product-card">
+                        <div class="product-image-container">
+                            <img src="${getImageUrl(product.images[0]?.imageUrl || 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?q=80&w=800')}" 
+                                 alt="${product.name}" 
+                                 class="product-image">
+                            <button class="product-save-btn" onclick="event.preventDefault(); toggleSave(${product.id})">
+                                <i data-lucide="bookmark" style="width: 1.25rem;"></i>
+                            </button>
+                        </div>
+                        <div class="product-info">
+                            <h3 class="product-name">${product.name}</h3>
+                            <span class="product-price">₦${product.price.toFixed(2)}</span>
+                            <div class="product-meta">
+                                <span class="meta-item">
+                                    <i data-lucide="tag" style="width: 1rem;"></i> 
+                                    ${product.category.name}
+                                </span>
+                            </div>
+                        </div>
+                    </a>
+                `).join('');
+                
+                lucide.createIcons();
+            } catch (error) {
+                console.error('Error loading listings:', error);
+            }
+        }
+        
         // Load profile when page loads
         loadUserProfile();
+        loadUserListings();
     </script>
 </body>
 
