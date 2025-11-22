@@ -290,7 +290,7 @@ NEXT STEPS FROM HERE:
                 
                 if (!response.ok) {
                     if (response.status === 401) {
-                        window.location.href = 'login.html';
+                        window.location.href = 'login.html?returnTo=saved-items.html';
                         return;
                     }
                     throw new Error('Failed to load saved items');
