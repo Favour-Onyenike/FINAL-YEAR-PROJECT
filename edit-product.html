@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<!--
+================================================================================
+UNIMARKET - EDIT PRODUCT LISTING PAGE (edit-product.html)
+================================================================================
+PURPOSE: Allow users to edit their existing product listings
+AUTHENTICATION: Requires logged-in user (JWT token in localStorage)
+FEATURES:
+- Pre-fills form with existing product data
+- Allows editing of all product fields
+- Shows existing images
+- Allows replacing images (optional)
+- Authorization check: only product owner can edit
+
+FORM FIELDS:
+1. Product Name (text, required, max 255 chars)
+2. Description (textarea, required, max 5000 chars)
+3. Price (number, required, ₦0-₦10,000)
+4. Category (dropdown, required)
+5. Condition (dropdown, required)
+6. Size (text, optional, for clothing items)
+7. Color (text, optional)
+8. Images (file upload, optional - shows existing images)
+
+API ENDPOINTS:
+1. GET /api/products/{id} (get existing product)
+2. PUT /api/products/{id} (update product)
+3. POST /api/upload (upload new images if user replaces them)
+================================================================================
+-->
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Edit Listing - UniMarket</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/loader.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.socket.io/4.8.0/socket.io.min.js"></script>
+</head>
+
+<body>
+
+    <!-- Loader -->
+    <div class="loader-container" id="loader">
+        <div>
+            <div class="spinner"></div>
+            <p class="loader-text loader-message">Loading product...</p>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="site-header">
+        <div class="container">
+            <a href="index.html" class="logo">UniMarket</a>
+            <nav class="nav-links">
+                <a href="products.html" class="nav-link">Shop</a>
+                <a href="#" class="nav-link">About</a>
+            </nav>
+            <div class="search-bar">
+                <i data-lucide="search" class="search-icon"></i>
+                <input type="text" class="input input-pill" placeholder="Search...">
+            </div>
+            <div class="user-actions">
+                <!-- Logged Out State -->
+                <div id="logged-out-actions">
+                    <a href="login.html" class="btn btn-ghost">Log In</a>
+                    <a href="signup-select-university.html" class="btn btn-primary">Sign Up</a>
+                </div>
+                
+                <!-- Logged In State -->
+                <div id="logged-in-actions" class="hidden" style="display: flex; gap: 1rem; align-items: center;">
+                    <a href="messages.html" class="btn-icon btn-ghost nav-icon" title="Messages">
+                        <i data-lucide="message-square"></i>
+                        <span class="notification-badge hidden" id="message-badge">0</span>
+                    </a>
+                    <a href="saved-items.html" class="btn-icon btn-ghost nav-icon" title="Saved Items">
+                        <i data-lucide="bookmark"></i>
+                    </a>
+                    <div class="profile-dropdown" style="position: relative;">
+                        <button class="btn-icon btn-ghost nav-icon profile-dropdown-trigger" title="Profile">
+                            <i data-lucide="user"></i>
+                        </button>
+                        <div class="profile-dropdown-menu">
+                            <a href="profile.html" class="dropdown-item">View Profile</a>
+                            <a href="sell.html" class="dropdown-item">Make a Listing</a>
+                            <button onclick="logout()" class="dropdown-item logout-btn">Log Out</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <button class="mobile-menu-btn"><i data-lucide="menu"></i></button>
+        </div>
+    </header>
+
+    <!-- Mobile Menu -->
+    <div class="mobile-menu">
+        <div class="flex flex-col gap-4">
+            <a href="products.html" class="nav-link" style="font-size: 1.1rem; padding: 0.5rem 0;">Shop</a>
+            <a href="about.html" class="nav-link" style="font-size: 1.1rem; padding: 0.5rem 0;">About</a>
+            <hr style="border-color: var(--border); margin: 0.5rem 0;">
+            <a href="sell.html" class="nav-link" style="font-size: 1.1rem; padding: 0.5rem 0;">Sell</a>
+            <a href="messages.html" class="nav-link" style="font-size: 1.1rem; padding: 0.5rem 0;">Messages</a>
+            <a href="saved-items.html" class="nav-link" style="font-size: 1.1rem; padding: 0.5rem 0;">Saved Items</a>
+            <a href="profile.html" class="nav-link" style="font-size: 1.1rem; padding: 0.5rem 0;">Profile</a>
+            <hr style="border-color: var(--border); margin: 0.5rem 0;">
+            <button onclick="logout()" class="btn btn-outline" style="text-align: center; width: 100%;">Log Out</button>
+        </div>
+    </div>
+
+    <div class="container" style="padding-top: 3rem; padding-bottom: 4rem; max-width: 800px;">
+        <h1 style="font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem;">Edit Your Listing</h1>
+        <p style="color: var(--muted); margin-bottom: 2rem;">Update the details of your product listing.</p>
+
+        <form class="form-card" id="edit-form">
+            <div class="form-group">
+                <label class="form-label">Product Name *</label>
+                <input type="text" id="product-name" class="input" placeholder="e.g., Engineering Mechanics Textbook" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Description *</label>
+                <textarea id="product-description" class="input" placeholder="Describe the condition, features, and any other details..."
+                    required></textarea>
+            </div>
+
+            <div class="grid grid-cols-1 grid-cols-2 gap-4">
+                <div class="form-group">
+                    <label class="form-label">Price (₦) *</label>
+                    <input type="number" class="input" placeholder="45.00" step="0.01" id="price-input" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Category *</label>
+                    <select class="input" id="category-select" required>
+                        <option value="">Select a category</option>
+                        <option value="Textbooks">Textbooks</option>
+                        <option value="Electronics">Electronics</option>
+                        <option value="Clothing">Clothing</option>
+                        <option value="Furniture">Furniture</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Condition field -->
+            <div class="form-group">
+                <label class="form-label">Condition *</label>
+                <select class="input" id="condition-select" required>
+                    <option value="">Select condition</option>
+                    <option value="New">New</option>
+                    <option value="Like New">Like New</option>
+                    <option value="Good">Good</option>
+                    <option value="Fair">Fair</option>
+                </select>
+            </div>
+
+            <!-- Clothing-specific fields (hidden by default) -->
+            <div class="hidden" id="clothing-fields">
+                <div class="form-group">
+                    <label class="form-label">Clothing Type *</label>
+                    <select class="input" id="clothing-type-select">
+                        <option value="">Select clothing type</option>
+                        <option value="Shirts">Shirts</option>
+                        <option value="Trousers">Trousers</option>
+                        <option value="Dresses">Dresses</option>
+                        <option value="Skirts">Skirts</option>
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-1 grid-cols-2 gap-4">
+                    <div class="form-group">
+                        <label class="form-label">Size *</label>
+                        <select class="input" id="size-select">
+                            <option value="">Select size</option>
+                            <option value="XS">XS</option>
+                            <option value="S">S</option>
+                            <option value="M">M</option>
+                            <option value="L">L</option>
+                            <option value="XL">XL</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Color *</label>
+                        <input type="text" class="input" id="color-input" placeholder="e.g., Red, Black, Blue" >
+                    </div>
+                </div>
+            </div>
+
+            <!-- Current Images -->
+            <div class="form-group">
+                <label class="form-label">Current Images</label>
+                <div class="image-preview-grid" id="current-images-grid"></div>
+            </div>
+
+            <!-- Replace Images -->
+            <div class="form-group">
+                <label class="form-label">Replace Images (Optional)</label>
+                <p style="font-size: 0.875rem; color: var(--muted); margin-bottom: 0.5rem;">Leave empty to keep existing images</p>
+                <div class="image-uploader" onclick="document.getElementById('file-input').click()">
+                    <i data-lucide="upload"
+                        style="width: 3rem; height: 3rem; margin: 0 auto 1rem; color: var(--muted);"></i>
+                    <p style="font-weight: 600; margin-bottom: 0.5rem;">Click to upload new images</p>
+                    <p style="font-size: 0.875rem; color: var(--muted);">PNG, JPG up to 10MB (1-5 images)</p>
+                </div>
+                <input type="file" id="file-input" accept="image/*" multiple style="display: none;">
+                <div class="image-preview-grid" id="image-preview"></div>
+                <p id="image-count-display" style="font-size: 0.875rem; color: var(--muted); margin-top: 0.5rem;">0 new images selected</p>
+                <p id="image-error" style="font-size: 0.875rem; color: #ef4444; margin-top: 0.5rem; display: none;"></p>
+            </div>
+
+            <div class="form-actions">
+                <a href="profile.html" class="btn btn-outline">Cancel</a>
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </div>
+        </form>
+    </div>
+
+    <footer class="site-footer">
+        <div class="container">
+            <div class="footer-bottom">
+                <p>UniMarket © 2000-2023, All Rights Reserved</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/app.js"></script>
+    <script>
+        // Get product ID from URL
+        const productId = new URLSearchParams(window.location.search).get('id');
+        let currentProduct = null;
+        let newImageFiles = [];
+
+        // Hide loader when page loads
+        window.addEventListener('load', () => {
+            const loader = document.getElementById('loader');
+            if (loader) {
+                loader.classList.add('hidden');
+            }
+        });
+
+        // Load product data
+        async function loadProductData() {
+            if (!productId) {
+                alert('Product not found');
+                window.location.href = 'products.html';
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/products/${productId}`);
+                if (!response.ok) {
+                    throw new Error('Failed to load product');
+                }
+
+                currentProduct = await response.json();
+
+                // Check authorization
+                const currentUser = getCurrentUser();
+                if (!currentUser || currentUser.id !== currentProduct.seller.id) {
+                    alert('You can only edit your own listings');
+                    window.location.href = 'products.html';
+                    return;
+                }
+
+                // Pre-fill form
+                document.getElementById('product-name').value = currentProduct.name;
+                document.getElementById('product-description').value = currentProduct.description;
+                document.getElementById('price-input').value = currentProduct.price;
+                document.getElementById('condition-select').value = currentProduct.condition;
+
+                // Set category
+                const categoryName = currentProduct.category.name;
+                document.getElementById('category-select').value = categoryName;
+
+                // Show clothing fields if applicable
+                if (categoryName === 'Clothing') {
+                    document.getElementById('clothing-fields').classList.remove('hidden');
+                    if (currentProduct.size) {
+                        document.getElementById('size-select').value = currentProduct.size;
+                    }
+                    if (currentProduct.color) {
+                        document.getElementById('color-input').value = currentProduct.color;
+                    }
+                }
+
+                // Display current images
+                displayCurrentImages();
+            } catch (error) {
+                console.error('Error loading product:', error);
+                alert('Failed to load product. Please try again.');
+                window.location.href = 'products.html';
+            }
+        }
+
+        function displayCurrentImages() {
+            const grid = document.getElementById('current-images-grid');
+            grid.innerHTML = '';
+
+            if (currentProduct.images && currentProduct.images.length > 0) {
+                currentProduct.images.forEach((img) => {
+                    const div = document.createElement('div');
+                    div.className = 'image-preview-item';
+                    div.innerHTML = `
+                        <img src="${getImageUrl(img.imageUrl)}" alt="Product image">
+                    `;
+                    grid.appendChild(div);
+                });
+            }
+        }
+
+        // Get current user
+        function getCurrentUser() {
+            const user = localStorage.getItem('user');
+            return user ? JSON.parse(user) : null;
+        }
+
+        // Category-specific fields
+        const categorySelect = document.getElementById('category-select');
+        const clothingFields = document.getElementById('clothing-fields');
+        const clothingTypeSelect = document.getElementById('clothing-type-select');
+        const sizeSelect = document.getElementById('size-select');
+        const colorInput = document.getElementById('color-input');
+
+        categorySelect.addEventListener('change', (e) => {
+            if (e.target.value === 'Clothing') {
+                clothingFields.classList.remove('hidden');
+                clothingTypeSelect.required = true;
+                sizeSelect.required = true;
+                colorInput.required = true;
+            } else {
+                clothingFields.classList.add('hidden');
+                clothingTypeSelect.required = false;
+                sizeSelect.required = false;
+                colorInput.required = false;
+            }
+        });
+
+        // Image preview for new images
+        const fileInput = document.getElementById('file-input');
+        const imagePreview = document.getElementById('image-preview');
+
+        fileInput.addEventListener('change', (e) => {
+            const files = Array.from(e.target.files).slice(0, 5);
+            newImageFiles = files;
+            displayNewImages();
+            updateImageCount();
+        });
+
+        function displayNewImages() {
+            imagePreview.innerHTML = '';
+            newImageFiles.forEach((file, index) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const div = document.createElement('div');
+                    div.className = 'image-preview-item';
+                    div.innerHTML = `
+                        <img src="${e.target.result}" alt="Preview">
+                        <button type="button" class="image-preview-remove" onclick="removeNewImage(${index})">
+                            <i data-lucide="x" style="width: 1rem; height: 1rem;"></i>
+                        </button>
+                    `;
+                    imagePreview.appendChild(div);
+                    lucide.createIcons();
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function removeNewImage(index) {
+            newImageFiles.splice(index, 1);
+            displayNewImages();
+            updateImageCount();
+        }
+
+        function updateImageCount() {
+            const countDisplay = document.getElementById('image-count-display');
+            const errorDisplay = document.getElementById('image-error');
+            const count = newImageFiles.length;
+            
+            countDisplay.textContent = `${count} new image${count !== 1 ? 's' : ''} selected`;
+            
+            // Show error if more than 5
+            if (count > 5) {
+                errorDisplay.textContent = `⚠️ Maximum 5 images allowed (${count} selected)`;
+                errorDisplay.style.display = 'block';
+            } else {
+                errorDisplay.style.display = 'none';
+            }
+        }
+
+        // Form submission
+        document.getElementById('edit-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            if (!currentProduct) {
+                alert('Product not loaded');
+                return;
+            }
+
+            if (newImageFiles.length > 5) {
+                alert(`❌ Maximum 5 images allowed. You have selected ${newImageFiles.length} images.`);
+                return;
+            }
+            
+            try {
+                // Get form data
+                const productName = document.getElementById('product-name').value;
+                const description = document.getElementById('product-description').value;
+                const price = parseFloat(document.getElementById('price-input').value);
+                const category = document.getElementById('category-select').value;
+                const condition = document.getElementById('condition-select').value;
+                const size = document.getElementById('size-select').value || null;
+                const color = document.getElementById('color-input').value || null;
+                
+                // If user provided new images, upload them
+                let imageUrls = currentProduct.images.map(img => img.imageUrl);
+                
+                if (newImageFiles.length > 0) {
+                    // Replace all images with new ones
+                    imageUrls = [];
+                    for (const file of newImageFiles) {
+                        const uploadFormData = new FormData();
+                        uploadFormData.append('file', file);
+                        
+                        const uploadResponse = await fetch('/api/upload', {
+                            method: 'POST',
+                            body: uploadFormData
+                        });
+                        
+                        if (!uploadResponse.ok) {
+                            throw new Error('Failed to upload image');
+                        }
+                        
+                        const uploadData = await uploadResponse.json();
+                        imageUrls.push(uploadData.imageUrl);
+                    }
+                }
+                
+                // Validate image count (1-5 required)
+                if (imageUrls.length < 1 || imageUrls.length > 5) {
+                    alert(`❌ Product must have between 1 and 5 images`);
+                    return;
+                }
+
+                // Map category name to ID
+                const categoryMap = {
+                    'Electronics': 1,
+                    'Textbooks': 2,
+                    'Clothing': 3,
+                    'Furniture': 4,
+                    'Other': 5
+                };
+                const categoryId = categoryMap[category] || 5;
+                
+                // Update product
+                const token = localStorage.getItem('token');
+                const updateResponse = await fetch(`/api/products/${productId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        name: productName,
+                        description: description,
+                        price: price,
+                        categoryId: categoryId,
+                        condition: condition,
+                        size: size,
+                        color: color,
+                        images: imageUrls
+                    })
+                });
+                
+                if (!updateResponse.ok) {
+                    let errorMessage = 'Failed to update listing';
+                    try {
+                        const error = await updateResponse.json();
+                        errorMessage = error.detail || error.message || errorMessage;
+                    } catch (e) {
+                        errorMessage = `Server error: ${updateResponse.status}`;
+                    }
+                    throw new Error(errorMessage);
+                }
+                
+                alert('✅ Listing updated successfully!');
+                window.location.href = `product-detail.html?id=${productId}`;
+            } catch (error) {
+                console.error('Error updating listing:', error);
+                const errorMsg = error instanceof Error ? error.message : String(error);
+                alert(`❌ Error: ${errorMsg}`);
+            }
+        });
+
+        // Load product when page loads
+        loadProductData();
+    </script>
+</body>
+
+</html>
