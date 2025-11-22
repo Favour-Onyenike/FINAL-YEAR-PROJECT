@@ -47,8 +47,26 @@
 
             <div class="user-actions">
                 <!-- Logged Out State -->
-                <a href="login.html" class="btn btn-ghost">Log In</a>
-                <a href="signup-select-university.html" class="btn btn-primary">Sign Up</a>
+                <div id="logged-out-actions">
+                    <a href="login.html" class="btn btn-ghost">Log In</a>
+                    <a href="signup-select-university.html" class="btn btn-primary">Sign Up</a>
+                </div>
+                
+                <!-- Logged In State -->
+                <div id="logged-in-actions" class="hidden" style="display: flex; gap: 1rem; align-items: center;">
+                    <a href="#" class="btn-icon btn-ghost" title="Notifications">
+                        <i data-lucide="bell"></i>
+                    </a>
+                    <a href="messages.html" class="btn-icon btn-ghost" title="Messages">
+                        <i data-lucide="message-square"></i>
+                    </a>
+                    <a href="saved-items.html" class="btn-icon btn-ghost" title="Saved Items">
+                        <i data-lucide="bookmark"></i>
+                    </a>
+                    <a href="profile.html" class="btn-icon btn-ghost" title="Profile">
+                        <i data-lucide="user"></i>
+                    </a>
+                </div>
             </div>
 
             <button class="mobile-menu-btn">

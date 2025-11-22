@@ -168,7 +168,36 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     /* =========================================
-       AUTHENTICATION STATE CHECK
+       NAVBAR AUTH STATE - ICONS VS BUTTONS
+       ========================================= */
+    /**
+     * Toggle between Login/SignUp buttons and Icons (Bell, Message, Saved, Profile)
+     * When logged in: Show icon buttons, hide login/signup
+     * When logged out: Show login/signup buttons, hide icons
+     */
+    function updateNavbarAuthState() {
+        const token = localStorage.getItem('token');
+        const loggedOutActions = document.getElementById('logged-out-actions');
+        const loggedInActions = document.getElementById('logged-in-actions');
+        
+        if (loggedOutActions && loggedInActions) {
+            if (token) {
+                // User is logged in - Show icons, hide login/signup buttons
+                loggedOutActions.classList.add('hidden');
+                loggedInActions.classList.remove('hidden');
+            } else {
+                // User is not logged in - Show login/signup buttons, hide icons
+                loggedOutActions.classList.remove('hidden');
+                loggedInActions.classList.add('hidden');
+            }
+        }
+    }
+    
+    // Update navbar auth state on page load
+    updateNavbarAuthState();
+    
+    /* =========================================
+       AUTHENTICATION STATE CHECK (Legacy)
        ========================================= */
     /**
      * Check if user is logged in and update navigation
@@ -210,8 +239,9 @@ document.addEventListener('DOMContentLoaded', () => {
  * 3. Navigation bar automatically updates because token is gone
  */
 function logout() {
-    // Remove token from browser storage
+    // Remove token and user data from browser storage
     localStorage.removeItem('token');
+    localStorage.removeItem('user');
     
     // Redirect to home page
     window.location.href = '/';

@@ -85,7 +85,12 @@ UniMarket employs a client-server architecture with a clear separation between t
    - Avatar URL saved with profile changes
    - Supports all standard image formats (JPG, PNG, GIF, WebP, etc.)
    - Placeholder icons show until user uploads an image
-7. **API Proxy**:
+7. **Navbar Authentication State**:
+   - When logged out: Shows "Log In" and "Sign Up" buttons
+   - When logged in: Shows icon buttons (Notification bell, Message, Saved bookmark, Profile)
+   - Automatically updates based on JWT token presence in localStorage
+   - Logout removes token and user data
+8. **API Proxy**:
    - Frontend server (port 5000) now proxies /api/* requests to backend (port 8000)
    - Enables API calls from embedded Replit domain without "connection error"
    - Seamless authentication flow for signup and login
