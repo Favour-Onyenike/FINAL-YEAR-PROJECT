@@ -249,85 +249,38 @@
                 <h2 style="font-size: 1.25rem; font-weight: 700;">Messages</h2>
             </div>
 
-            <div class="conversation-item active">
-                <div class="conversation-avatar">
-                    <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=2000&auto=format&fit=crop"
-                        alt="User">
-                </div>
-                <div class="conversation-info">
-                    <div class="conversation-name">Sarah Williams</div>
-                    <div class="conversation-product">Re: Engineering Mechanics</div>
-                    <div class="conversation-last-message">Is this still available?</div>
-                </div>
-            </div>
-
-            <div class="conversation-item">
-                <div class="conversation-avatar">
-                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=2000&auto=format&fit=crop"
-                        alt="User">
-                </div>
-                <div class="conversation-info">
-                    <div class="conversation-name">Mike Johnson</div>
-                    <div class="conversation-product">Re: MacBook Air M1</div>
-                    <div class="conversation-last-message">Can we meet tomorrow?</div>
+            <div id="conversations-container" style="overflow-y: auto; flex: 1;">
+                <!-- Conversations will be loaded here dynamically -->
+                <div style="padding: 2rem 1rem; text-align: center; color: var(--muted);">
+                    <p>Loading conversations...</p>
                 </div>
             </div>
         </div>
 
         <!-- Chat Container -->
         <div class="chat-container">
-            <div class="chat-header">
+            <div class="chat-header" id="chat-header">
                 <button class="chat-header-back-btn" onclick="showConversationsList()">
                     <i data-lucide="chevron-left" style="width: 1.25rem; height: 1.25rem;"></i>
                 </button>
-                <div class="conversation-avatar" style="width: 2.5rem; height: 2.5rem;">
-                    <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=2000&auto=format&fit=crop"
-                        alt="User">
+                <div class="conversation-avatar" id="chat-header-avatar" style="width: 2.5rem; height: 2.5rem; background: var(--secondary); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                    <i data-lucide="user" style="width: 1.25rem; height: 1.25rem; color: var(--muted);"></i>
                 </div>
                 <div style="flex: 1; min-width: 0;">
-                    <div style="font-weight: 600; font-size: 0.95rem;">Sarah Williams</div>
-                    <div style="font-size: 0.75rem; color: var(--muted);">Re: Engineering Mechanics</div>
+                    <div id="chat-header-name" style="font-weight: 600; font-size: 0.95rem;">Select a conversation</div>
+                    <div id="chat-header-product" style="font-size: 0.75rem; color: var(--muted);"></div>
                 </div>
             </div>
 
-            <div class="chat-messages">
-                <div class="message">
-                    <div class="message-avatar">
-                        <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=2000&auto=format&fit=crop"
-                            alt="User">
-                    </div>
-                    <div>
-                        <div class="message-bubble">Hi! Is this textbook still available?</div>
-                        <div class="message-time">10:30 AM</div>
-                    </div>
-                </div>
-
-                <div class="message me">
-                    <div class="message-avatar">
-                        <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=2000&auto=format&fit=crop"
-                            alt="Me">
-                    </div>
-                    <div>
-                        <div class="message-bubble">Yes, it is! Are you interested?</div>
-                        <div class="message-time">10:32 AM</div>
-                    </div>
-                </div>
-
-                <div class="message">
-                    <div class="message-avatar">
-                        <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=2000&auto=format&fit=crop"
-                            alt="User">
-                    </div>
-                    <div>
-                        <div class="message-bubble">Yes! Can we meet at the library today?</div>
-                        <div class="message-time">10:35 AM</div>
-                    </div>
+            <div class="chat-messages" id="chat-messages">
+                <div style="padding: 2rem 1rem; text-align: center; color: var(--muted);">
+                    <p>Select a conversation to view messages</p>
                 </div>
             </div>
 
             <div class="chat-input-container">
-                <input type="text" class="input chat-input" placeholder="Type a message...">
-                <button class="btn btn-primary btn-icon">
+                <input type="text" id="message-input" class="input chat-input" placeholder="Type a message..." disabled>
+                <button id="send-btn" class="btn btn-primary btn-icon" disabled>
                     <i data-lucide="send" style="width: 1rem;"></i>
                 </button>
             </div>
@@ -336,49 +289,271 @@
 
     <script src="js/app.js"></script>
     <script>
-        function showConversationsList() {
-            const conversationsList = document.querySelector('.conversations-list');
-            const chatContainer = document.querySelector('.chat-container');
-            
-            conversationsList.style.display = 'block';
-            chatContainer.style.display = 'none';
-        }
-
-        function showChat() {
-            const conversationsList = document.querySelector('.conversations-list');
-            const chatContainer = document.querySelector('.chat-container');
-            
-            conversationsList.style.display = 'none';
-            chatContainer.style.display = 'flex';
-        }
-
-        // Add click handlers to conversation items
-        document.querySelectorAll('.conversation-item').forEach(item => {
-            item.addEventListener('click', () => {
-                // On mobile, show chat when clicking conversation
-                if (window.innerWidth < 768) {
-                    showChat();
-                }
-            });
+        // =============================================================================
+        // MESSAGING PAGE - REAL-TIME MESSAGE INTEGRATION
+        // =============================================================================
+        
+        // State management
+        let currentConversationUserId = null;
+        let currentUserId = null;
+        let allUsers = {}; // Cache of user data
+        let conversations = []; // List of unique conversation partners
+        
+        // Initialize Socket.IO
+        const socket = io(window.location.origin, {
+            reconnection: true,
+            reconnectionDelay: 1000,
+            reconnectionDelayMax: 5000,
+            reconnectionAttempts: Infinity
         });
 
-        // Initialize based on screen size
-        function initializeLayout() {
-            const conversationsList = document.querySelector('.conversations-list');
-            const chatContainer = document.querySelector('.chat-container');
-            
-            if (window.innerWidth < 768) {
-                conversationsList.style.display = 'block';
-                chatContainer.style.display = 'none';
+        // Socket.IO event handlers
+        socket.on('connect', () => {
+            console.log('Connected to messaging server');
+            const token = localStorage.getItem('token');
+            const userId = localStorage.getItem('userId');
+            if (userId) {
+                socket.emit('authenticate', { userId: parseInt(userId) });
+            }
+        });
+
+        socket.on('receive_message', (data) => {
+            console.log('Received message:', data);
+            // If message is from current conversation, load new messages
+            if (currentConversationUserId && data.senderId == currentConversationUserId) {
+                loadMessages(currentConversationUserId);
+            }
+        });
+
+        // Check if logged in
+        requireLogin();
+
+        // Get current user ID
+        const userDataStr = localStorage.getItem('user');
+        if (userDataStr) {
+            currentUserId = JSON.parse(userDataStr).id;
+        }
+
+        // Load conversations and messages on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            lucide.createIcons();
+            initializeLayout();
+            await loadConversations();
+        });
+
+        // Load all conversations (unique users with messages)
+        async function loadConversations() {
+            try {
+                const token = getToken();
+                if (!token) return;
+
+                const response = await fetch('/api/users', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) return;
+
+                const users = await response.json();
+                
+                // For now, show all users except current user as potential conversations
+                conversations = users.filter(u => u.id !== currentUserId).slice(0, 20);
+                
+                // Fetch message counts for each user
+                let conversationsWithMessages = [];
+                for (let user of conversations) {
+                    const msgResponse = await fetch(`/api/messages/${user.id}`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    if (msgResponse.ok) {
+                        const messages = await msgResponse.json();
+                        if (messages.length > 0) {
+                            user.lastMessage = messages[messages.length - 1].content;
+                            user.lastMessageTime = messages[messages.length - 1].createdAt;
+                            conversationsWithMessages.push(user);
+                        }
+                    }
+                    allUsers[user.id] = user;
+                }
+
+                renderConversations(conversationsWithMessages);
+            } catch (error) {
+                console.error('Error loading conversations:', error);
             }
         }
 
-        // Initialize on load
+        // Render conversations list
+        function renderConversations(convos) {
+            const container = document.getElementById('conversations-container');
+            
+            if (convos.length === 0) {
+                container.innerHTML = '<div style="padding: 2rem 1rem; text-align: center; color: var(--muted);">No conversations yet</div>';
+                return;
+            }
+
+            container.innerHTML = convos.map(user => `
+                <div class="conversation-item" onclick="selectConversation(${user.id}, '${user.full_name || user.username}')">
+                    <div class="conversation-avatar" style="width: 3rem; height: 3rem; background: var(--secondary); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        ${user.profile_image ? `<img src="${user.profile_image}" alt="${user.username}">` : `<i data-lucide="user" style="width: 1.5rem; height: 1.5rem;"></i>`}
+                    </div>
+                    <div class="conversation-info">
+                        <div class="conversation-name">${user.full_name || user.username}</div>
+                        <div class="conversation-product" style="font-size: 0.8rem;">@${user.username}</div>
+                        <div class="conversation-last-message">${user.lastMessage?.substring(0, 50) || 'No messages'}</div>
+                    </div>
+                </div>
+            `).join('');
+            
+            lucide.createIcons();
+        }
+
+        // Select a conversation and load messages
+        async function selectConversation(userId, userName) {
+            currentConversationUserId = userId;
+            
+            // Update header
+            const user = allUsers[userId] || { full_name: userName };
+            document.getElementById('chat-header-name').textContent = user.full_name || userName;
+            document.getElementById('chat-header-product').textContent = `@${user.username || 'user'}`;
+            
+            if (user.profile_image) {
+                document.getElementById('chat-header-avatar').innerHTML = `<img src="${user.profile_image}" alt="${userName}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+            }
+
+            // Enable input
+            document.getElementById('message-input').disabled = false;
+            document.getElementById('send-btn').disabled = false;
+
+            // Load messages
+            await loadMessages(userId);
+
+            // Show chat on mobile
+            if (window.innerWidth < 768) {
+                showChat();
+            }
+
+            // Mark all conversations items as inactive, then mark this one active
+            document.querySelectorAll('.conversation-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.target.closest('.conversation-item').classList.add('active');
+        }
+
+        // Load messages with a specific user
+        async function loadMessages(userId) {
+            try {
+                const token = getToken();
+                const response = await fetch(`/api/messages/${userId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) {
+                    console.error('Failed to load messages');
+                    return;
+                }
+
+                const messages = await response.json();
+                renderMessages(messages);
+            } catch (error) {
+                console.error('Error loading messages:', error);
+            }
+        }
+
+        // Render messages
+        function renderMessages(messages) {
+            const container = document.getElementById('chat-messages');
+            
+            if (messages.length === 0) {
+                container.innerHTML = '<div style="padding: 2rem 1rem; text-align: center; color: var(--muted);">No messages yet. Start a conversation!</div>';
+                return;
+            }
+
+            container.innerHTML = messages.map(msg => {
+                const isMe = msg.senderId === currentUserId;
+                const time = new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                
+                return `
+                    <div class="message ${isMe ? 'me' : ''}">
+                        <div class="message-avatar" style="width: 2rem; height: 2rem; background: var(--secondary); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                            <i data-lucide="user" style="width: 1rem; height: 1rem;"></i>
+                        </div>
+                        <div>
+                            <div class="message-bubble">${msg.content}</div>
+                            <div class="message-time">${time}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            lucide.createIcons();
+            
+            // Scroll to bottom
+            container.scrollTop = container.scrollHeight;
+        }
+
+        // Send message
+        async function sendMessage() {
+            const input = document.getElementById('message-input');
+            const content = input.value.trim();
+            
+            if (!content || !currentConversationUserId) return;
+
+            try {
+                const token = getToken();
+                const response = await fetch('/api/messages', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        receiverId: currentConversationUserId,
+                        content: content
+                    })
+                });
+
+                if (response.ok) {
+                    input.value = '';
+                    await loadMessages(currentConversationUserId);
+                    
+                    // Also emit via Socket.IO for real-time
+                    socket.emit('send_message', {
+                        senderId: currentUserId,
+                        receiverId: currentConversationUserId,
+                        content: content
+                    });
+                }
+            } catch (error) {
+                console.error('Error sending message:', error);
+            }
+        }
+
+        // Event listeners
+        document.getElementById('send-btn').addEventListener('click', sendMessage);
+        document.getElementById('message-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        function showConversationsList() {
+            document.querySelector('.conversations-list').style.display = 'block';
+            document.querySelector('.chat-container').style.display = 'none';
+        }
+
+        function showChat() {
+            document.querySelector('.conversations-list').style.display = 'none';
+            document.querySelector('.chat-container').style.display = 'flex';
+        }
+
+        function initializeLayout() {
+            if (window.innerWidth < 768) {
+                document.querySelector('.conversations-list').style.display = 'block';
+                document.querySelector('.chat-container').style.display = 'none';
+            }
+        }
+
         window.addEventListener('load', initializeLayout);
         window.addEventListener('resize', initializeLayout);
-
-        // Reinitialize lucide icons
-        lucide.createIcons();
     </script>
 </body>
 
