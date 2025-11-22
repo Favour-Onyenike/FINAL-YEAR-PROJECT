@@ -316,12 +316,16 @@
                 
                 return `
                     <div class="comment-item">
-                        <div class="comment-avatar">
-                            <img src="${profileImage}" alt="${comment.author.fullName}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
-                        </div>
+                        <a href="profile.html?userId=${comment.authorId}" style="text-decoration: none; cursor: pointer;">
+                            <div class="comment-avatar" style="transition: transform 0.2s; cursor: pointer;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+                                <img src="${profileImage}" alt="${comment.author.fullName}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                            </div>
+                        </a>
                         <div class="comment-content" style="flex: 1;">
                             <div class="comment-header">
-                                <span class="comment-author">${comment.author.fullName}</span>
+                                <a href="profile.html?userId=${comment.authorId}" style="text-decoration: none; color: inherit;">
+                                    <span class="comment-author" style="cursor: pointer;">${comment.author.fullName}</span>
+                                </a>
                                 <span class="comment-date">${formatDate(comment.createdAt)}</span>
                                 ${isAuthor ? `<button class="btn-delete-comment" data-comment-id="${comment.id}" style="font-size: 0.875rem; color: var(--destructive); cursor: pointer; border: none; background: none; padding: 0; margin-left: auto;">Delete</button>` : ''}
                             </div>
