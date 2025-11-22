@@ -41,14 +41,17 @@
 
         <form class="form-card" id="edit-profile-form">
             <div class="form-group" style="text-align: center;">
-                <div class="profile-avatar" style="margin: 0 auto 1rem; position: relative;">
+                <div class="profile-avatar" style="margin: 0 auto 1rem; position: relative; cursor: pointer;" id="avatar-upload-btn">
                     <img id="edit-avatar-img" src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=2000&auto=format&fit=crop"
-                        alt="Avatar">
+                        alt="Avatar" style="cursor: pointer;">
                     <button type="button" class="btn-icon btn-primary" style="position: absolute; bottom: 0; right: 0;">
                         <i data-lucide="camera" style="width: 1rem;"></i>
                     </button>
                 </div>
                 <p style="font-size: 0.875rem; color: var(--muted);">Click to change profile photo</p>
+                
+                <!-- Hidden file input -->
+                <input type="file" id="avatar-file-input" accept="image/*" style="display: none;">
             </div>
 
             <div class="form-group">
@@ -85,6 +88,9 @@
 
     <script src="js/app.js"></script>
     <script>
+        let selectedAvatarFile = null;
+        let uploadedAvatarUrl = null;
+        
         // Load user profile data for editing
         function loadUserData() {
             const user = JSON.parse(localStorage.getItem('user'));
@@ -119,6 +125,52 @@
             }
         }
         
+        // Handle file input change
+        document.getElementById('avatar-file-input').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            // Validate file is an image
+            if (!file.type.startsWith('image/')) {
+                alert('Please select an image file');
+                return;
+            }
+            
+            // Show preview immediately
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                document.getElementById('edit-avatar-img').src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+            
+            // Upload to backend
+            try {
+                const formData = new FormData();
+                formData.append('file', file);
+                
+                const response = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    uploadedAvatarUrl = data.imageUrl;
+                    console.log('✅ Image uploaded successfully:', uploadedAvatarUrl);
+                } else {
+                    alert('Error uploading image. Please try again.');
+                }
+            } catch (error) {
+                console.log('Error uploading image:', error);
+                alert('Error uploading image. Please try again.');
+            }
+        });
+        
+        // Make avatar clickable to upload
+        document.getElementById('avatar-upload-btn').addEventListener('click', () => {
+            document.getElementById('avatar-file-input').click();
+        });
+        
         // Handle form submission
         document.getElementById('edit-profile-form').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -138,6 +190,17 @@
             user.name = fullName;
             localStorage.setItem('user', JSON.stringify(user));
             
+            // Build update data
+            const updateData = {
+                fullName: fullName,
+                bio: bio
+            };
+            
+            // Include avatar URL if one was uploaded
+            if (uploadedAvatarUrl) {
+                updateData.avatarUrl = uploadedAvatarUrl;
+            }
+            
             // Try to save to backend
             try {
                 const response = await fetch(`/api/users/${user.id}`, {
@@ -146,10 +209,7 @@
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({
-                        fullName: fullName,
-                        bio: bio
-                    })
+                    body: JSON.stringify(updateData)
                 });
                 
                 if (response.ok) {

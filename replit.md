@@ -75,7 +75,15 @@ UniMarket employs a client-server architecture with a clear separation between t
    - Users can edit their profile (name, bio) from "Edit Profile" button
    - New users start with blank bio saying "No bio yet"
    - Each user's profile is independent and shows only their data
-6. **API Proxy**:
+   - Only account owners can edit their profile and view saved items
+   - Other users can view profiles but see limited read-only information
+6. **Profile Picture Upload**:
+   - Click avatar on Edit Profile page to upload a picture
+   - Instant preview of selected image before saving
+   - Image automatically uploaded to backend when file selected
+   - Avatar URL saved with profile changes
+   - Supports all standard image formats (JPG, PNG, GIF, WebP, etc.)
+7. **API Proxy**:
    - Frontend server (port 5000) now proxies /api/* requests to backend (port 8000)
    - Enables API calls from embedded Replit domain without "connection error"
    - Seamless authentication flow for signup and login
