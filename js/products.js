@@ -344,6 +344,12 @@ async function toggleSave(productId) {
     }
     
     try {
+        // Find the save button for this product
+        const saveBtn = event.target.closest('.product-save-btn');
+        if (saveBtn) {
+            saveBtn.disabled = true;
+        }
+        
         // Send request to toggle save
         const response = await fetch(`${API_URL}/saved-items`, {
             method: 'POST',
@@ -354,15 +360,61 @@ async function toggleSave(productId) {
             body: JSON.stringify({ productId })
         });
         
+        if (!response.ok) {
+            throw new Error('Failed to save item');
+        }
+        
         const data = await response.json();
         
-        // Optionally update button to show save state
-        // For now, just log the result
+        // Update button visual state
+        if (saveBtn) {
+            if (data.isSaved) {
+                saveBtn.style.color = '#ef4444';
+                saveBtn.style.borderColor = '#ef4444';
+                showNotification('✓ Item saved!', 'success');
+            } else {
+                saveBtn.style.color = '';
+                saveBtn.style.borderColor = '';
+                showNotification('✗ Item removed from saved', 'info');
+            }
+            saveBtn.disabled = false;
+        }
+        
         console.log(data.isSaved ? 'Product saved' : 'Product unsaved');
         
     } catch (error) {
         console.error('Error toggling save:', error);
+        showNotification('Failed to save item', 'error');
+        if (event.target.closest('.product-save-btn')) {
+            event.target.closest('.product-save-btn').disabled = false;
+        }
     }
+}
+
+/**
+ * Show notification popup
+ */
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
+        color: white;
+        padding: 12px 24px;
+        border-radius: 8px;
+        z-index: 9999;
+        font-weight: 500;
+        animation: slideIn 0.3s ease-in-out;
+    `;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease-in-out';
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
 }
 
 // =============================================================================
