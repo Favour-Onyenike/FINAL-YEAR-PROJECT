@@ -428,4 +428,64 @@ document.addEventListener('DOMContentLoaded', () => {
     if (isLoggedIn()) {
         updateMessageBadge();
     }
+    
+    // Global search functionality
+    initializeGlobalSearch();
 });
+
+// =============================================================================
+// GLOBAL SEARCH - Works from any page
+// =============================================================================
+/**
+ * Initialize search bars on all pages
+ * When user types in search bar and presses Enter or clicks search,
+ * redirect to products.html with search query parameter
+ */
+function initializeGlobalSearch() {
+    const searchBars = document.querySelectorAll('.search-bar input');
+    
+    searchBars.forEach(searchInput => {
+        // Handle Enter key in search input
+        searchInput.addEventListener('keypress', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                performSearch(searchInput.value);
+            }
+        });
+        
+        // Handle search icon click (look for parent search bar)
+        const searchBar = searchInput.closest('.search-bar');
+        if (searchBar) {
+            const searchIcon = searchBar.querySelector('.search-icon');
+            if (searchIcon) {
+                searchIcon.addEventListener('click', () => {
+                    performSearch(searchInput.value);
+                });
+            }
+        }
+    });
+}
+
+/**
+ * Perform search and redirect to products page
+ * @param {string} query - Search query from user
+ */
+function performSearch(query) {
+    // Trim whitespace
+    query = query.trim();
+    
+    // Don't search if empty
+    if (!query) return;
+    
+    // Redirect to products page with search parameter
+    // If already on products page, just update the filter
+    if (window.location.pathname.includes('products.html')) {
+        // Already on products page - update search filter
+        if (window.products && window.products.updateSearch) {
+            window.products.updateSearch(query);
+        }
+    } else {
+        // Navigate to products page with search query
+        window.location.href = `products.html?search=${encodeURIComponent(query)}`;
+    }
+}

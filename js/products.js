@@ -45,6 +45,7 @@ const API_URL = `${window.location.protocol}//${window.location.hostname}:8000/a
  * Sent to API to fetch matching products
  */
 let currentFilters = {
+    search: '',           // Search query (empty = no search)
     category: '',          // Selected category name (empty = all)
     minPrice: 0,          // Minimum price filter
     maxPrice: 10000,      // Maximum price filter (₦10,000 Naira)
@@ -76,6 +77,12 @@ async function fetchProducts() {
     try {
         // Build query parameters
         const params = new URLSearchParams();
+        
+        // Add search query if present
+        // Backend uses 'q' parameter for search
+        if (currentFilters.search && currentFilters.search.trim()) {
+            params.append('q', currentFilters.search);
+        }
         
         // Add category filter if selected
         // Skip if 'all' or empty (no filter)
@@ -422,16 +429,28 @@ function clearAllFilters() {
         subCategories: []
     };
     
+    // Reset all filters
+    currentFilters.search = '';
+    currentFilters.category = '';
+    currentFilters.condition = '';
+    currentFilters.minPrice = 0;
+    currentFilters.maxPrice = 10000;
+    currentFilters.sizes = [];
+    currentFilters.colors = [];
+    currentFilters.subCategories = [];
+    
     // Reset UI elements
     const categorySelect = document.querySelector('#category-select');
     const conditionRadios = document.querySelectorAll('input[name="condition"]');
     const priceRange = document.querySelector('#price-range');
     const priceValue = document.querySelector('#price-value');
+    const searchInput = document.querySelector('.search-bar input');
     
     if (categorySelect) categorySelect.value = 'all';
     if (conditionRadios) conditionRadios[0].checked = true;  // Check "Any"
     if (priceRange) priceRange.value = 5000;
     if (priceValue) priceValue.textContent = '₦5000';
+    if (searchInput) searchInput.value = '';
     
     // Clear all clothing-specific checkboxes
     document.querySelectorAll('input[name="size"]').forEach(cb => cb.checked = false);
@@ -446,8 +465,49 @@ function clearAllFilters() {
     const titleElement = document.getElementById('products-title');
     if (titleElement) titleElement.textContent = 'All Products';
     
+    // Clear URL parameters by navigating to products.html without query string
+    window.history.pushState({}, '', 'products.html');
+    
     fetchProducts();
 }
+
+// =============================================================================
+// UPDATE SEARCH FILTER (Global search from any page)
+// =============================================================================
+/**
+ * Update search filter and fetch products
+ * Called from global search in app.js
+ * @param {string} searchQuery - Search term from user
+ */
+function updateSearch(searchQuery) {
+    currentFilters.search = searchQuery;
+    currentFilters.page = 1;  // Reset to page 1 when searching
+    
+    // Update search input field if it exists
+    const searchInput = document.querySelector('.search-bar input');
+    if (searchInput) {
+        searchInput.value = searchQuery;
+    }
+    
+    // Update title
+    const titleElement = document.getElementById('products-title');
+    if (titleElement) {
+        titleElement.textContent = `Search results for "${searchQuery}"`;
+    }
+    
+    // Show "View All Products" button to clear search
+    const viewAllBtn = document.getElementById('view-all-btn');
+    if (viewAllBtn) {
+        viewAllBtn.style.display = 'inline-block';
+    }
+    
+    // Fetch products with new search
+    fetchProducts();
+}
+
+// Make updateSearch available globally
+window.products = window.products || {};
+window.products.updateSearch = updateSearch;
 
 // =============================================================================
 // INITIALIZE ON PAGE LOAD
@@ -464,10 +524,35 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     
-    // Read category from URL if present
+    // Read URL parameters
     const urlParams = new URLSearchParams(window.location.search);
+    const urlSearch = urlParams.get('search');
     const urlCategory = urlParams.get('category');
     
+    // Handle search parameter
+    if (urlSearch) {
+        currentFilters.search = urlSearch;
+        
+        // Update search input field
+        const searchInput = document.querySelector('.search-bar input');
+        if (searchInput) {
+            searchInput.value = urlSearch;
+        }
+        
+        // Update title
+        const titleElement = document.getElementById('products-title');
+        if (titleElement) {
+            titleElement.textContent = `Search results for "${urlSearch}"`;
+        }
+        
+        // Show "View All Products" button to clear search
+        const viewAllBtn = document.getElementById('view-all-btn');
+        if (viewAllBtn) {
+            viewAllBtn.style.display = 'inline-block';
+        }
+    }
+    
+    // Handle category parameter
     if (urlCategory) {
         currentFilters.category = urlCategory;
         
