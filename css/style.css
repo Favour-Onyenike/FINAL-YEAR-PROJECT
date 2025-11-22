@@ -351,48 +351,62 @@ textarea.input {
     color: var(--foreground);
 }
 
-.search-bar {
-    position: relative;
-    border: none;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    width: 100%;
-}
-
-.search-icon {
-    position: absolute;
-    color: var(--muted);
-    width: 1.25rem;
-    height: 1.25rem;
-    cursor: pointer;
-    flex-shrink: 0;
-    left: 1rem;
-    top: 50%;
-    transform: translateY(-50%);
-    pointer-events: none;
-}
-
-.search-bar .input {
-    padding-left: 2.75rem;
-    display: block;
-    width: auto;
-    min-width: 250px;
-}
-
-/* Desktop: Show full search bar */
+/* =========================================
+   DESKTOP SEARCH BAR (768px and up)
+   ========================================= */
 @media (min-width: 768px) {
+    .search-bar {
+        position: relative;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        width: 100%;
+        margin: 0 2rem;
+        flex: 1;
+        max-width: 400px;
+    }
+
+    .search-icon {
+        position: absolute;
+        color: var(--muted);
+        width: 1.25rem;
+        height: 1.25rem;
+        cursor: pointer;
+        flex-shrink: 0;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        pointer-events: none;
+    }
+
     .search-bar .input {
+        padding-left: 2.75rem;
         display: block;
-        width: auto;
+        width: 100%;
     }
 }
 
-/* Mobile: Show only icon initially */
+/* =========================================
+   MOBILE SEARCH BAR (767px and below)
+   ========================================= */
 @media (max-width: 767px) {
     .search-bar {
+        position: relative;
+        border: none;
+        cursor: pointer;
         display: flex;
         align-items: center;
+    }
+
+    .search-icon {
+        position: relative;
+        color: var(--muted);
+        width: 1.25rem;
+        height: 1.25rem;
+        cursor: pointer;
+        flex-shrink: 0;
+        pointer-events: auto;
     }
 
     .search-bar .input {
@@ -401,7 +415,7 @@ textarea.input {
         transition: all 0.3s ease;
     }
 
-    /* When expanded */
+    /* When expanded on mobile */
     .search-bar.expanded {
         position: absolute;
         top: 0.75rem;
@@ -415,6 +429,7 @@ textarea.input {
         display: block;
         width: 100%;
         flex: 1;
+        padding-left: 2.75rem;
     }
 
     .search-bar.expanded .search-icon {
@@ -472,13 +487,6 @@ textarea.input {
         display: flex;
         gap: 2rem;
         margin-left: 2rem;
-    }
-
-    .search-bar {
-        display: block;
-        margin: 0 2rem;
-        flex: 1;
-        max-width: 400px;
     }
 
     .user-actions {
