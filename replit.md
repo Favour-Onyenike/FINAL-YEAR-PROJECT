@@ -42,6 +42,23 @@ UniMarket employs a client-server architecture with a clear separation between t
 - **Security Focus**: Emphasis on password hashing, JWT token security, email validation, and authorization checks (users can only modify their own products).
 - **CORS**: Fully enabled for development to facilitate frontend-backend interaction.
 
+## Feature Status: All Working ✅
+
+### Profile & User Features (All Verified)
+- ✅ **Profile Page**: Avatar, username, stats (Listings & Sales), bio display
+- ✅ **Edit Profile**: Full name, username, bio editing, profile picture upload
+- ✅ **My Listings Tab**: View user listings with bookmark/save buttons, "New Listing" button
+- ✅ **Saved Items**: View bookmarked products on profile or saved-items.html page
+- ✅ **Messages**: Buyer-seller chat interface with conversation list
+- ✅ **Product Detail**: Full gallery with thumbnails, seller info, ratings, contact button
+- ✅ **New Listing Form**: 3-5 image requirement with real-time validation feedback
+- ✅ **Like Feature**: Completely removed - clean UI with save & comment only
+
+### Recent Changes (2025-11-22)
+1. **Like Feature Removal**: All heart icons removed from homepage, products, profile, and saved-items pages
+2. **Image Validation**: Enforced 3-5 image minimum/maximum per product listing with live feedback
+3. **UI Cleanup**: All references to likes removed for a simpler, focused interface
+
 ## External Dependencies
 - **FastAPI**: Python web framework for building the backend API.
 - **SQLAlchemy**: Python SQL toolkit and Object-Relational Mapper.
