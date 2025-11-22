@@ -175,6 +175,41 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     /* =========================================
+       SHOP DROPDOWN MENU (Navigation)
+       ========================================= */
+    /**
+     * Handle Shop dropdown that shows categories
+     * Click Shop button to toggle, close when clicking outside
+     */
+    const navDropdownTriggers = document.querySelectorAll('.nav-dropdown-trigger');
+    navDropdownTriggers.forEach(trigger => {
+        trigger.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            // Find parent nav-dropdown and toggle open class
+            const dropdown = trigger.closest('.nav-dropdown');
+            if (dropdown) {
+                dropdown.classList.toggle('open');
+                // Close other nav dropdowns
+                document.querySelectorAll('.nav-dropdown.open').forEach(other => {
+                    if (other !== dropdown) {
+                        other.classList.remove('open');
+                    }
+                });
+            }
+        });
+    });
+
+    // Close nav dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.nav-dropdown')) {
+            document.querySelectorAll('.nav-dropdown.open').forEach(dropdown => {
+                dropdown.classList.remove('open');
+            });
+        }
+    });
+
+    /* =========================================
        PROFILE DROPDOWN MENU
        ========================================= */
     /**
