@@ -617,8 +617,10 @@
 
             lucide.createIcons();
             
-            // Scroll to bottom
-            container.scrollTop = container.scrollHeight;
+            // Scroll to bottom after DOM is fully rendered
+            setTimeout(() => {
+                container.scrollTop = container.scrollHeight;
+            }, 0);
         }
 
         // Send message
