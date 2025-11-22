@@ -143,10 +143,15 @@ TROUBLESHOOTING:
                 <input type="text" class="input input-pill" placeholder="Search...">
             </div>
             <div class="user-actions">
-                <a href="profile.html" class="btn-icon btn-ghost"><i data-lucide="user"></i></a>
-                <button onclick="logout()" class="btn-icon btn-ghost" title="Log Out">
-                    <i data-lucide="log-out"></i>
-                </button>
+                <div class="profile-dropdown" style="position: relative;">
+                    <button class="btn-icon btn-ghost profile-dropdown-trigger" title="Profile">
+                        <i data-lucide="user"></i>
+                    </button>
+                    <div class="profile-dropdown-menu">
+                        <a href="profile.html" class="dropdown-item">View Profile</a>
+                        <button onclick="logout()" class="dropdown-item logout-btn">Log Out</button>
+                    </div>
+                </div>
             </div>
             <button class="mobile-menu-btn"><i data-lucide="menu"></i></button>
         </div>

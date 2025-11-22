@@ -175,6 +175,41 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     /* =========================================
+       PROFILE DROPDOWN MENU
+       ========================================= */
+    /**
+     * Handle profile dropdown that shows View Profile and Logout options
+     * Click profile icon to toggle, close when clicking outside
+     */
+    const profileDropdownTriggers = document.querySelectorAll('.profile-dropdown-trigger');
+    profileDropdownTriggers.forEach(trigger => {
+        trigger.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            // Find parent dropdown and toggle open class
+            const dropdown = trigger.closest('.profile-dropdown');
+            if (dropdown) {
+                dropdown.classList.toggle('open');
+                // Close other dropdowns
+                document.querySelectorAll('.profile-dropdown.open').forEach(other => {
+                    if (other !== dropdown) {
+                        other.classList.remove('open');
+                    }
+                });
+            }
+        });
+    });
+
+    // Close profile dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.profile-dropdown')) {
+            document.querySelectorAll('.profile-dropdown.open').forEach(dropdown => {
+                dropdown.classList.remove('open');
+            });
+        }
+    });
+
+    /* =========================================
        NAVBAR AUTH STATE - ICONS VS BUTTONS
        ========================================= */
     /**

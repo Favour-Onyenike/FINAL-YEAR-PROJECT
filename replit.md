@@ -58,12 +58,14 @@ UniMarket employs a client-server architecture with a clear separation between t
 1. **Profile Update Functionality**: Added backend PUT endpoint (PUT /api/users/{user_id}) and GET endpoint (GET /api/users/{user_id}) for profile management
    - Full Name, Bio, and Avatar URL can now be updated
    - Changes persist to database and are immediately visible
-2. **Desktop Logout Button**: Added logout button with sign-out icon to desktop navbar on all pages
-   - Visible when logged in: Messages, Saved Items, Profile, Log Out icons
-   - Matches mobile logout functionality
+2. **Profile Dropdown Menu**: Replaced separate logout button with a profile dropdown
+   - Click profile icon to reveal dropdown menu
+   - Dropdown options: "View Profile" and "Log Out"
+   - Cleaner navbar with consolidated profile actions
+   - Works across all pages (index, products, messages, profile, saved-items, edit-profile, sell)
 3. **Removed Notification Icon**: Cleaned up desktop navbar by removing notification bell icon
    - Messages section already handles all communication needs
-   - Navbar now shows: Messages, Saved Items, Profile, Log Out
+   - Navbar now shows: Messages, Saved Items, Profile (with dropdown)
 4. **Like Feature Removal**: All heart icons removed from homepage, products, profile, and saved-items pages
 5. **Image Validation**: Enforced 3-5 image minimum/maximum per product listing with live feedback
 6. **UI Cleanup**: All references to likes removed for a simpler, focused interface
