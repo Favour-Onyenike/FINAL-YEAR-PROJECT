@@ -137,6 +137,19 @@ bash start.sh
 - **Soft Deletes**: Products marked deleted, not permanently removed
 
 ## Recent Changes
+- **2025-11-22**: Seller Listing Form Enhanced for Better Filtering
+  - Updated sell.html to ask sellers for appropriate details
+  - When seller selects "Clothing" category, dynamic fields appear:
+    * **Clothing Type**: Shirts, Trousers, Dresses, Skirts (required for clothing)
+    * **Size**: XS, S, M, L, XL dropdown (required for clothing)
+    * **Color**: Text input for color (required for clothing)
+  - **Condition field** now shows for all products (not just clothing)
+  - Price field now displays as ₦ (Nigerian Naira)
+  - Clothing-specific fields become required when "Clothing" is selected
+  - Clothing-specific fields become optional when different category is selected
+  - Form properly collects all data for accurate product filtering
+  - Added loader to sell.html page
+
 - **2025-11-22**: Advanced Clothing Filters Added
   - Implemented dynamic clothing-specific filters (only show when "Clothing" category selected)
   - Added Sub-Category filter: Shirts, Trousers, Dresses, Skirts
