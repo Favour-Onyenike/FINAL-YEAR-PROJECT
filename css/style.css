@@ -260,6 +260,7 @@ textarea {
     padding: 0 !important;
     width: 20px !important;
     height: 20px !important;
+    font-weight: normal !important;
 }
 
 #logged-in-actions .nav-icon i[data-lucide] {
