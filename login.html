@@ -39,7 +39,12 @@
                         <label class="form-label">Password</label>
                         <a href="#" style="font-size: 0.8rem; color: var(--muted);">Forgot your password?</a>
                     </div>
-                    <input type="password" class="input" placeholder="••••••••" required>
+                    <div style="position: relative;">
+                        <input type="password" class="input" id="password-input" placeholder="••••••••" required>
+                        <button type="button" class="password-toggle" id="password-toggle" onclick="togglePassword('password-input', 'password-toggle')">
+                            <i data-lucide="eye" style="width: 1.2rem; height: 1.2rem;"></i>
+                        </button>
+                    </div>
                 </div>
 
                 <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Log in</button>
@@ -53,6 +58,24 @@
 
     <script src="js/app.js"></script>
     <script>
+        // Password visibility toggle function
+        function togglePassword(inputId, toggleId) {
+            const input = document.getElementById(inputId);
+            const toggle = document.getElementById(toggleId);
+            const icon = toggle.querySelector('i');
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.setAttribute('data-lucide', 'eye-off');
+            } else {
+                input.type = 'password';
+                icon.setAttribute('data-lucide', 'eye');
+            }
+            
+            // Re-render lucide icons
+            lucide.createIcons();
+        }
+
         // Form Validation
         const form = document.getElementById('login-form');
         const emailInput = document.getElementById('email-input');

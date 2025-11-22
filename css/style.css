@@ -2287,3 +2287,30 @@ textarea.input-with-padding {
     font-size: 0.9rem;
     line-height: 1.3;
 }
+/* =========================================
+   Password Toggle Styles
+   ========================================= */
+.password-toggle {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px 8px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s;
+    z-index: 10;
+}
+
+.password-toggle:hover {
+    color: var(--foreground);
+}
+
+.password-toggle:active {
+    color: var(--primary);
+}
