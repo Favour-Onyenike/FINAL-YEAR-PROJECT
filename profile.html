@@ -364,16 +364,12 @@ NEXT STEPS FROM HERE:
                 document.getElementById('profile-fullname').textContent = data.fullName || data.full_name || 'User';
                 document.getElementById('profile-bio').textContent = data.bio || 'No bio yet.';
                 
-                if (data.avatar_url) {
-                    document.getElementById('profile-avatar-img').src = data.avatar_url;
-                }
-                
                 document.getElementById('profile-listings-count').textContent = data.listings_count || 0;
                 document.getElementById('profile-sales-count').textContent = data.sales_count || 0;
                 
                 // Show avatar if it exists
-                if (data.avatar_url) {
-                    document.getElementById('profile-avatar-img').src = data.avatar_url;
+                if (data.profileImage) {
+                    document.getElementById('profile-avatar-img').src = data.profileImage;
                     document.getElementById('profile-avatar-img').style.display = 'block';
                     document.getElementById('profile-avatar-placeholder').style.display = 'none';
                 }
