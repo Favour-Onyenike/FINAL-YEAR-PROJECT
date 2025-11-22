@@ -462,7 +462,8 @@ NEXT STEPS FROM HERE:
                 
                 if (!response.ok) throw new Error('Failed to load listings');
                 
-                const products = await response.json();
+                const data = await response.json();
+                const products = data.products || [];  // Extract products array from pagination wrapper
                 const listingsGrid = document.getElementById('listings-grid');
                 
                 if (products.length === 0) {
