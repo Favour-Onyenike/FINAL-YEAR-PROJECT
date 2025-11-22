@@ -357,6 +357,7 @@ textarea.input {
     cursor: pointer;
     display: flex;
     align-items: center;
+    margin-right: auto;
 }
 
 .search-icon {
@@ -379,6 +380,7 @@ textarea.input {
     .search-bar {
         display: flex;
         align-items: center;
+        margin-right: 0.5rem;
     }
 
     .search-bar .input {
