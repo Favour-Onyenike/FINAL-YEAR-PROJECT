@@ -352,8 +352,11 @@ async function updateMessageBadge() {
             // Hide badge if not logged in
             const badge = document.getElementById('message-badge');
             if (badge) badge.classList.add('hidden');
+            console.debug('Badge update skipped: user not logged in');
             return;
         }
+        
+        console.debug('Updating message badge for user:', userId);
         
         // Get all users to check for messages
         const response = await fetch('/api/users', {
@@ -361,7 +364,13 @@ async function updateMessageBadge() {
         });
         
         if (!response.ok) {
-            console.warn('Failed to fetch users for message badge');
+            console.warn('Failed to fetch users for message badge. Status:', response.status);
+            // If 401, user token might be invalid - redirect to login
+            if (response.status === 401) {
+                console.warn('Unauthorized - token may be expired');
+                localStorage.removeItem('token');
+                localStorage.removeItem('userId');
+            }
             return;
         }
         
