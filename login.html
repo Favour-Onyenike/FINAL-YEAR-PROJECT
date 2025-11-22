@@ -113,7 +113,12 @@ NEXT STEP: User redirected to products.html (shop page) after login
                     </div>
                 </div>
 
-                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Log in</button>
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 1rem;">
+                    <input type="checkbox" id="remember-me-checkbox" style="width: 1.1rem; height: 1.1rem; cursor: pointer;">
+                    <label for="remember-me-checkbox" style="cursor: pointer; font-size: 0.9rem; color: var(--foreground);">Remember me for 24 hours</label>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1.5rem;">Log in</button>
                 
                 <div id="status-indicator" class="status-indicator hidden">
                     <i id="status-icon" data-lucide="loader" class="status-icon loading"></i>
@@ -181,6 +186,38 @@ NEXT STEP: User redirected to products.html (shop page) after login
             document.getElementById('status-indicator').classList.add('hidden');
         }
 
+        // Check if user has a valid "Remember Me" token on page load
+        function checkRememberedLogin() {
+            const token = localStorage.getItem('token');
+            const user = localStorage.getItem('user');
+            const expirationTime = localStorage.getItem('tokenExpiration');
+            
+            // If no expiration time stored, don't auto-login (session-only)
+            if (!expirationTime) {
+                return;
+            }
+            
+            // Check if token is still valid (not expired)
+            if (token && user && expirationTime) {
+                const now = Date.now();
+                const expiration = parseInt(expirationTime);
+                
+                if (now < expiration) {
+                    // Token is still valid, auto-login by redirecting to profile
+                    window.location.href = 'profile.html';
+                    return;
+                } else {
+                    // Token expired, clear stored data
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+                    localStorage.removeItem('tokenExpiration');
+                }
+            }
+        }
+        
+        // Check for remembered login on page load
+        checkRememberedLogin();
+
         // Form Validation
         const form = document.getElementById('login-form');
         const emailInput = document.getElementById('email-input');
@@ -229,6 +266,9 @@ NEXT STEP: User redirected to products.html (shop page) after login
                     // Show success checkmark
                     showStatusSuccess();
                     
+                    // Check if "Remember Me" is checked
+                    const rememberMe = document.getElementById('remember-me-checkbox').checked;
+                    
                     // Store JWT token and user info
                     localStorage.setItem('token', data.access_token);
                     localStorage.setItem('user', JSON.stringify({
@@ -237,6 +277,15 @@ NEXT STEP: User redirected to products.html (shop page) after login
                         username: data.user.username,
                         email: data.user.email
                     }));
+                    
+                    // If "Remember Me" is checked, store expiration timestamp (24 hours from now)
+                    if (rememberMe) {
+                        const expirationTime = Date.now() + (24 * 60 * 60 * 1000); // 24 hours in milliseconds
+                        localStorage.setItem('tokenExpiration', expirationTime.toString());
+                    } else {
+                        // Remove expiration if "Remember Me" is not checked (session only)
+                        localStorage.removeItem('tokenExpiration');
+                    }
                     
                     // Redirect after showing success
                     setTimeout(() => {
