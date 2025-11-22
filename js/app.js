@@ -483,12 +483,13 @@ async function updateMessageBadge() {
             }
         }
         
-        // Update badge
+        // Update badge - show just a red dot if unread messages exist
         const badge = document.getElementById('message-badge');
         if (badge) {
             if (unreadCount > 0) {
-                badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+                badge.textContent = '●';
                 badge.classList.remove('hidden');
+                badge.style.fontSize = '0.75rem';
             } else {
                 badge.classList.add('hidden');
             }
