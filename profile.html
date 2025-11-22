@@ -138,16 +138,13 @@ NEXT STEPS FROM HERE:
             <div class="profile-avatar" style="background: var(--secondary); display: flex; align-items: center; justify-content: center;">
                 <img id="profile-avatar-img" alt="User Avatar" style="display: none;">
                 <div id="profile-avatar-placeholder" style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;">
-                    <i data-lucide="user" style="width: 3rem; height: 3rem; color: var(--muted);"></i>
+                    <i data-lucide="user" style="width: 4rem; height: 4rem; color: var(--muted);"></i>
                 </div>
             </div>
 
             <div class="profile-info">
-                <div class="flex items-center gap-4" style="margin-bottom: 1rem;">
-                    <h1 class="profile-username" id="profile-username" style="margin-bottom: 0;">Loading...</h1>
-                    <a id="edit-profile-btn" href="edit-profile.html" class="btn btn-outline hidden">Edit Profile</a>
-                </div>
-
+                <h1 class="profile-username" id="profile-username" style="margin-bottom: 0;">Loading...</h1>
+                
                 <div class="profile-stats">
                     <div class="profile-stat">
                         <span class="profile-stat-number" id="profile-listings-count">0</span>
@@ -159,10 +156,15 @@ NEXT STEPS FROM HERE:
                     </div>
                 </div>
 
-                <div>
-                    <p id="profile-fullname" style="font-weight: 600; margin-bottom: 0.25rem;">Loading...</p>
-                    <p id="profile-bio" style="color: var(--muted);">No bio yet. Click "Edit Profile" to add one.</p>
+                <div style="margin-bottom: 1.5rem;">
+                    <p id="profile-fullname" style="font-weight: 600; margin-bottom: 0.5rem; font-size: 1.1rem;">Loading...</p>
+                    <p id="profile-bio" style="color: var(--muted); max-width: 500px; margin: 0 auto;">No bio yet. Click "Edit Profile" to add one.</p>
                 </div>
+                
+                <a id="edit-profile-btn" href="edit-profile.html" class="btn btn-outline hidden">
+                    <i data-lucide="edit-2" style="width: 1rem; margin-right: 0.5rem;"></i>
+                    Edit Profile
+                </a>
             </div>
         </div>
 
