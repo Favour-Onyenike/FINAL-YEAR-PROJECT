@@ -966,13 +966,10 @@ async def send_message(sid, data, environ):
 @app.post("/api/messages", response_model=MessageResponse)
 async def send_message_api(
     message_data: MessageCreate,
-    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """
     Send a message to another user.
-    
-    REQUIRES: Valid JWT token
     
     REQUEST BODY:
     {
@@ -987,9 +984,9 @@ async def send_message_api(
     if not receiver:
         raise HTTPException(status_code=404, detail="Receiver not found")
     
-    # Create message
+    # Create message (sender is always user 6 for now)
     new_message = Message(
-        sender_id=current_user.id,
+        sender_id=6,
         receiver_id=message_data.receiverId,
         content=message_data.content
     )

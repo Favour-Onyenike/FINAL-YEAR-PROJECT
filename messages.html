@@ -463,7 +463,14 @@
             document.querySelectorAll('.conversation-item').forEach(item => {
                 item.classList.remove('active');
             });
-            event.target.closest('.conversation-item').classList.add('active');
+            // Find and mark the active conversation
+            const conversationItems = document.querySelectorAll('.conversation-item');
+            conversationItems.forEach((item, index) => {
+                // Find the user's conversation item by checking if the onclick matches
+                if (item.onclick && item.onclick.toString().includes(userId)) {
+                    item.classList.add('active');
+                }
+            });
         }
 
         // Load messages with a specific user
