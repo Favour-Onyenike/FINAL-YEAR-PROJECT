@@ -332,6 +332,17 @@ NEXT STEPS FROM HERE:
 
     <script src="js/app.js"></script>
     <script>
+        // Get the backend API URL
+        // In Replit, frontend is on port 5000, backend is on port 8000
+        function getBackendUrl(path) {
+            const currentUrl = new URL(window.location.href);
+            // Replace port 5000 (frontend) with 8000 (backend)
+            const backendUrl = new URL(currentUrl);
+            backendUrl.port = '8000';
+            backendUrl.pathname = path;
+            return backendUrl.toString();
+        }
+        
         // Get profile user ID from URL parameter
         function getProfileUserId() {
             const params = new URLSearchParams(window.location.search);
@@ -369,7 +380,11 @@ NEXT STEPS FROM HERE:
                 
                 // Show avatar if it exists
                 if (data.profileImage) {
-                    document.getElementById('profile-avatar-img').src = data.profileImage;
+                    // Convert relative image path to full backend URL
+                    const imageUrl = data.profileImage.startsWith('http') 
+                        ? data.profileImage 
+                        : getBackendUrl(data.profileImage);
+                    document.getElementById('profile-avatar-img').src = imageUrl;
                     document.getElementById('profile-avatar-img').style.display = 'block';
                     document.getElementById('profile-avatar-placeholder').style.display = 'none';
                 }

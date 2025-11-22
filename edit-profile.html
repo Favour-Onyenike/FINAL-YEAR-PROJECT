@@ -242,6 +242,17 @@ NEXT STEP:
         let selectedAvatarFile = null;
         let uploadedAvatarUrl = null;
         
+        // Get the backend API URL
+        // In Replit, frontend is on port 5000, backend is on port 8000
+        function getBackendUrl(path) {
+            const currentUrl = new URL(window.location.href);
+            // Replace port 5000 (frontend) with 8000 (backend)
+            const backendUrl = new URL(currentUrl);
+            backendUrl.port = '8000';
+            backendUrl.pathname = path;
+            return backendUrl.toString();
+        }
+        
         // Load user profile data for editing
         function loadUserData() {
             const user = JSON.parse(localStorage.getItem('user'));
@@ -269,7 +280,11 @@ NEXT STEP:
                         document.getElementById('edit-bio').value = data.bio;
                     }
                     if (data.profileImage) {
-                        document.getElementById('edit-avatar-img').src = data.profileImage;
+                        // Convert relative image path to full backend URL
+                        const imageUrl = data.profileImage.startsWith('http') 
+                            ? data.profileImage 
+                            : getBackendUrl(data.profileImage);
+                        document.getElementById('edit-avatar-img').src = imageUrl;
                         document.getElementById('edit-avatar-img').style.display = 'block';
                         document.getElementById('avatar-placeholder').style.display = 'none';
                     }
