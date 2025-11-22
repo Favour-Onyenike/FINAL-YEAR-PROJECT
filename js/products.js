@@ -88,8 +88,8 @@ async function fetchProducts() {
             params.append('minPrice', currentFilters.minPrice);
         }
         
-        // Add maximum price filter if less than max
-        if (currentFilters.maxPrice < 1000) {
+        // Add maximum price filter if less than max (₦10,000)
+        if (currentFilters.maxPrice < 10000) {
             params.append('maxPrice', currentFilters.maxPrice);
         }
         
