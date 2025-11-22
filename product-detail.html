@@ -154,8 +154,8 @@
 
             <!-- Owner Controls (Hidden by default, show if owner) -->
             <div class="detail-actions hidden" id="owner-controls">
-                <a href="edit-product.html" class="btn btn-outline flex-1">Edit Listing</a>
-                <button class="btn btn-outline"
+                <a href="edit-product.html?id=" class="btn btn-outline flex-1" id="edit-product-btn">Edit Listing</a>
+                <button id="delete-btn" class="btn btn-outline"
                     style="color: var(--destructive); border-color: var(--destructive);">Delete</button>
             </div>
         </div>
@@ -528,6 +528,28 @@
                 // Update page title
                 document.title = `${product.name} - UniMarket`;
                 
+                // Check if current user is the product owner and show owner controls
+                const currentUser = getCurrentUser();
+                if (currentUser && currentUser.id === sellerId) {
+                    // Show owner controls
+                    const ownerControls = document.getElementById('owner-controls');
+                    if (ownerControls) {
+                        ownerControls.classList.remove('hidden');
+                    }
+                    
+                    // Hide View Profile button
+                    const detailActions = document.querySelector('.detail-actions:not(#owner-controls)');
+                    if (detailActions) {
+                        detailActions.classList.add('hidden');
+                    }
+                    
+                    // Set edit button href
+                    const editBtn = document.getElementById('edit-product-btn');
+                    if (editBtn) {
+                        editBtn.href = `/edit-product.html?id=${productId}`;
+                    }
+                }
+                
                 // Check if product is already saved by current user
                 checkIfSaved();
             } catch (error) {
@@ -577,6 +599,67 @@
             // Refresh Lucide icons
             if (window.lucide) {
                 window.lucide.createIcons();
+            }
+        }
+        
+        // Delete product listing
+        async function deleteProduct() {
+            const currentUser = getCurrentUser();
+            if (!currentUser) {
+                alert('Please sign in');
+                return;
+            }
+            
+            if (!productId) {
+                alert('Product not found');
+                return;
+            }
+            
+            // Confirm deletion
+            if (!confirm('Are you sure you want to delete this listing? This action cannot be undone.')) {
+                return;
+            }
+            
+            const deleteBtn = document.getElementById('delete-btn');
+            if (deleteBtn) {
+                deleteBtn.disabled = true;
+                deleteBtn.textContent = 'Deleting...';
+            }
+            
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`/api/products/${productId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        alert('Please sign in');
+                        window.location.href = `login.html?returnTo=product-detail.html?id=${productId}`;
+                        return;
+                    }
+                    if (response.status === 403) {
+                        alert('You can only delete your own listings');
+                        return;
+                    }
+                    throw new Error('Failed to delete product');
+                }
+                
+                // Show success message and redirect
+                showNotification('✓ Listing deleted successfully!', 'success');
+                setTimeout(() => {
+                    window.location.href = '/products.html';
+                }, 1500);
+            } catch (error) {
+                console.error('Error deleting product:', error);
+                showNotification('Failed to delete listing', 'error');
+                if (deleteBtn) {
+                    deleteBtn.disabled = false;
+                    deleteBtn.textContent = 'Delete';
+                }
             }
         }
         
@@ -664,6 +747,12 @@
             const saveBtn = document.getElementById('save-btn');
             if (saveBtn) {
                 saveBtn.addEventListener('click', toggleSaveItem);
+            }
+            
+            // Add click handler to delete button
+            const deleteBtn = document.getElementById('delete-btn');
+            if (deleteBtn) {
+                deleteBtn.addEventListener('click', deleteProduct);
             }
             
             loadProductData();
