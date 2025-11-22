@@ -6,21 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UniMarket - Your Campus Marketplace</title>
     <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/loader.css">
     <!-- Lucide Icons Library -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <!-- Fonts are imported in CSS -->
 </head>
 
 <body>
-
-    <!-- Loader -->
-    <div class="loader-container" id="loader">
-        <div>
-            <div class="spinner"></div>
-            <p class="loader-text loader-message">Loading...</p>
-        </div>
-    </div>
 
     <!-- Header -->
     <header class="site-header">
@@ -310,14 +301,6 @@
 
     <script>
         lucide.createIcons();
-        
-        // Hide loader when page is fully loaded
-        window.addEventListener('load', () => {
-            const loader = document.getElementById('loader');
-            if (loader) {
-                loader.classList.add('hidden');
-            }
-        });
     </script>
     <script src="js/app.js"></script>
 </body>
