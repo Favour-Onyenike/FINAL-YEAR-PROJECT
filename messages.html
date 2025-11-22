@@ -424,6 +424,13 @@
                         allUsers[user.id] = user;
                     }
 
+                    // Sort conversations by most recent message first
+                    conversationsWithMessages.sort((a, b) => {
+                        const timeA = new Date(a.lastMessageTime).getTime();
+                        const timeB = new Date(b.lastMessageTime).getTime();
+                        return timeB - timeA; // Descending order (newest first)
+                    });
+
                     renderConversations(conversationsWithMessages);
                 } finally {
                     clearTimeout(timeoutId);
