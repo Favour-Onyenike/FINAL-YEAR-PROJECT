@@ -1818,6 +1818,1255 @@ DOCUMENTATION LOCATIONS:
 
 
 ================================================================================
+11. UML DIAGRAMS & VISUAL SYSTEM DESIGN
+================================================================================
+
+OVERVIEW:
+=========
+This section contains comprehensive UML diagrams showing how users interact with
+the system, how data flows through the application, and how the system components
+are organized and communicate.
+
+
+================================================================================
+11.1 USE CASE DIAGRAM
+================================================================================
+
+ACTORS:
+- Student (Registered User)
+- Seller (Student creating products)
+- Buyer (Student browsing/purchasing)
+- System (Backend/Database)
+
+USE CASE DIAGRAM - UNIMARKET SYSTEM:
+
+                              ┌─────────────────────────────────────┐
+                              │      UNIMARKET SYSTEM               │
+                              │                                     │
+                              │  ┌───────────────────────────────┐ │
+        ┌──────────────┐       │  │     AUTHENTICATION            │ │
+        │              │       │  │  ┌─────────────────────────┐ │ │
+        │   STUDENT    │──────────→│  │  UC1: Register Account  │ │ │
+        │  (All Users) │       │  │  └─────────────────────────┘ │ │
+        │              │       │  │  ┌─────────────────────────┐ │ │
+        └──────────────┘       │  │  │  UC2: Login             │ │ │
+             │                 │  │  └─────────────────────────┘ │ │
+             │                 │  │  ┌─────────────────────────┐ │ │
+             ├─────────────────→│  │  │  UC3: Logout            │ │ │
+             │                 │  │  └─────────────────────────┘ │ │
+             │                 │  └───────────────────────────────┘ │
+             │                 │                                    │
+             │                 │  ┌───────────────────────────────┐ │
+             │                 │  │  PROFILE MANAGEMENT            │ │
+             │                 │  │  ┌─────────────────────────┐ │ │
+             │                 │  │  │  UC4: View Profile      │ │ │
+             │                 ├─────→  (Own or Others)         │ │ │
+             │                 │  │  └─────────────────────────┘ │ │
+             │                 │  │  ┌─────────────────────────┐ │ │
+             │                 │  │  │  UC5: Edit Profile      │ │ │
+             │                 ├─────→  (Owner Only)            │ │ │
+             │                 │  │  └─────────────────────────┘ │ │
+             │                 │  │  ┌─────────────────────────┐ │ │
+             │                 │  │  │  UC6: Upload Avatar     │ │ │
+             │                 ├─────→  (Owner Only)            │ │ │
+             │                 │  │  └─────────────────────────┘ │ │
+             │                 │  └───────────────────────────────┘ │
+             │                 │                                    │
+             │                 │  ┌───────────────────────────────┐ │
+             │                 │  │  PRODUCT MANAGEMENT            │ │
+             │                 │  │  ┌─────────────────────────┐ │ │
+             │                 │  │  │  UC7: Create Listing    │ │ │
+             │                 ├─────→  (with 3-5 images)      │ │ │
+             │                 │  │  └─────────────────────────┘ │ │
+             │                 │  │  ┌─────────────────────────┐ │ │
+             │                 │  │  │  UC8: View Products     │ │ │
+             │                 ├──────→  (Browse All)           │ │ │
+             │                 │  │  └─────────────────────────┘ │ │
+             │                 │  │  ┌─────────────────────────┐ │ │
+             │                 │  │  │  UC9: Search Products   │ │ │
+             │                 ├──────→  (by name, category)    │ │ │
+             │                 │  │  └─────────────────────────┘ │ │
+             │                 │  │  ┌─────────────────────────┐ │ │
+             │                 │  │  │  UC10: Filter Products  │ │ │
+             │                 ├──────→  (price, condition)     │ │ │
+             │                 │  │  └─────────────────────────┘ │ │
+             │                 │  │  ┌─────────────────────────┐ │ │
+             │                 │  │  │  UC11: View Details     │ │ │
+             │                 ├──────→  (Single product)       │ │ │
+             │                 │  │  └─────────────────────────┘ │ │
+             │                 │  │  ┌─────────────────────────┐ │ │
+             │                 │  │  │  UC12: Edit Listing     │ │ │
+             │                 ├─────→  (Owner Only)            │ │ │
+             │                 │  │  └─────────────────────────┘ │ │
+             │                 │  │  ┌─────────────────────────┐ │ │
+             │                 │  │  │  UC13: Delete Listing   │ │ │
+             │                 ├─────→  (Owner Only)            │ │ │
+             │                 │  │  └─────────────────────────┘ │ │
+             │                 │  └───────────────────────────────┘ │
+             │                 │                                    │
+             │                 │  ┌───────────────────────────────┐ │
+             │                 │  │  WISHLIST/BOOKMARKS            │ │
+             │                 │  │  ┌─────────────────────────┐ │ │
+             │                 │  │  │  UC14: Save Product     │ │ │
+             │                 ├──────→  (to wishlist)          │ │ │
+             │                 │  │  └─────────────────────────┘ │ │
+             │                 │  │  ┌─────────────────────────┐ │ │
+             │                 │  │  │  UC15: View Saved Items │ │ │
+             │                 ├──────→  (Owner Only)           │ │ │
+             │                 │  │  └─────────────────────────┘ │ │
+             │                 │  │  ┌─────────────────────────┐ │ │
+             │                 │  │  │  UC16: Remove Bookmark  │ │ │
+             │                 ├──────→  (Owner Only)           │ │ │
+             │                 │  │  └─────────────────────────┘ │ │
+             │                 │  └───────────────────────────────┘ │
+             │                 │                                    │
+             └─────────────────→│  ┌───────────────────────────────┐ │
+                                │  │  SYSTEM FUNCTIONS             │ │
+                                │  │  ┌─────────────────────────┐ │ │
+                                │  │  │  Validate Email Domain  │ │ │
+                                │  │  │  Hash Passwords         │ │ │
+                                │  │  │  Generate JWT Tokens    │ │ │
+                                │  │  │  Process Images         │ │ │
+                                │  │  └─────────────────────────┘ │ │
+                                │  └───────────────────────────────┘ │
+                                │                                     │
+                                └─────────────────────────────────────┘
+
+
+================================================================================
+11.2 USE CASE DICTIONARY
+================================================================================
+
+UC1: REGISTER ACCOUNT (User Authentication)
+────────────────────────────────────────────
+Primary Actor: Student (New User)
+Precondition: Student has valid @bazeuniversity.edu.ng email
+Postcondition: Account created, token issued, user logged in
+
+Main Flow:
+1. Student clicks "Sign Up"
+2. System displays registration form
+3. Student enters: full name, email, username, password, confirm password
+4. System validates email domain (must be @bazeuniversity.edu.ng)
+5. System validates password strength (6+ chars, 1 uppercase, 1 number)
+6. System checks username/email uniqueness
+7. System hashes password with bcrypt
+8. System creates user record in database
+9. System generates JWT token
+10. System auto-logs in student
+11. System redirects to profile page
+
+Exception Flows:
+- Invalid email domain → Display error "Email must be @bazeuniversity.edu.ng"
+- Weak password → Display error "Password must have 6+ chars, 1 uppercase, 1 number"
+- Duplicate username → Display error "Username already taken"
+- Duplicate email → Display error "Email already registered"
+
+Code Location: backend/main.py (lines 116-188) - register()
+Frontend: signup.html
+
+
+UC2: LOGIN (User Authentication)
+─────────────────────────────────
+Primary Actor: Student (Registered User)
+Precondition: User account exists
+Postcondition: JWT token issued, user data stored in localStorage
+
+Main Flow:
+1. Student clicks "Log In"
+2. System displays login form
+3. Student enters email and password
+4. System finds user by email
+5. System verifies password using bcrypt
+6. System generates JWT token (expires in 7 days)
+7. System returns token + user data
+8. Frontend stores token in localStorage
+9. Frontend stores user data in localStorage
+10. Navbar updates to show logged-in state
+11. System redirects to products page
+
+Exception Flows:
+- User not found → Display error "Invalid email or password"
+- Password incorrect → Display error "Invalid email or password"
+- Email doesn't exist → Display error "Invalid email or password"
+
+Code Location: backend/main.py (lines 190-246) - login()
+Frontend: login.html
+
+
+UC3: LOGOUT (User Authentication)
+──────────────────────────────────
+Primary Actor: Student (Logged-in User)
+Precondition: User is logged in (token in localStorage)
+Postcondition: User session cleared, logged out
+
+Main Flow:
+1. Student clicks "Logout" button
+2. Frontend removes token from localStorage
+3. Frontend removes user data from localStorage
+4. Frontend updates navbar to show logged-out state
+5. Frontend redirects to home page
+
+Code Location: frontend/js/app.js (lines 244-250)
+
+
+UC4: VIEW PROFILE (Profile Management)
+───────────────────────────────────────
+Primary Actor: Student (Any user)
+Precondition: User account exists
+Postcondition: Profile information displayed
+
+Main Flow:
+1. Student clicks profile icon or username
+2. System loads user profile data (name, bio, avatar, stats)
+3. System displays "My Listings" tab (current user's products)
+4. System displays product grid
+5. If user is owner: Show "Edit Profile" and "Saved Items" buttons
+6. If user is visitor: Show read-only profile
+
+Code Location: backend/main.py (lines 642-670) - get_user()
+Frontend: profile.html
+
+
+UC5: EDIT PROFILE (Profile Management - Owner Only)
+───────────────────────────────────────────────────
+Primary Actor: Student (Profile Owner)
+Precondition: User is logged in and viewing own profile
+Postcondition: Profile updated in database
+
+Main Flow:
+1. Profile owner clicks "Edit Profile" button
+2. System loads current profile data
+3. Owner enters new: full name, bio, avatar URL
+4. Owner clicks "Save Changes"
+5. System validates new data
+6. System updates user record in database
+7. System updates localStorage with new data
+8. System redirects to profile page
+9. Profile displays updated information
+
+Authorization: Only owner can edit (checked by backend)
+
+Code Location: backend/main.py (lines 672-720) - update_user()
+Frontend: edit-profile.html
+
+
+UC6: UPLOAD AVATAR (Profile Management)
+────────────────────────────────────────
+Primary Actor: Student (Profile Owner)
+Precondition: User on Edit Profile page
+Postcondition: Avatar uploaded and stored
+
+Main Flow:
+1. Owner clicks camera icon
+2. File picker opens (image files only)
+3. Owner selects image file
+4. System shows instant preview
+5. System automatically uploads to /api/upload
+6. Backend saves image to backend/uploads/products/
+7. Backend returns image URL
+8. Frontend stores URL for profile update
+9. When profile saved, avatar URL sent with other data
+
+Accepted Formats: JPEG, PNG, GIF, WebP, SVG, etc.
+Default: Placeholder icon until image uploaded
+
+Code Location: backend/main.py (lines 721-765) - upload_image()
+Frontend: edit-profile.html
+
+
+UC7: CREATE LISTING (Product Management)
+─────────────────────────────────────────
+Primary Actor: Student (Seller)
+Precondition: User is logged in
+Postcondition: Product created and visible in marketplace
+
+Main Flow:
+1. Seller clicks "New Listing" button
+2. System displays product form
+3. Seller enters: name, description, price, category, condition
+4. Seller optionally enters: size, color
+5. Seller uploads 3-5 product images (REQUIRED)
+6. System validates image count (must be exactly 3-5)
+7. For each image: Upload to /api/upload
+8. Backend returns image URLs
+9. Seller clicks "Create Listing"
+10. System validates all fields
+11. System creates product record
+12. System creates 3-5 product_images records
+13. Product appears in marketplace
+
+Validation Rules:
+- Product name: 1-255 characters
+- Description: 1-5000 characters
+- Price: 0-10,000,000 (₦)
+- Category: Must select (Textbooks, Electronics, Clothing, Furniture, Other)
+- Condition: Must select (New, Like New, Good, Fair)
+- Images: MUST be 3-5 images (red X if <3, red X if >5, green checkmark if 3-5)
+
+Code Location: backend/main.py (lines 325-370) - create_product()
+Frontend: sell.html
+
+
+UC8: VIEW PRODUCTS (Product Browsing)
+──────────────────────────────────────
+Primary Actor: Student (Buyer)
+Precondition: None (can view without login)
+Postcondition: Product grid displayed
+
+Main Flow:
+1. Student clicks "Shop" or visits products.html
+2. System fetches all available products from API
+3. System displays product grid (responsive layout)
+4. Each product card shows: image, name, price (₦), meta info
+5. Student can scroll/paginate to see more products
+6. Clicking product card → UC11: View Details
+
+Code Location: backend/main.py (lines 372-430) - list_products()
+Frontend: products.html
+
+
+UC9: SEARCH PRODUCTS (Product Browsing)
+────────────────────────────────────────
+Primary Actor: Student (Buyer)
+Precondition: On products page
+Postcondition: Filtered product list displayed
+
+Main Flow:
+1. Student types in search box (e.g., "textbook")
+2. System filters products by name and description
+3. System displays matching products
+4. Search is case-insensitive
+5. Real-time filtering (updates as user types)
+
+Example:
+- Search "book" → Shows all products with "book" in name/description
+- Search "laptop" → Shows all laptops and computer-related products
+
+Code Location: backend/main.py (lines 390-410) - Search logic in list_products()
+Frontend: products.html (JavaScript search implementation)
+
+
+UC10: FILTER PRODUCTS (Product Browsing)
+─────────────────────────────────────────
+Primary Actor: Student (Buyer)
+Precondition: On products page
+Postcondition: Filtered product list displayed
+
+Main Flow:
+1. Student selects filters from sidebar:
+   - Category: Textbooks, Electronics, Clothing, Furniture, Other
+   - Price Range: Min ₦ to Max ₦ (slider ₦0-₦10,000)
+   - Condition: New, Like New, Good, Fair
+2. System applies all selected filters (AND logic)
+3. System updates product grid with matching items
+4. Filters are combinable (e.g., Electronics + Condition: New)
+5. "View All Products" link clears all filters
+
+Example Filter Combinations:
+- Category: Electronics AND Price: ₦0-₦5,000 AND Condition: Like New
+- Category: Clothing AND Condition: Good
+
+Code Location: backend/main.py (lines 412-428) - Filter logic in list_products()
+Frontend: products.html (filter panel)
+
+
+UC11: VIEW PRODUCT DETAILS (Product Browsing)
+──────────────────────────────────────────────
+Primary Actor: Student (Buyer)
+Precondition: Product exists and is available
+Postcondition: Full product details displayed
+
+Main Flow:
+1. Student clicks product card from grid
+2. System loads product details page
+3. System displays:
+   - Product images (gallery with thumbnails)
+   - Product name, price (₦), condition, size, color
+   - Full description
+   - Seller info (name, username, avatar, stats)
+   - Category, location (Baze University)
+   - Save/bookmark button
+4. Student can:
+   - Click images to view in full size
+   - Click seller name to view seller's profile (UC4)
+   - Click bookmark to save (UC14)
+
+Code Location: backend/main.py (lines 432-460) - get_product()
+Frontend: product-detail.html
+
+
+UC12: EDIT LISTING (Product Management - Owner Only)
+──────────────────────────────────────────────────────
+Primary Actor: Student (Seller/Owner)
+Precondition: User owns the product
+Postcondition: Product updated in database
+
+Main Flow:
+1. Owner visits own product page
+2. Owner sees "Edit" button (only if owner)
+3. Owner clicks "Edit"
+4. System loads product form with current data
+5. Owner modifies: name, description, price, condition, images, etc.
+6. Owner clicks "Update"
+7. System validates all fields
+8. System updates product record
+9. System updates product_images if images changed
+10. System redirects to product page
+11. Updated product shows new information
+
+Authorization: Only product seller can edit
+
+Code Location: backend/main.py (lines 462-540) - update_product()
+
+
+UC13: DELETE LISTING (Product Management - Owner Only)
+───────────────────────────────────────────────────────
+Primary Actor: Student (Seller/Owner)
+Precondition: User owns the product
+Postcondition: Product status changed to "deleted" (soft delete)
+
+Main Flow:
+1. Owner visits own product page
+2. Owner sees "Delete" button
+3. Owner clicks "Delete"
+4. System asks for confirmation
+5. System changes product status from "available" to "deleted"
+6. Product no longer appears in marketplace searches
+7. Owner's "My Listings" no longer shows deleted product
+8. Product can be restored later (future feature)
+
+Soft Delete Strategy:
+- Product not permanently removed from database
+- Soft delete preserves history for analytics
+- Can be restored in future feature
+
+Authorization: Only product seller can delete
+
+Code Location: backend/main.py (lines 542-570) - delete_product()
+
+
+UC14: SAVE PRODUCT (Wishlist/Bookmarks)
+────────────────────────────────────────
+Primary Actor: Student (Buyer)
+Precondition: Product exists, user is logged in
+Postcondition: Product saved to user's wishlist
+
+Main Flow:
+1. Student views product details
+2. Student clicks bookmark icon
+3. System checks if user is logged in
+4. If not logged in: Redirect to login
+5. If logged in: Toggle save status
+6. If product not saved: Create saved_item record
+7. If product already saved: Delete saved_item record
+8. Bookmark icon updates (filled vs outlined)
+9. Product appears in user's "Saved Items"
+
+Code Location: backend/main.py (lines 572-610) - toggle_saved_item()
+Frontend: product-detail.html, products.html
+
+
+UC15: VIEW SAVED ITEMS (Wishlist - Owner Only)
+───────────────────────────────────────────────
+Primary Actor: Student (Logged-in User)
+Precondition: User is logged in
+Postcondition: Saved products displayed
+
+Main Flow:
+1. Student clicks "Saved" button (bookmark icon)
+2. System checks authentication
+3. If not logged in: Redirect to login
+4. If logged in: Fetch user's saved items from API
+5. System displays grid of saved products
+6. Each product card shows: image, name, price, bookmark icon
+7. Clicking bookmark removes product
+8. Clicking product card → UC11: View Details
+
+Authorization: Only account owner can view their saved items
+
+Empty State:
+- If no saved items: Display "You have no saved items"
+- Show "Start Browsing" button linking to products page
+
+Code Location: backend/main.py (lines 612-640) - get_saved_items()
+Frontend: saved-items.html, profile.html (Saved tab)
+
+
+UC16: REMOVE BOOKMARK (Wishlist)
+─────────────────────────────────
+Primary Actor: Student (Owner)
+Precondition: Product is in user's saved items
+Postcondition: Product removed from saved items
+
+Main Flow:
+1. Student viewing saved items page
+2. Student clicks bookmark icon on product card
+3. System removes saved_item record from database
+4. Product disappears from grid immediately
+5. Bookmark icon toggles back to outlined
+
+Alternative:
+- Can also remove while viewing product details (UC11)
+
+Code Location: backend/main.py (lines 572-610) - toggle_saved_item() (DELETE)
+
+
+================================================================================
+11.3 DATA FLOW DIAGRAMS (DFD)
+================================================================================
+
+CONTEXT LEVEL (DFD-0) - SYSTEM BOUNDARY:
+═════════════════════════════════════════
+
+This shows UniMarket system as a single bubble with external actors.
+
+                         ┌──────────────────┐
+                         │    STUDENT       │
+                         │   USER/BUYER     │
+                         │                  │
+                         └────────┬─────────┘
+                                  │
+                    ┌─────────────┴─────────────┐
+                    │                           │
+                    ▼                           ▼
+            (Browse Products)        (Create Listings, Edit Profile)
+                    │                           │
+        ┌───────────┴───────────────────────────┴──────────────┐
+        │                                                       │
+        │        ┌─────────────────────────────────────┐       │
+        │        │                                     │       │
+        │        │       UNIMARKET SYSTEM             │       │
+        │        │   (Peer-to-Peer Marketplace)       │       │
+        │        │                                     │       │
+        │        │  • Authentication                   │       │
+        │        │  • Product Management               │       │
+        │        │  • User Profiles                    │       │
+        │        │  • Search & Filter                  │       │
+        │        │  • Wishlist/Bookmarks               │       │
+        │        │                                     │       │
+        │        └──────────────┬──────────────────────┘       │
+        │                       │                              │
+        └───────────────────────┼──────────────────────────────┘
+                                │
+                    ┌───────────┴───────────┐
+                    │                       │
+                    ▼                       ▼
+            (Products, Users,    (Storage for profile
+             Messages, Wishlist)  pictures, product images)
+                    │                       │
+            ┌───────┴────────┐      ┌──────┴──────────┐
+            │                │      │                 │
+            ▼                ▼      ▼                 ▼
+        ┌──────────┐  ┌──────────┐ ┌──────────────────────┐
+        │ DATABASE │  │  EXTERNAL│ │  FILE STORAGE        │
+        │(SQLite/  │  │  EMAIL   │ │  (/uploads/products) │
+        │PostgreSQL)  │VERIFICATION│ │                     │
+        │          │  │(future)   │ └──────────────────────┘
+        └──────────┘  └──────────┘
+
+
+LEVEL 0 (DFD-0) - MAJOR PROCESSES:
+═══════════════════════════════════
+
+                    ┌─────────────────┐
+                    │   STUDENT USER  │
+                    │                 │
+                    └────────┬────────┘
+                             │
+          ┌──────────────────┼──────────────────┐
+          │                  │                  │
+          ▼                  ▼                  ▼
+    (Auth Request)    (Product Data)   (Profile Request)
+          │                  │                  │
+          │                  │                  │
+    ┌─────┴──────┐    ┌──────┴───────┐  ┌──────┴──────┐
+    │             │    │              │  │             │
+    │ 1.0         │    │  2.0         │  │  3.0        │
+    │ AUTHENTICATE    │  PRODUCT       │  │ PROFILE     │
+    │ USER        │    │  MANAGEMENT   │  │ MANAGEMENT  │
+    │             │    │              │  │             │
+    │ •Register   │    │ •Create      │  │ •View       │
+    │ •Login      │    │ •Search      │  │ •Edit       │
+    │ •Logout     │    │ •Filter      │  │ •Upload     │
+    │             │    │ •View        │  │  Avatar     │
+    │             │    │ •Update      │  │             │
+    │             │    │ •Delete      │  │             │
+    └─────┬──────┘    └──────┬───────┘  └──────┬──────┘
+          │                  │                  │
+          │                  ├──────────┬───────┤
+          │                  │          │       │
+          └──────────────────┼──────────┤       │
+                             │          │       │
+                          ┌──┴──────────┴──┐   │
+                          │                │   │
+                          │ 4.0            │   │
+                          │ WISHLIST       │   │
+                          │ MANAGEMENT     │   │
+                          │                │   │
+                          │ •Save Product  │   │
+                          │ •View Saved    │   │
+                          │ •Remove        │   │
+                          │                │   │
+                          └────────────────┘   │
+                                               │
+                          ┌────────────────────┘
+                          │
+                          ▼
+                    ┌──────────────┐
+                    │  DATA STORE  │
+                    │  (Database)  │
+                    │              │
+                    │ D1: Users    │
+                    │ D2: Products │
+                    │ D3: Images   │
+                    │ D4: Saved    │
+                    │ D5: Categories
+                    │              │
+                    └──────────────┘
+
+
+LEVEL 1 (DFD-1) - DETAILED USER AUTHENTICATION:
+════════════════════════════════════════════════
+
+┌────────────────────────────────────────────────────────────────────┐
+│                          REGISTRATION FLOW                         │
+└────────────────────────────────────────────────────────────────────┘
+
+  STUDENT              FRONTEND             BACKEND              DATABASE
+     │                    │                    │                    │
+     │─── Form Data ─────→│                    │                    │
+     │  (Name, Email,     │                    │                    │
+     │   Pass, etc.)      │                    │                    │
+     │                    │                    │                    │
+     │                    │── Validate Form ──→│                    │
+     │                    │  Data              │                    │
+     │                    │                    │                    │
+     │                    │                    │─ Check Email ─────→│
+     │                    │                    │ Domain             │
+     │                    │                    │                    │
+     │                    │                    │←─ Domain Valid ────│
+     │                    │                    │                    │
+     │                    │                    │─ Check Username ──→│
+     │                    │                    │ Uniqueness         │
+     │                    │                    │                    │
+     │                    │                    │←─ Unique OK ───────│
+     │                    │                    │                    │
+     │                    │                    │─ Hash Password ────│
+     │                    │                    │ (bcrypt)           │
+     │                    │                    │                    │
+     │                    │                    │─ Insert User ─────→│
+     │                    │                    │ Record             │
+     │                    │                    │                    │
+     │                    │                    │←─ User Created ────│
+     │                    │                    │                    │
+     │                    │                    │─ Generate JWT ─────│
+     │                    │                    │ Token              │
+     │                    │                    │                    │
+     │                    │←── Token + Data ───│                    │
+     │                    │                    │                    │
+     │←── Success + Token ─│                    │                    │
+     │                    │                    │                    │
+     │─ Store Token ─────→│                    │                    │
+     │  in localStorage   │                    │                    │
+     │                    │                    │                    │
+     │←── Auto-Login ─────│                    │                    │
+     │                    │                    │                    │
+
+
+================================================================================
+11.4 SEQUENCE DIAGRAMS
+================================================================================
+
+SEQUENCE: USER REGISTRATION & AUTO-LOGIN
+═════════════════════════════════════════
+
+User             Frontend          Backend API         Database
+  │                  │                  │                  │
+  │─ Enter Data ────→│                  │                  │
+  │ (signup form)    │                  │                  │
+  │                  │                  │                  │
+  │                  │─ POST /register ─→│                  │
+  │                  │  (validation)     │                  │
+  │                  │                  │                  │
+  │                  │                  │─ Validate Email ─→│
+  │                  │                  │ Domain            │
+  │                  │                  │←─ Domain OK ──────│
+  │                  │                  │                  │
+  │                  │                  │─ Hash Password ──→│
+  │                  │                  │ (bcrypt)          │
+  │                  │                  │                  │
+  │                  │                  │─ Create User ────→│
+  │                  │                  │                  │
+  │                  │                  │←─ User Created ───│
+  │                  │                  │                  │
+  │                  │←─ 201 Created ────│                  │
+  │                  │  + JWT Token      │                  │
+  │                  │  + User Data      │                  │
+  │                  │                  │                  │
+  │←─ Show Success ──│                  │                  │
+  │  (Green Checkmark)                  │                  │
+  │                  │                  │                  │
+  │                  │─ POST /login ────→│                  │
+  │                  │ (Auto-login)      │                  │
+  │                  │                  │                  │
+  │                  │                  │─ Verify Password ─→ (DB check)
+  │                  │                  │                  │
+  │                  │←─ 200 OK ─────────│                  │
+  │                  │  + Token          │                  │
+  │                  │  + User Data      │                  │
+  │                  │                  │                  │
+  │←─ Auto-Login ────│                  │                  │
+  │  Success         │                  │                  │
+  │                  │                  │                  │
+  │ (Redirect to Profile)               │                  │
+  │                  │                  │                  │
+
+
+SEQUENCE: PRODUCT CREATION WITH IMAGE UPLOAD
+═════════════════════════════════════════════
+
+Seller           Frontend          Backend API        File Storage      Database
+  │                  │                  │                  │                │
+  │─ Select Images ─→│                  │                  │                │
+  │ (3-5 images)     │                  │                  │                │
+  │                  │                  │                  │                │
+  │                  │─ POST /upload ───→│                  │                │
+  │                  │  (Image 1)        │                  │                │
+  │                  │                  │                  │                │
+  │                  │                  │─ Save Image ────→│                │
+  │                  │                  │ (UUID filename)   │                │
+  │                  │                  │←─ Saved OK ──────│                │
+  │                  │                  │                  │                │
+  │                  │←─ Image URL ──────│                  │                │
+  │                  │  (for Image 1)    │                  │                │
+  │                  │                  │                  │                │
+  │                  │─ POST /upload ───→│ (Repeat for Image 2, 3, 4, 5)    │
+  │                  │                  │                  │                │
+  │  (User fills product form with all images loaded)      │                │
+  │                  │                  │                  │                │
+  │─ Submit Form ────→│                  │                  │                │
+  │ (name, desc,     │                  │                  │                │
+  │  images URLs)    │                  │                  │                │
+  │                  │                  │                  │                │
+  │                  │─ POST /products ─→│                  │                │
+  │                  │ (product data)    │                  │                │
+  │                  │                  │                  │                │
+  │                  │                  │─ Create Product ─→│                │
+  │                  │                  │ Record            │                │
+  │                  │                  │←─ Product ID ────│                │
+  │                  │                  │                  │                │
+  │                  │                  │─ Create 5 Image ─→│                │
+  │                  │                  │ Records           │                │
+  │                  │                  │                  │                │
+  │                  │                  │←─ Images Created ─│                │
+  │                  │                  │                  │                │
+  │                  │←─ 201 Created ────│                  │                │
+  │                  │  + Product Data   │                  │                │
+  │                  │                  │                  │                │
+  │←─ Success ───────│                  │                  │                │
+  │  Redirect to     │                  │                  │                │
+  │  Profile Page    │                  │                  │                │
+  │                  │                  │                  │                │
+
+
+SEQUENCE: SEARCH & FILTER PRODUCTS
+═══════════════════════════════════
+
+Buyer            Frontend          Backend API        Database
+  │                  │                  │                │
+  │─ Type Search ───→│                  │                │
+  │ (e.g., "book")   │                  │                │
+  │                  │                  │                │
+  │                  │─ GET /products ──→│                │
+  │                  │ ?search=book      │                │
+  │                  │                  │                │
+  │                  │                  │─ Query by Name ─→
+  │                  │                  │ and Description  │
+  │                  │                  │←─ Results ──────│
+  │                  │                  │                │
+  │                  │←─ 200 OK ────────│                │
+  │                  │  Product Array    │                │
+  │                  │                  │                │
+  │←─ Display Grid ──│                  │                │
+  │ (matching books) │                  │                │
+  │                  │                  │                │
+  │─ Select Filters ─→│                  │                │
+  │ (Category,       │                  │                │
+  │  Price Range)    │                  │                │
+  │                  │                  │                │
+  │                  │─ GET /products ──→│                │
+  │                  │ ?search=book&     │                │
+  │                  │ category=1&       │                │
+  │                  │ priceMax=5000     │                │
+  │                  │                  │                │
+  │                  │                  │─ Query with ───→
+  │                  │                  │ Multiple Filters │
+  │                  │                  │←─ Results ──────│
+  │                  │                  │                │
+  │                  │←─ 200 OK ────────│                │
+  │                  │  Filtered Array   │                │
+  │                  │                  │                │
+  │←─ Display Grid ──│                  │                │
+  │ (filtered by     │                  │                │
+  │  category+price) │                  │                │
+  │                  │                  │                │
+
+
+================================================================================
+11.5 ACTIVITY DIAGRAMS & FLOWCHARTS
+================================================================================
+
+ACTIVITY: COMPLETE USER REGISTRATION PROCESS
+═════════════════════════════════════════════
+
+                              ┌─────────┐
+                              │ START   │
+                              └────┬────┘
+                                   │
+                    ┌──────────────┴──────────────┐
+                    │                            │
+                    ▼                            │
+            ┌──────────────────┐               │
+            │ User Clicks      │               │
+            │ "Sign Up"        │               │
+            └────────┬─────────┘               │
+                     │                         │
+                     ▼                         │
+            ┌──────────────────────────┐       │
+            │ Display Signup Form      │       │
+            │ (name, email, password)  │       │
+            └────────┬─────────────────┘       │
+                     │                         │
+                     ▼                         │
+            ┌──────────────────────────┐       │
+            │ User Enters Form Data    │       │
+            └────────┬─────────────────┘       │
+                     │                         │
+                     ▼                         │
+            ┌──────────────────────────┐       │
+            │ User Clicks "Sign Up"    │       │
+            └────────┬─────────────────┘       │
+                     │                         │
+                     ▼                         │
+            ◇──────────────────────────◇       │
+            │ Validate Email Domain    │       │
+            │ (must be @bazeuniversity)        │
+            ◇────────┬───────────────◇         │
+                  NO │                         │
+                     │                         │
+                     ▼                         │
+            ┌──────────────────────────┐       │
+            │ Show Error:              │       │
+            │ "Email must be @baze..." │       │
+            └────────┬─────────────────┘───┐   │
+                     │                     │   │
+                     │  Go back to form    │   │
+                     └─────────────────────┘   │
+                                               │
+            [Back in form]                     │
+            ┌──────────────────────────┐       │
+            │ YES - Domain Valid       │       │
+            └────────┬─────────────────┘       │
+                     │                         │
+                     ▼                         │
+            ◇──────────────────────────◇       │
+            │ Validate Password        │       │
+            │ (6+ chars, 1 upper,      │       │
+            │  1 number)               │       │
+            ◇────────┬───────────────◇         │
+                  NO │                         │
+                     │                         │
+                     ▼                         │
+            ┌──────────────────────────┐       │
+            │ Show Error:              │       │
+            │ "Password must have..."  │       │
+            └────────┬─────────────────┘───────┘
+                     │
+                     │ Go back to form
+                     │
+            [Correct Password]
+            ┌──────────────────────────┐
+            │ YES - Password Valid     │
+            └────────┬─────────────────┘
+                     │
+                     ▼
+            ◇──────────────────────────◇
+            │ Check Username/Email    │
+            │ Uniqueness in Database  │
+            ◇────────┬───────────────◇
+                  NO │
+                     │
+                     ▼
+            ┌──────────────────────────┐
+            │ Show Error:              │
+            │ "Email/Username taken"   │
+            └────────┬─────────────────┘───┐
+                     │                     │
+                     │  Go back to form    │
+                     └─────────────────────┘
+
+            [Unique Username/Email]
+            ┌──────────────────────────┐
+            │ YES - Unique OK          │
+            └────────┬─────────────────┘
+                     │
+                     ▼
+            ┌──────────────────────────┐
+            │ Hash Password with       │
+            │ bcrypt                   │
+            └────────┬─────────────────┘
+                     │
+                     ▼
+            ┌──────────────────────────┐
+            │ Create User Record in    │
+            │ Database                 │
+            └────────┬─────────────────┘
+                     │
+                     ▼
+            ┌──────────────────────────┐
+            │ Generate JWT Token       │
+            │ (expires 7 days)         │
+            └────────┬─────────────────┘
+                     │
+                     ▼
+            ┌──────────────────────────┐
+            │ Return Token + User Data │
+            │ to Frontend              │
+            └────────┬─────────────────┘
+                     │
+                     ▼
+            ┌──────────────────────────┐
+            │ Show Success Checkmark   │
+            │ (Green)                  │
+            └────────┬─────────────────┘
+                     │
+                     ▼
+            ┌──────────────────────────┐
+            │ Store Token in           │
+            │ localStorage             │
+            └────────┬─────────────────┘
+                     │
+                     ▼
+            ┌──────────────────────────┐
+            │ Auto-Login (Trigger      │
+            │ POST /login)             │
+            └────────┬─────────────────┘
+                     │
+                     ▼
+            ┌──────────────────────────┐
+            │ Redirect to Profile Page │
+            └────────┬─────────────────┘
+                     │
+                     ▼
+                  ◇─────◇
+                  │ END │
+                  ◇─────◇
+
+
+ACTIVITY: CREATE PRODUCT LISTING
+═════════════════════════════════
+
+                              ┌─────────┐
+                              │ START   │
+                              └────┬────┘
+                                   │
+                    ┌──────────────┴──────────────┐
+                    │                            │
+                    ▼                            │
+            ┌──────────────────┐               │
+            │ User Clicks      │               │
+            │ "New Listing"    │               │
+            └────────┬─────────┘               │
+                     │                         │
+                     ▼                         │
+            ┌──────────────────────────┐       │
+            │ Display Product Form     │       │
+            └────────┬─────────────────┘       │
+                     │                         │
+                     ▼                         │
+            ┌──────────────────────────┐       │
+            │ User Selects Product     │       │
+            │ Category                 │       │
+            └────────┬─────────────────┘       │
+                     │                         │
+                     ▼                         │
+            ┌──────────────────────────┐       │
+            │ User Enters:             │       │
+            │ - Name                   │       │
+            │ - Description            │       │
+            │ - Price                  │       │
+            │ - Condition              │       │
+            │ - Size (optional)        │       │
+            │ - Color (optional)       │       │
+            └────────┬─────────────────┘       │
+                     │                         │
+                     ▼                         │
+            ┌──────────────────────────┐       │
+            │ User Clicks Image        │       │
+            │ Upload Area              │       │
+            └────────┬─────────────────┘       │
+                     │                         │
+                     ▼                         │
+            ┌──────────────────────────┐       │
+            │ File Picker Opens        │       │
+            │ (Image files only)       │       │
+            └────────┬─────────────────┘       │
+                     │                         │
+                     ▼                         │
+            ┌──────────────────────────┐       │
+            │ User Selects 3-5 Images │       │
+            └────────┬─────────────────┘       │
+                     │                         │
+                     ▼                         │
+            ┌──────────────────────────┐       │
+            │ System Shows Preview     │       │
+            │ for Each Image           │       │
+            └────────┬─────────────────┘       │
+                     │                         │
+                     ▼                         │
+            ◇──────────────────────────◇       │
+            │ Count Images             │       │
+            │ (must be 3-5)            │       │
+            ◇───────┬─────────────◇           │
+                   │                         │
+         ┌─────────┴─────────┐              │
+         │                   │              │
+    <3 Images           >5 Images            │
+         │                   │              │
+         ▼                   ▼              │
+    Red X Error       Red X Error           │
+    "Need 3+"         "Max 5 only"          │
+         │                   │              │
+         └─────────┬─────────┘              │
+                   │                        │
+            Go back to select more/fewer    │
+            images                          │
+                   │                        │
+    [Exactly 3-5 images]                   │
+            ┌──────────────────────────┐   │
+            │ Green Checkmark          │   │
+            │ "Ready to sell!"         │   │
+            └────────┬─────────────────┘   │
+                     │                     │
+                     ▼                     │
+            ┌──────────────────────────┐   │
+            │ User Clicks "Create"     │   │
+            └────────┬─────────────────┘   │
+                     │                     │
+                     ▼                     │
+            ┌──────────────────────────┐   │
+            │ Show Loading Spinner     │   │
+            │ "Uploading images..."    │   │
+            └────────┬─────────────────┘   │
+                     │                     │
+            [Upload each image]             │
+            ┌──────────────────────────┐   │
+            │ For each of 3-5 images: │   │
+            │ POST /api/upload         │   │
+            └────────┬─────────────────┘   │
+                     │                     │
+            [All images uploaded]           │
+            ┌──────────────────────────┐   │
+            │ POST /api/products       │   │
+            │ (with all image URLs)    │   │
+            └────────┬─────────────────┘   │
+                     │                     │
+            ◇──────────────────────────◇   │
+            │ Validate Product Data    │   │
+            ◇────────┬───────────────◇     │
+                  NO │                     │
+                     │                     │
+                     ▼                     │
+            ┌──────────────────────────┐   │
+            │ Show Error Message       │   │
+            └────────┬─────────────────┼───┘
+                     │                 │
+                     │  Go back to form│
+                     └─────────────────┘
+
+            [Validation OK]
+            ┌──────────────────────────┐
+            │ YES - Data Valid         │
+            └────────┬─────────────────┘
+                     │
+                     ▼
+            ┌──────────────────────────┐
+            │ Create Product Record    │
+            │ in Database              │
+            └────────┬─────────────────┘
+                     │
+                     ▼
+            ┌──────────────────────────┐
+            │ Create 3-5 Image Records │
+            │ in Database              │
+            └────────┬─────────────────┘
+                     │
+                     ▼
+            ┌──────────────────────────┐
+            │ Show Success Checkmark   │
+            │ (Green)                  │
+            └────────┬─────────────────┘
+                     │
+                     ▼
+            ┌──────────────────────────┐
+            │ Redirect to Profile      │
+            │ "My Listings" Tab        │
+            └────────┬─────────────────┘
+                     │
+                     ▼
+            ┌──────────────────────────┐
+            │ Show New Product in      │
+            │ Marketplace (Products    │
+            │ Page)                    │
+            └────────┬─────────────────┘
+                     │
+                     ▼
+                  ◇─────◇
+                  │ END │
+                  ◇─────◇
+
+
+================================================================================
+11.6 CLASS DIAGRAM (DATABASE OBJECT RELATIONSHIPS)
+================================================================================
+
+Shows how Java/Python classes relate to database tables:
+
+┌─────────────────────────────────────────────────────────────────────┐
+│                    UNIMARKET CLASS STRUCTURE                        │
+└─────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────┐
+│   University         │
+├──────────────────────┤
+│ - id: Integer (PK)   │
+│ - name: String       │
+│ - domain: String     │
+│                      │
+│ Methods:             │
+│ + getUsers()         │
+│ + addUser(User)      │
+└────────┬─────────────┘
+         │
+         │ ONE-to-MANY
+         │ (1 university has many users)
+         │
+         ▼
+┌────────────────────────────────────┐
+│   User                             │
+├────────────────────────────────────┤
+│ - id: Integer (PK)                 │
+│ - fullName: String                 │
+│ - username: String (UNIQUE)        │
+│ - email: String (UNIQUE)           │
+│ - passwordHash: String             │
+│ - bio: String (nullable)           │
+│ - profileImage: String (nullable)  │
+│ - phone: String (nullable)         │
+│ - createdAt: DateTime              │
+│ - universityId: Integer (FK)       │
+│                                    │
+│ Relationships:                     │
+│ - university: University (FK)      │
+│ - products: List<Product>          │
+│ - savedItems: List<SavedItem>      │
+│                                    │
+│ Methods:                           │
+│ + register(name, email, pass)      │
+│ + login(email, pass): JWT Token    │
+│ + updateProfile(data)              │
+│ + uploadAvatar(image)              │
+│ + getProfile(): UserData           │
+│ + getListings(): List<Product>     │
+│ + getSavedItems(): List<Product>   │
+└──┬───────────────────────────────┬─┘
+   │                               │
+   │ ONE-to-MANY                   │ ONE-to-MANY
+   │ (seller)                       │ (saver)
+   │                               │
+   ▼                               ▼
+┌──────────────────────┐      ┌──────────────────────┐
+│   Product            │      │   SavedItem          │
+├──────────────────────┤      ├──────────────────────┤
+│ - id: Integer (PK)   │      │ - id: Integer (PK)   │
+│ - name: String       │      │ - userId: Int (FK)   │
+│ - description: Text  │      │ - productId: Int(FK) │
+│ - price: Float       │      │ - createdAt: DateTime│
+│ - categoryId: Int(FK)│      │                      │
+│ - sellerId: Int (FK) │      │ Relationships:       │
+│ - location: String   │      │ - user: User (FK)    │
+│ - condition: String  │      │ - product: Product   │
+│ - size: String       │      │   (FK)               │
+│ - color: String      │      │                      │
+│ - status: String     │      │ Methods:             │
+│ - createdAt: DateTime│      │ + save()             │
+│ - updatedAt: DateTime│      │ + remove()           │
+│                      │      │ + isSavedBy(): bool  │
+│ Relationships:       │      └──────────────────────┘
+│ - category: Category │
+│   (FK)               │
+│ - seller: User (FK)  │
+│ - images: List<PI>   │
+│ - savedBy: List<SI>  │
+│                      │
+│ Methods:             │
+│ + create(data)       │
+│ + update(data)       │
+│ + delete() [soft]    │
+│ + getDetails()       │
+│ + getImages()        │
+│ + getSellers()       │
+│ + search(query)      │
+│ + filter(criteria)   │
+└──┬───────────────────┘
+   │
+   │ ONE-to-MANY
+   │ (product has many images)
+   │
+   ▼
+┌──────────────────────┐
+│  ProductImage        │
+├──────────────────────┤
+│ - id: Integer (PK)   │
+│ - productId: Int(FK) │
+│ - imageUrl: String   │
+│ - isPrimary: Boolean │
+│ - createdAt: DateTime│
+│                      │
+│ Relationships:       │
+│ - product: Product   │
+│   (FK)               │
+│                      │
+│ Methods:             │
+│ + upload(file)       │
+│ + delete()           │
+│ + getUrl(): String   │
+└──────────────────────┘
+
+         ▲
+         │
+    ONE-to-MANY
+    (product belongs to category)
+         │
+┌────────┴──────────────┐
+│   Category             │
+├───────────────────────┤
+│ - id: Integer (PK)    │
+│ - name: String        │
+│   (UNIQUE)            │
+│                       │
+│ Relationships:        │
+│ - products:           │
+│   List<Product>       │
+│                       │
+│ Methods:              │
+│ + getProducts()       │
+│ + addProduct()        │
+└───────────────────────┘
+
+
+================================================================================
 CONCLUSION
 ================================================================================
 
