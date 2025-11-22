@@ -413,6 +413,25 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     
+    // Read category from URL if present
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlCategory = urlParams.get('category');
+    
+    if (urlCategory) {
+        currentFilters.category = urlCategory;
+        
+        // Update the category dropdown to show selected category
+        const categorySelect = document.querySelector('#category-select');
+        const mobileCategorySelect = document.querySelector('#mobile-category-select');
+        
+        if (categorySelect) {
+            categorySelect.value = urlCategory;
+        }
+        if (mobileCategorySelect) {
+            mobileCategorySelect.value = urlCategory;
+        }
+    }
+    
     // Fetch products
     fetchProducts();
 });
