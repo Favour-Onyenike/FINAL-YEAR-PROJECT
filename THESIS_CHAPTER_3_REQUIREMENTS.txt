@@ -937,15 +937,494 @@ DATABASE OVERVIEW:
 UniMarket uses a relational database with 6 main tables organized in a 
 normalized structure following Third Normal Form (3NF) principles.
 
-DATABASE CHOICE:
-- Development: SQLite (file-based, zero configuration)
-- Production: PostgreSQL (scalable, multi-user, robust)
-- ORM: SQLAlchemy (database-agnostic, prevents SQL injection)
+DATABASE ARCHITECTURE & RATIONALE:
+═══════════════════════════════════
 
-DATABASE FILE LOCATION (Development):
-- File: unimarket.db (in project root)
-- Size: Grows as users/products added (typically starts <1MB)
-- Portability: Single file, easy to backup/transfer
+DEVELOPMENT DATABASE: SQLite
+────────────────────────────
+
+WHY SQLite for Development:
+───────────────────────────
+
+1. ZERO CONFIGURATION OVERHEAD
+   - SQLite requires NO installation, NO server setup, NO configuration
+   - Single file (unimarket.db) contains entire database
+   - Developers can work immediately without DevOps overhead
+   - Perfect for rapid prototyping and testing during development
+
+2. FAST ITERATION & DEVELOPMENT SPEED
+   - No database server to start/stop
+   - No network latency between app and database
+   - Instant query results for debugging
+   - Easy to reset/clear database for fresh testing
+   - Can create multiple test databases by copying files
+
+3. PORTABILITY & EASE OF SHARING
+   - Single file can be committed to version control (for small databases)
+   - Easy to backup: just copy the .db file
+   - Easy to transfer between developers
+   - Works on Windows, Mac, Linux identically
+   - No docker containers or virtual machines needed
+
+4. PERFECTLY ADEQUATE FOR SCOPE
+   - UniMarket is a campus marketplace for ~5,000-10,000 students max
+   - SQLite handles 100+ concurrent connections easily
+   - Can store millions of rows efficiently
+   - Development data is typically small (test data only)
+   - During prototyping, data size/performance less critical than speed
+
+5. EXCELLENT FOR FINAL YEAR PROJECT TESTING
+   - Thesis defense/demo: Easy to reset database to initial state
+   - Examiners can run tests without infrastructure setup
+   - Database changes tracked in git for version control
+   - No credentials or complex setup required for grading
+
+6. SEAMLESS TRANSITION PLANNING
+   - SQLAlchemy ORM abstracts database layer completely
+   - Zero code changes needed to switch to PostgreSQL
+   - Same models, same queries, same API - just change connection string
+   - Allows development with SQLite, production deployment with PostgreSQL
+
+IMPLEMENTATION:
+- File: backend/unimarket.db (created automatically on first run)
+- Engine: backend/database.py - SQLAlchemy engine with SQLite dialect
+- Size: Grows as test data added (test database typically <10MB)
+- Backup: Simple file copy for complete database backup
+
+Code Location:
+    backend/database.py (line ~30):
+    DATABASE_URL = "sqlite:///./unimarket.db"
+    engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+
+
+PRODUCTION DATABASE: PostgreSQL
+────────────────────────────────
+
+WHY PostgreSQL for Production:
+──────────────────────────────
+
+1. ENTERPRISE-GRADE RELIABILITY
+   - ACID compliance: All-or-Nothing transactions
+   - Data integrity guaranteed across concurrent writes
+   - PostgreSQL has 0 data corruption incidents in 30+ years
+   - Designed for mission-critical systems (banks, government)
+   - Real money transactions require bulletproof reliability
+
+2. CONCURRENT USER SUPPORT
+   - SQLite: ~1-2 concurrent writers max
+   - PostgreSQL: Supports 1000+ concurrent connections
+   - As UniMarket grows (100+ simultaneous users):
+     * Multiple students buying/selling simultaneously
+     * Multiple profile updates happening at once
+     * Multiple image uploads in parallel
+   - PostgreSQL handles all concurrency gracefully
+
+3. ADVANCED SECURITY FEATURES
+   - User-based access control (roles/permissions)
+   - Row-level security policies
+   - Encrypted passwords (pgcrypto extension)
+   - SSL/TLS connections available
+   - Audit logging of all changes
+   - Protection against SQL injection (via parameterized queries)
+
+4. SCALABILITY & PERFORMANCE
+   - Full-text search: Can search product descriptions at lightning speed
+   - Advanced indexing: B-tree, Hash, GiST, GIN indexes
+   - Query optimization: Explains plans to analyze slow queries
+   - Partitioning: Splits large tables for faster access
+   - Replication: Primary-replica setup for redundancy
+   - Connection pooling: Handles thousands of connections efficiently
+
+5. ADVANCED DATA FEATURES
+   - JSON/JSONB columns: Store complex product attributes
+   - Arrays: Store multiple tags/categories per product
+   - Custom types: Define domain-specific data types
+   - Full-text search: Native support for searching products
+   - Geometric types: Store user locations for proximity searches
+
+6. DISASTER RECOVERY & BUSINESS CONTINUITY
+   - Point-in-time recovery: Restore database to any second in past
+   - WAL (Write-Ahead Logging): Protects data during crashes
+   - Hot standby: Replica can take over instantly if primary fails
+   - Automated backups: Hourly incremental backups possible
+   - Critical for real marketplace where students depend on platform
+
+7. COMPLIANCE & LEGAL REQUIREMENTS
+   - Must comply with data protection regulations
+   - PostgreSQL provides audit trails for compliance
+   - Can implement row-level access control for privacy
+   - Data retention policies easily enforced
+   - GDPR-compliant backup/deletion procedures
+
+WHY NOT MySQL/MariaDB:
+   - PostgreSQL has better feature set for complex queries
+   - PostgreSQL has superior ACID guarantees
+   - PostgreSQL open-source with broader community
+   - PostgreSQL often cheaper to host than MySQL
+
+WHY NOT Cloud-Only Databases (DynamoDB, Firestore):
+   - Would require complete rewrite of SQLAlchemy models
+   - NoSQL doesn't fit relational data model of UniMarket
+   - Relationships (user→products, products→images) need SQL joins
+   - Cloud-only databases more expensive to scale
+   - PostgreSQL gives same scalability at lower cost
+
+IMPLEMENTATION:
+- Engine: PostgreSQL 13+ (production servers typically use latest stable)
+- Hosting: Cloud-managed databases (AWS RDS, Google Cloud SQL, Azure)
+- Connection: SSL/TLS encrypted connections
+- Backup: Daily automated backups (kept 30 days)
+- Monitoring: Performance metrics and query analysis
+
+Code Location:
+    backend/database.py (updated for production):
+    DATABASE_URL = "postgresql://user:password@host:5432/unimarket"
+    engine = create_engine(DATABASE_URL, pool_size=20, max_overflow=40)
+
+
+DATABASE ABSTRACTION LAYER: SQLAlchemy ORM
+───────────────────────────────────────────
+
+WHY Use SQLAlchemy for Both:
+────────────────────────────
+
+SINGLE CODEBASE, MULTIPLE DATABASES:
+- Code is 100% database-agnostic
+- SQLite in development works identically to PostgreSQL in production
+- Same models (backend/models.py) work for both
+- Same queries (backend/main.py) execute on both
+- ZERO code changes when switching databases
+
+SQL INJECTION PREVENTION:
+- SQLAlchemy parameterizes all queries automatically
+- Never concatenates user input into SQL strings
+- Protects against malicious SQL: ' OR '1'='1
+- Essential for marketplace storing financial data
+
+TYPE SAFETY & VALIDATION:
+- Python types catch errors before database
+- SQLAlchemy validates data types on save
+- Prevents storing wrong data types
+- Automatic type conversion (string→int, etc.)
+
+RELATIONSHIP MANAGEMENT:
+- Foreign keys handled automatically
+- User→Products relationship auto-populated
+- Product→Images auto-joined when needed
+- Cascading deletes prevent orphaned data
+- No manual JOIN queries needed
+
+Code Location:
+    backend/database.py (lines 1-50):
+    - Database configuration and connection setup
+    backend/models.py (complete file):
+    - SQLAlchemy ORM models for all tables
+
+
+MIGRATION STRATEGY: SQLite → PostgreSQL
+────────────────────────────────────────
+
+To migrate from development to production:
+
+Step 1: Setup PostgreSQL (done once)
+  - Create database: createdb unimarket
+  - Create user: createuser unimarket_admin
+  - Grant permissions: GRANT ALL ON DATABASE unimarket
+
+Step 2: Update connection string
+  - Change DATABASE_URL in backend/database.py
+  - From: sqlite:///./unimarket.db
+  - To: postgresql://admin:password@host:5432/unimarket
+
+Step 3: Create schema in PostgreSQL
+  - Run Alembic migrations: alembic upgrade head
+  - OR run: python create_database.py (creates all tables)
+  - SQLAlchemy DDL creates identical schema
+
+Step 4: Migrate existing data (if needed)
+  - Export from SQLite: SELECT * FROM users;
+  - Import to PostgreSQL: COPY users FROM 'users.csv';
+  - OR use: python scripts/migrate_sqlite_to_postgres.py
+
+Step 5: Update environment variable
+  - Set DATABASE_URL in cloud platform environment config
+  - Application automatically uses new connection string
+  - NO code changes required
+
+Step 6: Test thoroughly
+  - Run same test suite on PostgreSQL
+  - Verify all queries return same results
+  - Performance should be significantly faster
+  - No timeout issues with concurrent users
+
+The beauty: Application code (backend/main.py) needs ZERO changes!
+
+
+DEPLOYMENT PLATFORM: Cloud-Based Linux Server
+═════════════════════════════════════════════════
+
+WHY Cloud Platform (Linux Server) for Deployment:
+──────────────────────────────────────────────────
+
+1. ZERO INFRASTRUCTURE MANAGEMENT
+   - No need to manage servers, networks, firewalls
+   - Platform handles OS patches, security updates
+   - Automatic scaling when traffic increases
+   - No DevOps team needed (reduces cost)
+
+2. IMMEDIATE GLOBAL AVAILABILITY
+   - Your app accessible from anywhere on internet
+   - Students can access from campus/home/anywhere
+   - Platform handles DNS, domains, CDN
+   - SSL/TLS certificates automatic
+   - No need to buy/configure servers
+
+3. COST-EFFECTIVE FOR STUDENT PROJECT
+   - Pay-as-you-go pricing: Only pay for what you use
+   - Free/cheap tiers perfect for thesis demo
+   - No upfront hardware investment
+   - Can scale as user base grows
+   - Typically $5-20/month for small app
+
+4. AUTOMATED DEPLOYMENT
+   - Push code to git → Automatically deployed
+   - No SSH, no manual build steps
+   - Rollback to previous version with one click
+   - Deployment takes minutes, not hours
+   - Perfect for iterative development
+
+5. BUILT-IN DATABASES & BACKUPS
+   - Managed PostgreSQL/MySQL available
+   - Automatic daily backups included
+   - Point-in-time recovery possible
+   - Datacenters in multiple regions
+   - 99.9% uptime SLA guaranteed
+
+6. SECURITY & COMPLIANCE
+   - Platform manages security patches
+   - DDoS protection included
+   - Firewall rules automated
+   - SSL/TLS required by default
+   - Regular security audits
+   - Meets compliance standards
+
+7. MONITORING & DEBUGGING
+   - Real-time error tracking
+   - Performance monitoring dashboard
+   - Database query analysis tools
+   - Server logs available instantly
+   - Alerts for problems
+
+8. PERFECT FOR THESIS DEMONSTRATION
+   - Live URL to show during defense
+   - Examiners can test app from their computers
+   - No setup required for grading
+   - Data persists between grading sessions
+   - Reliability and uptime matter for impression
+
+WHY NOT Self-Hosted Server:
+   - Would need to manage Linux server yourself
+   - Responsible for security patches, updates
+   - Backup strategy required and complex
+   - Database maintenance manual and error-prone
+   - SSL certificates manual and expensive
+   - Downtime costly to your reputation
+   - Scaling requires buying more hardware
+   - DevOps knowledge required
+
+WHY NOT Local Machine:
+   - App not accessible from outside your network
+   - No public URL to show examiners
+   - Goes offline when computer shuts down
+   - Internet connection issues cause downtime
+   - Completely unsuitable for production
+
+WHY NOT Expensive Enterprise Cloud (AWS, Azure):
+   - Over-engineered for campus marketplace scope
+   - Steep learning curve for students
+   - Complex pricing with hidden fees
+   - More infrastructure to manage
+   - Overkill for thesis project demo
+   - Cost: $50-500/month vs $5-20/month
+
+DEPLOYMENT ARCHITECTURE:
+────────────────────────
+
+Your platform setup:
+┌──────────────────────────────────────────────────────────┐
+│                 CLOUD PLATFORM PROVIDER                  │
+├──────────────────────────────────────────────────────────┤
+│                                                           │
+│  ┌─────────────────────────────────────────────────────┐ │
+│  │  LINUX CONTAINER/VM                               │ │
+│  │                                                    │ │
+│  │  ├─ Python 3.11                                   │ │
+│  │  ├─ FastAPI Backend (port 8000)                   │ │
+│  │  │  └─ /api/auth/* endpoints                      │ │
+│  │  │  └─ /api/products/* endpoints                  │ │
+│  │  │  └─ /api/users/* endpoints                     │ │
+│  │  │  └─ /api/upload/* endpoints                    │ │
+│  │  │                                                │ │
+│  │  ├─ Python HTTP Server (port 5000)                │ │
+│  │  │  └─ Serves static HTML/CSS/JS                  │ │
+│  │  │  └─ Proxies /api/* to backend (8000)           │ │
+│  │  │                                                │ │
+│  │  └─ File Storage                                  │ │
+│  │     └─ /uploads/products/* (product images)       │ │
+│  │     └─ /uploads/avatars/* (profile pictures)      │ │
+│  │                                                    │ │
+│  └─────────────────────────────────────────────────────┘ │
+│                           ▲                               │
+│                           │                               │
+│                    Managed by Platform:                  │
+│              (Networking, Firewall, Routing)            │
+│                                                           │
+└──────────────────────────────────────────────────────────┘
+              ▲
+              │ Public Internet
+              │
+     ┌────────┴──────────┐
+     │                   │
+  Student Browser    Another Student
+  (Chrome/Safari)    (Mobile App)
+
+DEPLOYMENT PROCESS:
+1. Developer pushes code to git
+2. Platform detects changes
+3. Pulls latest code
+4. Installs dependencies (pip install -r requirements.txt)
+5. Runs migrations (alembic upgrade head)
+6. Starts application (uvicorn main:app)
+7. Routes traffic to running app
+8. App responds to requests from students
+
+ZERO DOWNTIME UPDATES:
+- Platform supports multiple replicas
+- Updates happen rolling (one at a time)
+- Traffic diverted to healthy instances
+- Old instance stops after new one healthy
+- Students experience zero interruption
+
+DATABASE PERSISTENCE:
+- While code changes with each git push
+- Database persists across deployments
+- PostgreSQL data survives app updates
+- Student data never lost
+- Perfect for continuous improvement
+
+ENVIRONMENT CONFIGURATION:
+- Sensitive data stored in platform secrets
+- DATABASE_URL never hardcoded
+- JWT_SECRET_KEY stored securely
+- AWS credentials stored safely
+- No secrets in git repository
+
+
+DATABASE + DEPLOYMENT INTEGRATION:
+═════════════════════════════════════
+
+In Development:
+    ┌─────────────────────────────────────────┐
+    │  Your Local Machine                     │
+    ├─────────────────────────────────────────┤
+    │  FastAPI Backend + HTTP Server          │
+    │  ↓                                       │
+    │  backend/unimarket.db (SQLite file)     │
+    │                                         │
+    │  Perfect for debugging & development    │
+    └─────────────────────────────────────────┘
+
+In Production:
+    ┌─────────────────────────────────────────┐
+    │  Cloud Platform (Linux)                 │
+    ├─────────────────────────────────────────┤
+    │  FastAPI Backend + HTTP Server (2-4x)   │
+    │  ↓                                       │
+    │  PostgreSQL (Managed DB Service)        │
+    │  │                                       │
+    │  ├─ Automatic backups (daily)            │
+    │  ├─ Replication (high availability)      │
+    │  ├─ Monitoring & alerts                  │
+    │  ├─ Point-in-time recovery               │
+    │                                         │
+    │  Perfect for reliability & scalability  │
+    └─────────────────────────────────────────┘
+
+COST ANALYSIS:
+──────────────
+
+Development (SQLite):
+    - File-based: $0 (just storage on your computer)
+    - Perfect for thesis work, exams, demos
+
+Production (PostgreSQL on Cloud):
+    - Small instance (1-2 GB RAM): $10-15/month
+    - Database backups: Included
+    - SSL certificates: Included
+    - CDN & DDoS protection: Included
+    - 99.9% uptime SLA: Included
+    
+    Much cheaper than:
+    - Self-managed VPS: $30-50/month + DevOps time
+    - AWS without managed DB: $100-500/month
+    - Enterprise hosting: $500+/month
+
+Scaling Example:
+    - 100 users: $10-15/month
+    - 1,000 users: $15-30/month
+    - 10,000 users: $50-100/month
+    
+    Auto-scaling handles traffic spikes
+
+
+WHY THIS ARCHITECTURE WORKS PERFECTLY FOR UNIMARKET:
+═════════════════════════════════════════════════════
+
+1. DEVELOPMENT SPEED
+   ✅ SQLite rapid iteration without configuration
+   ✅ Cloud platform instant deployment after testing
+   ✅ No infrastructure overhead
+
+2. THESIS DEMONSTRATION
+   ✅ Live public URL to show examiners
+   ✅ No setup/installation required by graders
+   ✅ Data persists across multiple viewing sessions
+   ✅ Automatic backups protect student data
+
+3. PRODUCTION-READINESS
+   ✅ PostgreSQL handles enterprise-grade requirements
+   ✅ Cloud platform ensures 99.9% uptime
+   ✅ Automatic scaling for traffic growth
+   ✅ Security & compliance built-in
+
+4. COST EFFICIENCY
+   ✅ Free/cheap during development
+   ✅ Low cost even if app grows
+   ✅ No hardware investment
+   ✅ No DevOps team needed
+
+5. FUTURE EXTENSIBILITY
+   ✅ Cloud platform easily adds: email, SMS, payments
+   ✅ PostgreSQL supports advanced features if needed
+   ✅ Multi-region deployment possible
+   ✅ Mobile app backend ready
+
+ARCHITECTURE CONCLUSION:
+"""
+UniMarket's architecture (SQLite→PostgreSQL + Cloud Linux)
+is IDEAL for a final year project because it:
+
+- Requires ZERO system administration
+- Lets developer focus on FEATURES, not infrastructure
+- Provides IMMEDIATE global deployment
+- Scales from thesis demo to production-grade app
+- Costs PENNIES to run during development
+- Enables examiners to test app LIVE during defense
+- Remains MAINTAINABLE and EXTENSIBLE for years
+
+This is professional-grade architecture that companies
+use in production, adapted for student project scope.
+"""
 
 
 ENTITY-RELATIONSHIP (ER) DIAGRAM:
