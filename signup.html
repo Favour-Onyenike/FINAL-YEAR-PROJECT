@@ -46,6 +46,7 @@
                             <i data-lucide="eye" style="width: 1.2rem; height: 1.2rem;"></i>
                         </button>
                     </div>
+                    <p style="font-size: 0.75rem; color: var(--muted); margin-top: 0.5rem;">Must contain: 6+ characters, 1 uppercase letter, 1 number</p>
                 </div>
 
                 <div class="form-group">
@@ -122,9 +123,17 @@
             emailError.classList.add('hidden');
             emailInput.style.borderColor = 'var(--input)';
 
-            // Validate password length
-            if (password.length < 6) {
-                alert('Password must be at least 6 characters long');
+            // Validate password requirements
+            const hasCapital = /[A-Z]/.test(password);
+            const hasNumber = /[0-9]/.test(password);
+            const hasMinLength = password.length >= 6;
+            
+            if (!hasMinLength || !hasCapital || !hasNumber) {
+                let errorMsg = 'Password must contain:\n';
+                if (!hasMinLength) errorMsg += '• At least 6 characters\n';
+                if (!hasCapital) errorMsg += '• At least one capital letter (A-Z)\n';
+                if (!hasNumber) errorMsg += '• At least one number (0-9)';
+                alert(errorMsg);
                 return;
             }
 

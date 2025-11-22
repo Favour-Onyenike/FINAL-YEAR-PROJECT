@@ -61,6 +61,9 @@ UniMarket employs a client-server architecture with a clear separation between t
 4. **Working Account Creation**: 
    - Signup and login forms now connected to real backend API
    - Users can create accounts with full name, email (@bazeuniversity.edu.ng), and password
+   - **Password Requirements**: Minimum 6 characters, 1 uppercase letter, 1 number
+   - Confirm password field with validation
+   - Eye icon toggle to show/hide passwords
    - Accounts are saved to SQLite database
    - JWT tokens issued and stored for authenticated sessions
    - Users can log in and access profile page
