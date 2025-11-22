@@ -135,7 +135,7 @@
                         <span>Loading...</span>
                     </div>
                 </div>
-                <a href="messages.html" class="btn btn-outline" style="margin-left: auto;">Contact</a>
+                <a href="#" id="contact-seller-btn" class="btn btn-outline" style="margin-left: auto;">Contact</a>
             </div>
 
             <div class="detail-description">
@@ -490,6 +490,12 @@
                 const viewProfileBtn = document.getElementById('view-profile-btn');
                 if (viewProfileBtn) {
                     viewProfileBtn.href = `profile.html?userId=${sellerId}`;
+                }
+                
+                // Set up Contact Seller button to go to messages with seller ID
+                const contactBtn = document.getElementById('contact-seller-btn');
+                if (contactBtn) {
+                    contactBtn.href = `messages.html?userId=${sellerId}`;
                 }
                 
                 // Update page title
