@@ -65,13 +65,15 @@
         const emailInput = document.getElementById('email-input');
         const emailError = document.getElementById('email-error');
 
-        form.addEventListener('submit', (e) => {
+        form.addEventListener('submit', async (e) => {
             e.preventDefault();
 
+            const fullName = form.querySelector('input[type="text"]').value;
             const email = emailInput.value.toLowerCase();
+            const password = form.querySelector('input[type="password"]').value;
 
-            // Check if university is Baze (or default) and validate email
-            if (university.includes('Baze') && !email.endsWith('@bazeuniversity.edu.ng')) {
+            // Validate email domain
+            if (!email.endsWith('@bazeuniversity.edu.ng')) {
                 emailError.classList.remove('hidden');
                 emailInput.style.borderColor = 'var(--destructive)';
                 return;
@@ -81,22 +83,77 @@
             emailError.classList.add('hidden');
             emailInput.style.borderColor = 'var(--input)';
 
-            // Simulate API call / Success
+            // Validate password length
+            if (password.length < 6) {
+                alert('Password must be at least 6 characters long');
+                return;
+            }
+
+            // Disable button and show loading state
             const btn = form.querySelector('button');
             const originalText = btn.textContent;
             btn.textContent = 'Creating account...';
             btn.disabled = true;
 
-            setTimeout(() => {
-                // Save mock user to localStorage
-                localStorage.setItem('user', JSON.stringify({
-                    name: form.querySelector('input[type="text"]').value,
-                    email: email,
-                    university: university
-                }));
+            try {
+                // Call real backend API
+                const response = await fetch('http://127.0.0.1:8000/api/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        fullName: fullName,
+                        username: email.split('@')[0], // Use part of email as username
+                        email: email,
+                        password: password,
+                        universityId: 1  // Baze University ID
+                    })
+                });
 
-                window.location.href = 'profile.html';
-            }, 1500);
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Registration successful
+                    alert('✅ Account created successfully! Logging in...');
+                    
+                    // Auto-login after registration
+                    const loginResponse = await fetch('http://127.0.0.1:8000/api/auth/login', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            email: email,
+                            password: password
+                        })
+                    });
+
+                    if (loginResponse.ok) {
+                        const loginData = await loginResponse.json();
+                        // Store JWT token and user info
+                        localStorage.setItem('token', loginData.access_token);
+                        localStorage.setItem('user', JSON.stringify({
+                            id: loginData.user.id,
+                            name: loginData.user.fullName,
+                            username: loginData.user.username,
+                            email: loginData.user.email
+                        }));
+                        
+                        window.location.href = 'profile.html';
+                    }
+                } else {
+                    // Registration failed
+                    alert(`❌ Error: ${data.detail || 'Failed to create account'}`);
+                    btn.textContent = originalText;
+                    btn.disabled = false;
+                }
+            } catch (error) {
+                console.error('Registration error:', error);
+                alert('❌ Connection error. Please try again.');
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }
         });
     </script>
 </body>

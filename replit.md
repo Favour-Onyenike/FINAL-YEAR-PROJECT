@@ -58,6 +58,13 @@ UniMarket employs a client-server architecture with a clear separation between t
 1. **Like Feature Removal**: All heart icons removed from homepage, products, profile, and saved-items pages
 2. **Image Validation**: Enforced 3-5 image minimum/maximum per product listing with live feedback
 3. **UI Cleanup**: All references to likes removed for a simpler, focused interface
+4. **Working Account Creation**: 
+   - Signup and login forms now connected to real backend API
+   - Users can create accounts with full name, email (@bazeuniversity.edu.ng), and password
+   - Accounts are saved to SQLite database
+   - JWT tokens issued and stored for authenticated sessions
+   - Users can log in and access profile page
+   - Auto-login after signup for seamless experience
 
 ## External Dependencies
 - **FastAPI**: Python web framework for building the backend API.
