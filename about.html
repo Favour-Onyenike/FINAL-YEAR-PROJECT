@@ -16,7 +16,24 @@
             <a href="index.html" class="logo">UniMarket</a>
 
             <nav class="nav-links">
-                <a href="products.html" class="nav-link">Shop</a>
+                <!-- Shop Dropdown -->
+                <div class="nav-dropdown">
+                    <button class="nav-link nav-dropdown-trigger">
+                        Shop
+                        <i data-lucide="chevron-down" class="dropdown-icon"></i>
+                    </button>
+                    <div class="dropdown-menu">
+                        <a href="products.html" class="dropdown-item">All Products</a>
+                        <div class="dropdown-separator"></div>
+                        <span class="dropdown-label">Categories</span>
+                        <a href="products.html?category=Clothing" class="dropdown-item">Clothing</a>
+                        <a href="products.html?category=Furniture" class="dropdown-item">Furniture</a>
+                        <a href="products.html?category=Books" class="dropdown-item">Books</a>
+                        <a href="products.html?category=Electronics" class="dropdown-item">Electronics</a>
+                        <a href="products.html?category=Other" class="dropdown-item">Other</a>
+                    </div>
+                </div>
+
                 <a href="about.html" class="nav-link">About</a>
             </nav>
 
@@ -197,6 +214,7 @@
     <script>
         lucide.createIcons();
     </script>
+    <script src="js/app.js"></script>
 </body>
 
 </html>
