@@ -489,13 +489,18 @@
                 // Set up View Profile button
                 const viewProfileBtn = document.getElementById('view-profile-btn');
                 if (viewProfileBtn) {
-                    viewProfileBtn.href = `profile.html?userId=${sellerId}`;
+                    viewProfileBtn.href = `/profile.html?userId=${sellerId}`;
                 }
                 
                 // Set up Contact Seller button to go to messages with seller ID
                 const contactBtn = document.getElementById('contact-seller-btn');
                 if (contactBtn) {
-                    contactBtn.href = `messages.html?userId=${sellerId}`;
+                    contactBtn.href = `/messages.html?userId=${sellerId}`;
+                    // Also add click handler to ensure navigation
+                    contactBtn.onclick = (e) => {
+                        e.preventDefault();
+                        window.location.href = `/messages.html?userId=${sellerId}`;
+                    };
                 }
                 
                 // Update page title
