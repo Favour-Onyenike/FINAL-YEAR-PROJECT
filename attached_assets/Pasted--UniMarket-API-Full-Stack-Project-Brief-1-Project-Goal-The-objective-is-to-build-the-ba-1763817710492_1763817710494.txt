@@ -1,0 +1,275 @@
+# UniMarket API - Full Stack Project Brief
+
+## 1. Project Goal
+
+The objective is to build the backend API for **UniMarket**, a peer-to-peer marketplace for university students. This document outlines the required API endpoints that will power a separate frontend application. It describes what the frontend needs to do and specifies the backend functionality required to support it.
+
+---
+
+## 2. Core Technology Stack
+
+-   **Language**: **Python** (version 3.8+).
+-   **API Framework**: **FastAPI** is the required framework due to its performance, automatic API documentation (Swagger UI), and data validation with Pydantic.
+-   **Database**: **MySQL**. The API must connect to and interact with a MySQL database.
+-   **Authentication**: **JSON Web Tokens (JWT)** must be used for stateless user authentication. The token should be sent in the `Authorization: Bearer <token>` header for all protected requests.
+
+---
+
+## 3. Core Frontend Functionality & Required API Endpoints
+
+This section details the required user flows from the frontend and the corresponding API endpoints the backend must provide to enable them. All endpoints must be prefixed with `/api`.
+
+### 3.1. User Account Management & Authentication
+
+#### **Frontend Flow: Registration**
+1.  A new user first visits a "Select University" page.
+2.  They choose their university. If they select "Baze University," they are taken to the signup form. Any other selection leads to a "Coming Soon" page.
+3.  On the signup form (`signup.html`), the user enters their full name, email, and password.
+4.  The frontend must validate that for Baze University, the email address ends with `@bazeuniversity.edu.ng`.
+5.  Upon submission, the frontend sends this data to the backend to create the account.
+
+#### **Backend Endpoint: `POST /api/auth/register`**
+*   **Purpose**: Create a new user account.
+*   **Request Body**:
+    ```json
+    {
+      "fullName": "Jane Doe",
+      "username": "janedoe",
+      "email": "jane@bazeuniversity.edu.ng",
+      "password": "a-strong-password",
+      "universityId": 1
+    }
+    ```
+*   **Backend Logic**:
+    1.  Validate that the `username` and `email` do not already exist in the `Users` table. Return a 409 Conflict error if they do.
+    2.  **Critical**: If `universityId` corresponds to Baze University, the `email` **must** end with `@bazeuniversity.edu.ng`. Reject the request with a 400 Bad Request error if this rule is violated.
+    3.  Hash the `password` using `bcrypt` before storing it. **Never store plain text passwords.**
+    4.  Create the new user record in the `Users` table.
+*   **Success Response (201 Created)**:
+    ```json
+    {
+      "message": "User registered successfully."
+    }
+    ```
+
+---
+
+#### **Frontend Flow: Login**
+1.  An existing user goes to the `login.html` page.
+2.  They enter their email and password.
+3.  The frontend sends these credentials to the backend for verification.
+4.  Upon successful login, the frontend receives a JWT and user data, stores them securely, and redirects to the user's profile page.
+
+#### **Backend Endpoint: `POST /api/auth/login`**
+*   **Purpose**: Authenticate a user and provide a JWT.
+*   **Request Body**:
+    ```json
+    {
+      "email": "jane@bazeuniversity.edu.ng",
+      "password": "a-strong-password"
+    }
+    ```
+*   **Backend Logic**:
+    1.  Find the user by their email address. If not found, return a 401 Unauthorized error.
+    2.  Verify the provided password against the hashed password in the database. If it doesn't match, return a 401 Unauthorized error.
+    3.  If successful, generate a JWT containing the `userId` in its payload.
+*   **Success Response (200 OK)**:
+    ```json
+    {
+      "token": "your.jwt.here",
+      "user": {
+        "id": 1,
+        "fullName": "Jane Doe",
+        "email": "jane@bazeuniversity.edu.ng",
+        "username": "janedoe"
+      }
+    }
+    ```
+
+---
+
+#### **Frontend Flow: Viewing Profile**
+1.  A logged-in user can navigate to their profile page.
+2.  To get the most up-to-date profile information, the frontend makes a request to the backend using the stored JWT.
+
+#### **Backend Endpoint: `GET /api/auth/me`**
+*   **Purpose**: Get the profile of the currently authenticated user.
+*   **Authentication**: Required (must provide a valid JWT).
+*   **Backend Logic**:
+    1.  Decode the JWT to get the `userId`.
+    2.  Fetch and return that user's profile data from the `Users` table (excluding the password).
+*   **Success Response (200 OK)**: The full user object (e.g., id, fullName, email, username, bio, etc.).
+
+---
+
+### 3.2. Product & Listing Management
+
+#### **Frontend Flow: Browsing and Searching**
+1.  Users can view all products on the `products.html` page. The page may have filters for search query, category, price, condition, etc.
+2.  The frontend makes a request to the backend to get a list of products, passing any active filters as query parameters.
+3.  The frontend displays the returned list of products in a grid.
+
+#### **Backend Endpoint: `GET /api/products`**
+*   **Purpose**: Get a list of all `available` products with filtering, sorting, and pagination.
+*   **Query Parameters**:
+    *   `q` (string): Search term for product name/description.
+    *   `category` (string): Filter by category name (e.g., "Clothing").
+    *   `minPrice` / `maxPrice` (number): Filter by price range.
+    *   `condition` (string): Filter by condition (e.g., "New", "Used").
+    *   `sortBy` (string): Sort order. Options: `newest`, `price-asc`, `price-desc`.
+    *   `page` (number, default: 1) / `limit` (number, default: 20): For pagination.
+*   **Backend Logic**:
+    1.  Build a dynamic SQL query based on the provided query parameters to filter, sort, and paginate products.
+    2.  Only return products with a status of `available`.
+    3.  Join with `ProductImages` to include a list of image URLs for each product.
+    4.  Join with `Users` to include basic seller information (e.g., seller name).
+*   **Success Response (200 OK)**:
+    ```json
+    {
+      "page": 1,
+      "limit": 20,
+      "totalPages": 5,
+      "totalResults": 95,
+      "products": [
+        { "...productObject1..." },
+        { "...productObject2..." }
+      ]
+    }
+    ```
+
+---
+
+#### **Frontend Flow: Viewing a Single Product**
+1.  A user clicks on a product card from any page.
+2.  The frontend navigates to `product-detail.html` with the product's ID in the URL.
+3.  The frontend uses the ID to request the full details for that specific product from the backend.
+
+#### **Backend Endpoint: `GET /api/products/{productId}`**
+*   **Purpose**: Get details for a single product.
+*   **Backend Logic**:
+    1.  Fetch the product by its ID. If not found, return a 404 Not Found error.
+    2.  The response should include all product details, full seller information (excluding sensitive data), and a list of all associated image URLs.
+*   **Success Response (200 OK)**: A single, complete product object.
+
+---
+
+#### **Frontend Flow: Creating a New Listing**
+1.  A logged-in user navigates to the `sell.html` page.
+2.  They fill out a form with the product's name, description, price, category, etc.
+3.  They upload images for the product.
+4.  Upon submission, the frontend sends all this data to the backend.
+
+#### **Backend Endpoint: `POST /api/products`**
+*   **Purpose**: Create a new product listing.
+*   **Authentication**: Required.
+*   **Request Body**:
+    ```json
+    {
+      "name": "Barely Used Psychology Textbook",
+      "description": "Latest edition, no highlighting.",
+      "price": 5000,
+      "categoryId": 2,
+      "location": "Main Library",
+      "images": ["/uploads/image1.jpg", "/uploads/image2.jpg"],
+      "condition": "Like New",
+      "size": null,
+      "color": null
+    }
+    ```
+*   **Backend Logic**:
+    1.  Get `seller_id` from the authenticated user's JWT.
+    2.  Validate that the `images` array contains between 1 and 5 URLs.
+    3.  Create the record in the `Products` table and associated records in `ProductImages`.
+*   **Success Response (201 Created)**: The newly created product object.
+
+---
+
+#### **Frontend Flow: Editing a Listing**
+1.  A user on their own product's detail page clicks the "Edit Listing" button.
+2.  The frontend takes them to a form pre-filled with the product's current data.
+3.  After making changes, they submit the form.
+
+#### **Backend Endpoint: `PUT /api/products/{productId}`**
+*   **Purpose**: Update an existing product.
+*   **Authentication**: Required.
+*   **Backend Logic**:
+    1.  Get the `userId` from the JWT.
+    2.  Fetch the product by `{productId}` and verify that the `userId` matches the product's `seller_id`. If not, return a 403 Forbidden error.
+    3.  Update the record in the `Products` table. Handle image updates by adding/removing records from `ProductImages`.
+*   **Success Response (200 OK)**: The updated product object.
+
+---
+
+#### **Frontend Flow: Deleting a Listing**
+1.  A user on their own product's detail page clicks the "Delete" button.
+2.  The frontend asks for confirmation and then sends a delete request to the backend.
+
+#### **Backend Endpoint: `DELETE /api/products/{productId}`**
+*   **Purpose**: Delete a product.
+*   **Authentication**: Required.
+*   **Backend Logic**:
+    1.  Get the `userId` from the JWT.
+    2.  Verify that the authenticated user is the owner of the product. If not, return 403 Forbidden.
+    3.  **Soft delete** the product by changing its `status` to `deleted`. Do not permanently remove the record from the database.
+*   **Success Response (204 No Content)** or **(200 OK)** with a confirmation message.
+
+---
+
+### 3.3. Saved Items (Wishlist)
+
+#### **Frontend Flow: Saving/Unsaving an Item**
+1.  A user clicks the "Bookmark" icon on a product card or product detail page.
+2.  The frontend sends a request to the backend to either save or unsave the item for the current user.
+3.  The frontend updates the bookmark icon's appearance based on the response.
+
+#### **Backend Endpoint: `POST /api/saved-items`**
+*   **Purpose**: Add or remove an item from the user's saved list (toggle action).
+*   **Authentication**: Required.
+*   **Request Body**: `{"productId": 123}`
+*   **Backend Logic**:
+    1.  Get `userId` from the JWT.
+    2.  Check if a record exists in `SavedItems` for the current user and `productId`.
+    3.  If it exists, delete the record (unsave).
+    4.  If it does not exist, insert a new record (save).
+*   **Success Response (200 OK)**:
+    ```json
+    { "isSaved": true } // or false, indicating the new state
+    ```
+
+---
+
+#### **Frontend Flow: Viewing Saved Items**
+1.  A user navigates to their `saved-items.html` page or the "Saved Items" tab on their profile.
+2.  The frontend requests the list of all products saved by the current user from the backend.
+
+#### **Backend Endpoint: `GET /api/saved-items`**
+*   **Purpose**: Get all items saved by the current user.
+*   **Authentication**: Required.
+*   **Backend Logic**:
+    1.  Get `userId` from the JWT.
+    2.  Query the `SavedItems` table for all `product_id`s associated with that `userId`.
+    3.  Return the full product details for each `product_id` found.
+*   **Success Response (200 OK)**: An array of full product objects.
+
+---
+
+### 3.4. Image Uploads
+
+#### **Frontend Flow: Uploading Images**
+1.  When a user creates or edits a listing, they select image files from their device.
+2.  The frontend must upload each selected file to the backend *before* submitting the main product creation/edit form.
+3.  For each successful upload, the backend returns a URL for the image. The frontend collects these URLs to include in the `images` array when it finally submits the product form.
+
+#### **Backend Endpoint: `POST /api/upload`**
+*   **Purpose**: Handle single or multiple image file uploads.
+*   **Request**: `multipart/form-data` containing the image file(s).
+*   **Backend Logic**:
+    1.  Process the uploaded file(s).
+    2.  Generate a unique filename to prevent conflicts.
+    3.  Save the file to a public server directory (e.g., `/public/uploads/products`).
+    4.  Return the public URL of the saved image.
+*   **Success Response (200 OK)**:
+    ```json
+    { "imageUrl": "/uploads/products/unique-filename.jpg" }
+    ```
+    (If multiple files are uploaded, this could be an array of objects).
