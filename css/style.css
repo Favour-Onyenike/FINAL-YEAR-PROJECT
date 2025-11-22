@@ -256,7 +256,8 @@ textarea {
 }
 
 /* Navbar Icons - Messages, Saved Items, Profile */
-#logged-in-actions .nav-icon {
+#logged-in-actions .nav-icon,
+.user-actions .nav-icon {
     padding: 0 !important;
     width: 20px !important;
     height: 20px !important;
@@ -266,7 +267,8 @@ textarea {
     justify-content: center !important;
 }
 
-#logged-in-actions .nav-icon i[data-lucide] {
+#logged-in-actions .nav-icon i[data-lucide],
+.user-actions .nav-icon i[data-lucide] {
     width: 18px !important;
     height: 18px !important;
     flex-shrink: 0;
