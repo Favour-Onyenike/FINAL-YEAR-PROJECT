@@ -497,9 +497,14 @@ document.addEventListener('DOMContentLoaded', () => {
  * redirect to products.html with search query parameter
  */
 function initializeGlobalSearch() {
-    const searchBars = document.querySelectorAll('.search-bar input');
+    const searchBars = document.querySelectorAll('.search-bar');
     
-    searchBars.forEach(searchInput => {
+    searchBars.forEach(searchBar => {
+        const searchInput = searchBar.querySelector('input');
+        const searchIcon = searchBar.querySelector('.search-icon');
+        
+        if (!searchInput) return;
+        
         // Handle Enter key in search input
         searchInput.addEventListener('keypress', (event) => {
             if (event.key === 'Enter') {
@@ -508,15 +513,43 @@ function initializeGlobalSearch() {
             }
         });
         
-        // Handle search icon click (look for parent search bar)
-        const searchBar = searchInput.closest('.search-bar');
-        if (searchBar) {
-            const searchIcon = searchBar.querySelector('.search-icon');
-            if (searchIcon) {
-                searchIcon.addEventListener('click', () => {
+        // Handle search icon click - toggle expand on mobile, search on desktop
+        if (searchIcon) {
+            searchIcon.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Check if we're on mobile
+                const isMobile = window.innerWidth < 768;
+                
+                if (isMobile) {
+                    // Toggle expand on mobile
+                    if (!searchBar.classList.contains('expanded')) {
+                        // Expand
+                        searchBar.classList.add('expanded');
+                        searchInput.focus();
+                    } else {
+                        // Collapse and search if there's text
+                        if (searchInput.value.trim()) {
+                            performSearch(searchInput.value);
+                        } else {
+                            searchBar.classList.remove('expanded');
+                        }
+                    }
+                } else {
+                    // On desktop, perform search immediately
                     performSearch(searchInput.value);
-                });
-            }
+                }
+            });
+        }
+        
+        // Close search bar when clicking outside (mobile only)
+        if (window.innerWidth < 768) {
+            document.addEventListener('click', (e) => {
+                if (!searchBar.contains(e.target)) {
+                    searchBar.classList.remove('expanded');
+                }
+            });
         }
     });
 }
