@@ -230,8 +230,8 @@ NEXT STEP: User redirected to products.html (shop page) after login
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
 
-            const email = emailInput.value.toLowerCase();
-            const password = form.querySelector('input[type="password"]').value;
+            const email = emailInput.value.toLowerCase().trim();
+            const password = form.querySelector('input[type="password"]').value.trim();
 
             // Validate email domain
             if (!email.endsWith('@bazeuniversity.edu.ng')) {
