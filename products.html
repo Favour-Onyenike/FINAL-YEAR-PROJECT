@@ -80,11 +80,11 @@
                 <div class="filter-group">
                     <select class="input" id="category-select">
                         <option value="all">All Categories</option>
-                        <option value="textbooks">Textbooks</option>
-                        <option value="electronics">Electronics</option>
-                        <option value="clothing">Clothing</option>
-                        <option value="furniture">Furniture</option>
-                        <option value="other">Other</option>
+                        <option value="Textbooks">Textbooks</option>
+                        <option value="Electronics">Electronics</option>
+                        <option value="Clothing">Clothing</option>
+                        <option value="Furniture">Furniture</option>
+                        <option value="Other">Other</option>
                     </select>
                 </div>
             </div>
@@ -110,16 +110,16 @@
                         <input type="radio" name="condition" value="all" checked> Any
                     </label>
                     <label class="checkbox-label">
-                        <input type="radio" name="condition" value="new"> New
+                        <input type="radio" name="condition" value="New"> New
                     </label>
                     <label class="checkbox-label">
-                        <input type="radio" name="condition" value="like-new"> Like New
+                        <input type="radio" name="condition" value="Like New"> Like New
                     </label>
                     <label class="checkbox-label">
-                        <input type="radio" name="condition" value="good"> Good
+                        <input type="radio" name="condition" value="Good"> Good
                     </label>
                     <label class="checkbox-label">
-                        <input type="radio" name="condition" value="fair"> Fair
+                        <input type="radio" name="condition" value="Fair"> Fair
                     </label>
                 </div>
             </div>
@@ -168,10 +168,10 @@
                 </div>
                 <div class="flex items-center gap-2">
                     <span style="font-size: 0.9rem; color: var(--muted);">Sort by:</span>
-                    <select class="input" style="width: auto;">
-                        <option>Newest</option>
-                        <option>Price: Low to High</option>
-                        <option>Price: High to Low</option>
+                    <select class="input" style="width: auto;" id="sort-select">
+                        <option value="newest">Newest</option>
+                        <option value="price-asc">Price: Low to High</option>
+                        <option value="price-desc">Price: High to Low</option>
                     </select>
                 </div>
             </div>
@@ -446,6 +446,7 @@
             }
         }
     </script>
+    <script src="js/products.js"></script>
 </body>
 
 </html>
