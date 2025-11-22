@@ -1,4 +1,55 @@
 <!DOCTYPE html>
+<!--
+================================================================================
+UNIMARKET - SIGNUP PAGE (signup.html)
+================================================================================
+PURPOSE: Allow new students to create UniMarket accounts
+AUTHENTICATION: Validates registration with university domain (@bazeuniversity.edu.ng)
+
+FORM FIELDS:
+1. Full Name (text, 2-255 chars) - User's real name
+2. Email (email, must end with @bazeuniversity.edu.ng) - University email
+3. Username (text, 3-100 chars, unique) - Login username
+4. Password (password, 6+ chars) - User password
+   Requirements: 6+ chars, 1 uppercase, 1 number
+5. Confirm Password (password) - Password verification
+6. Password visibility toggle (eye icons) - Show/hide password
+
+API ENDPOINT: backend/main.py (lines 116-188) POST /api/auth/register
+RESPONSE: 201 Created + JWT token + user data
+
+JAVASCRIPT LOGIC (find in this file):
+- Password strength validation: Regex /^(?=.*[A-Z])(?=.*\d).{6,}$/
+- Form submission: Sends to /api/auth/register
+- Status indicator: Shows loading spinner, success checkmark, or error X
+- On success: Auto-login and redirect to profile.html
+- On error: Display error message for 3 seconds
+
+USER FEEDBACK:
+- Green spinner during submission
+- Success checkmark (green) - redirects to profile
+- Error X (red) - auto-dismisses after 3 seconds
+
+LOCAL STORAGE (on success):
+- Stores JWT token: localStorage.setItem('token', token)
+- Stores user data: localStorage.setItem('user', userJSON)
+- Redirects to profile.html
+
+SECURITY:
+- Password strength required before submission (frontend)
+- Backend validates email domain (only @bazeuniversity.edu.ng)
+- Backend checks username/email uniqueness
+- Password hashed with bcrypt on backend
+
+ERROR HANDLING:
+- Username already exists → 409 Conflict
+- Email already exists → 409 Conflict
+- Email domain invalid → 400 Bad Request
+- Network error → Displays error message
+
+NEXT STEP: User redirected to profile.html after successful signup
+================================================================================
+-->
 <html lang="en">
 
 <head>

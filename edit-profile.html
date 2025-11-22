@@ -1,4 +1,111 @@
 <!DOCTYPE html>
+<!--
+================================================================================
+UNIMARKET - EDIT PROFILE PAGE (edit-profile.html)
+================================================================================
+PURPOSE: Allow users to update their profile information
+AUTHENTICATION: Requires logged-in user (owner only - access control)
+FEATURES:
+- Upload/change profile picture
+- Edit full name
+- Edit biography
+- View current profile data
+- Cannot edit username (immutable)
+
+FORM FIELDS:
+1. Avatar/Profile Picture:
+   - Click camera icon to upload image
+   - Instant preview before saving
+   - No default image (users must upload)
+   - Placeholder icon shows until image uploaded
+   - File types: JPEG, PNG, GIF, WebP, etc.
+   
+2. Full Name (text, 2-255 chars):
+   - Current name pre-filled from localStorage
+   - Can be changed
+   
+3. Username (text, DISABLED):
+   - Cannot be changed (shown for reference)
+   - Set during signup, immutable
+   
+4. Bio (textarea, optional, max 1000 chars):
+   - Current bio pre-filled
+   - Can be empty ("No bio yet")
+   - Optional field
+
+API ENDPOINTS:
+1. GET /api/users/{id} (get current user data)
+   - Pre-fills form on page load
+   - Shows current avatar URL
+   
+2. POST /api/upload (upload profile picture)
+   - File sent as multipart/form-data
+   - Returns: {imageUrl: "/uploads/products/uuid.jpg"}
+   - Auto-uploads when user selects image
+   
+3. PUT /api/users/{id} (update profile)
+   - Sends: {fullName, bio, avatarUrl}
+   - Returns: Updated user object
+
+JAVASCRIPT LOGIC (find in this file):
+- loadUserData(): Load current user info on page load
+- Avatar upload: File picker and preview
+- Image validation: Must be image file type
+- Form submission: Validate and submit updates
+- Show loading spinner during submission
+- On success: Show confirmation, redirect to profile.html
+- On error: Display error message
+
+IMAGE UPLOAD PROCESS:
+1. User clicks avatar area or camera icon
+2. File picker opens (image files only)
+3. User selects image
+4. Instant preview shown
+5. Image automatically uploads to /api/upload
+6. Upload returns image URL
+7. URL stored in variable for form submission
+
+PROFILE UPDATE PROCESS:
+1. User edits full name and/or bio
+2. Optionally selected new profile picture
+3. Clicks "Save Changes"
+4. Frontend validates form
+5. Sends PUT request to /api/users/{id}
+6. Includes: fullName, bio, avatarUrl (if changed)
+7. Backend validates user ownership
+8. Backend updates database
+9. Returns updated user object
+10. Frontend redirects to profile.html
+
+VALIDATION RULES:
+- Full Name: 2-255 characters (required)
+- Bio: Max 1000 characters (optional)
+- Image: Must be image file (JPEG, PNG, GIF, WebP, SVG, etc.)
+- Username: Cannot be changed (disabled input)
+
+SECURITY:
+- Requires JWT token (redirected to login if not present)
+- Backend validates user ownership (can only edit own profile)
+- Backend validates all input data
+- Images stored in backend/uploads/products/
+
+RESPONSIVE DESIGN:
+- Mobile: Full width form, single column
+- Tablet: Wider form with centered layout
+- Desktop: Centered form with max-width
+
+ERROR HANDLING:
+- Network error: Display error message
+- Invalid file type: "Please select an image file"
+- Form validation error: Show specific field error
+- Permission error: 403 Forbidden (server-side protection)
+
+NEXT STEP:
+- Click "Save Changes": Redirect to profile.html
+- Click "Cancel": Go back to previous page
+- Profile page shows updated info immediately
+================================================================================
+-->
 <html lang="en">
 
 <head>

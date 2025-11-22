@@ -1,4 +1,56 @@
 <!DOCTYPE html>
+<!--
+================================================================================
+UNIMARKET - HOMEPAGE (index.html)
+================================================================================
+PURPOSE: Landing page showcasing UniMarket platform to visitors
+FEATURES:
+- Hero section with call-to-action
+- Platform statistics (users, transactions, happiness rate)
+- Top selling products carousel
+- Category showcase
+- Navigation bar with authentication state
+
+AUTHENTICATION STATE:
+- Logged out: Shows "Log In" and "Sign Up" buttons
+- Logged in: Shows icon buttons (notifications, messages, saved, profile)
+- State managed by js/app.js (updateNavbarAuthState function)
+
+KEY SECTIONS:
+1. Header/Navigation (lines 16-58)
+   - Logo and branding
+   - Navigation links (Shop dropdown, About)
+   - Search bar
+   - User action buttons (responsive to auth state)
+   
+2. Hero Section (lines 65-90)
+   - Main headline and subtitle
+   - Call-to-action button
+   - Platform statistics
+   
+3. Top Selling Section (lines 92-150+)
+   - Product grid showcase
+   - Sample products (replace with dynamic data in future)
+   
+4. Footer (bottom of page)
+   - Links, branding, payment methods
+
+JAVASCRIPT DEPENDENCIES:
+- js/app.js: Handles navbar state, mobile menu, animations
+- lucide@latest: Icon library for UI icons
+
+HOW TO MODIFY:
+- Change hero text: Find .hero-title and .hero-subtitle
+- Change products shown: Modify product cards in top-selling section
+- Change categories: Find category showcase section
+- Change colors: Edit css/style.css (uses CSS variables)
+
+LINKS:
+- Products page: products.html (Shop button)
+- Signup: signup-select-university.html
+- Login: login.html
+================================================================================
+-->
 <html lang="en">
 
 <head>

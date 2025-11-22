@@ -1,4 +1,92 @@
 <!DOCTYPE html>
+<!--
+================================================================================
+UNIMARKET - PRODUCTS/SHOP PAGE (products.html)
+================================================================================
+PURPOSE: Browse, search, and filter products from all sellers
+FEATURES:
+- Product grid with images and basic info
+- Search by product name/description
+- Filter by category, price range, condition
+- Responsive design (mobile, tablet, desktop)
+- Loading indicator while fetching products
+
+MAIN SECTIONS:
+1. Header/Navigation (responsive navbar)
+2. Filters Sidebar (left side):
+   - Category filter (dropdown)
+   - Price range slider (₦0-₦10,000)
+   - Condition filter (New, Like New, Good, Fair)
+3. Products Grid (main content):
+   - Product cards with image, name, price, meta info
+   - Bookmark button (wishlist)
+   - Click card to view product details
+4. Mobile: Filters hidden by default (toggle button)
+
+API ENDPOINT: backend/main.py (lines 372-430) GET /api/products
+QUERY PARAMETERS:
+- search (string): Search product names/descriptions
+- category (string): Filter by category
+- priceMin (integer): Minimum price
+- priceMax (integer): Maximum price
+- condition (string): Filter by condition
+- skip (integer): Pagination offset (default 0)
+- limit (integer): Items per page (default 20)
+
+RESPONSE: Array of product objects with:
+- id, name, description, price
+- images (with URLs)
+- seller (with name, username, profile picture)
+- category
+- condition, size, color
+- created_at, updated_at
+
+JAVASCRIPT LOGIC (find in this file):
+- Fetch products from API on page load
+- Apply filters: category, price range, condition
+- Search products: Real-time filtering
+- Build product grid: Dynamic HTML generation
+- Load indicator: Shows spinner while loading
+- Pagination: Skip/limit for lazy loading
+- Bookmark toggle: Save/unsave products (requires authentication)
+
+FILTERING LOGIC:
+1. Category filter: dropdown with categories
+2. Price range: Slider with min/max values
+3. Condition: Checkbox filter
+4. Search: Text input with real-time filtering
+5. All filters combinable (AND logic)
+
+PRODUCT CARDS SHOW:
+- Primary image (first image from product)
+- Product name
+- Price in Nigerian Naira (₦)
+- Meta info (comments count, location)
+- Bookmark button (save to wishlist)
+
+RESPONSIVE DESIGN:
+- Mobile: 1 column (full width)
+- Tablet: 2 columns
+- Desktop: 4 columns
+- Filters toggle on mobile (hidden by default)
+
+SECURITY:
+- Bookmark requires authenticated user (JWT token)
+- If not logged in: Redirect to login on bookmark click
+- Comments feature placeholder (future)
+
+EMPTY STATE:
+- "No products found" message if no results
+- "View All Products" link to clear filters
+
+NEXT STEPS FROM HERE:
+- Click product → product-detail.html
+- Click Bookmark → Adds to saved items (requires login)
+- Change filter → Re-fetch products from API
+- Type in search → Real-time filtering
+- New Listing → Redirect to sell.html (requires login)
+================================================================================
+-->
 <html lang="en">
 
 <head>

@@ -1,0 +1,1256 @@
+================================================================================
+UNIMARKET - PEER-TO-PEER CAMPUS MARKETPLACE
+THESIS CHAPTER 3: SYSTEM REQUIREMENTS, METHODOLOGY & IMPLEMENTATION
+================================================================================
+
+STUDENT PROJECT: Final Year Thesis
+UNIVERSITY: Baze University
+TECHNOLOGY: Python (FastAPI) + JavaScript (HTML5/CSS3)
+DATABASE: SQLite (Development) / PostgreSQL (Production-ready)
+DEPLOYMENT: Replit Cloud Platform
+
+================================================================================
+1. PROJECT OVERVIEW & BUSINESS CONTEXT
+================================================================================
+
+PROJECT VISION:
+UniMarket is an exclusive peer-to-peer campus marketplace designed specifically
+for Baze University students to buy, sell, and trade goods safely within their
+university community. The platform creates a secure, moderated space where only
+authenticated university students (verified by @bazeuniversity.edu.ng email)
+can participate in commerce.
+
+BUSINESS REQUIREMENTS (BR):
+BR1 - University-Gated Access
+      Location: backend/main.py (lines 163-170) - Email domain validation
+      Location: backend/auth.py - University domain enforcement
+      Requirement: Only users with @bazeuniversity.edu.ng email can register
+      Implementation: Checks email domain against university domain in database
+
+BR2 - Local Currency (Nigerian Naira - ₦)
+      Location: css/style.css - Currency display formatting
+      Location: All product pages show prices in ₦ (Unicode character)
+      Requirement: All prices displayed and stored in Nigerian Naira
+      Implementation: Frontend displays ₦ symbol; backend stores numeric values
+
+BR3 - Peer-to-Peer Trust System
+      Location: backend/models.py - User, Product, SavedItem tables
+      Requirement: Enable users to browse seller profiles, ratings (future)
+      Implementation: Profile system with user information display
+
+BR4 - Safe Commerce Environment
+      Location: backend/auth.py - Password security (bcrypt)
+      Location: backend/main.py - JWT authentication
+      Requirement: Secure authentication prevents unauthorized access
+      Implementation: bcrypt hashing + JWT tokens (7-day expiry)
+
+================================================================================
+2. FUNCTIONAL REQUIREMENTS (FR)
+================================================================================
+
+AUTHENTICATION & USER MANAGEMENT
+================================
+
+FR1 - User Registration
+      REQUIREMENT: New users create account with university email and password
+      LOCATION: backend/main.py (lines 116-188) - /api/auth/register endpoint
+      LOCATION: frontend/signup.html, signup.html
+      PARAMETERS:
+      - fullName (string, 2-255 chars): User's real name
+      - username (string, 3-100 chars, unique): Login username
+      - email (string, must match @bazeuniversity.edu.ng domain): Email
+      - password (string, 6-72 chars): User password
+      - universityId (integer): University ID (only Baze = 1)
+      
+      VALIDATION RULES:
+      1. Username must not already exist (database check)
+      2. Email must not already exist (database check)
+      3. Email must end with @bazeuniversity.edu.ng (domain check)
+      4. Password must be 6-72 characters (bcrypt limit)
+      5. University must exist in database
+      
+      PASSWORD REQUIREMENTS (FR1.1):
+      - Minimum 6 characters
+      - At least 1 uppercase letter (A-Z)
+      - At least 1 number (0-9)
+      - Regex validation: /^(?=.*[A-Z])(?=.*\d).{6,}$/
+      
+      LOCATION: frontend/js/app.js (password validation function)
+      LOCATION: frontend/signup.html (form validation)
+      
+      RESPONSE:
+      - Success: {"message": "User registered successfully."}
+      - Status: 201 Created
+      - Error: 409 Conflict (username/email exists)
+      - Error: 400 Bad Request (invalid data)
+
+FR1.2 - Auto-Login After Signup
+       REQUIREMENT: After successful signup, user auto-logs in
+       LOCATION: frontend/signup.html (lines ~150-160)
+       BEHAVIOR:
+       1. After signup succeeds, backend returns JWT token
+       2. Frontend automatically calls login endpoint
+       3. Token stored in localStorage
+       4. User redirected to profile page
+       IMPLEMENTATION:
+       - Frontend receives token from registration response
+       - Automatically logs in with received credentials
+       - Redirects to profile.html with user data in localStorage
+
+FR2 - User Login
+      REQUIREMENT: Existing users log in with email and password
+      LOCATION: backend/main.py (lines 190-246) - /api/auth/login endpoint
+      LOCATION: frontend/login.html
+      
+      PARAMETERS:
+      - email (string): User's email
+      - password (string): User's password
+      
+      VALIDATION RULES:
+      1. Email must exist in database
+      2. Password must match hashed password (bcrypt verification)
+      3. User's university must be active
+      
+      RETURNS:
+      {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+          "user": {
+              "id": 1,
+              "fullName": "John Doe",
+              "email": "john@bazeuniversity.edu.ng",
+              "username": "johndoe",
+              "bio": "Optional bio",
+              "profileImage": "/uploads/products/avatar.jpg",
+              "phone": "0801234567"
+          }
+      }
+      
+      SECURITY DETAILS (FR2.1):
+      - Token expiry: 7 days (604,800 seconds)
+      - Algorithm: HS256 (HMAC-SHA256)
+      - Stored in: localStorage as 'token' key
+      - Sent in: Authorization: Bearer <token> header
+
+FR3 - Password Security & Hashing
+      REQUIREMENT: Passwords never stored in plain text
+      LOCATION: backend/auth.py (lines 85-117) - get_password_hash()
+      LOCATION: backend/auth.py (lines 55-83) - verify_password()
+      
+      HASHING ALGORITHM: bcrypt
+      ROUNDS: 12 (default from bcrypt.gensalt())
+      PROCESS:
+      1. Generate random salt (unique per password)
+      2. Hash password + salt using bcrypt
+      3. Store hash in database
+      4. For verification: bcrypt compares plain password to stored hash
+      
+      WHY BCRYPT?
+      - Intentionally slow (prevents brute force attacks)
+      - Includes salt (prevents rainbow table attacks)
+      - Adaptive (rounds can be increased over time)
+      
+      LOCATION: All user registration & password verification uses this
+
+FR4 - JWT Token Authentication
+      REQUIREMENT: API endpoints verify JWT token before allowing access
+      LOCATION: backend/auth.py (lines 156-200) - get_current_user()
+      LOCATION: backend/main.py - All protected endpoints use Depends(get_current_user)
+      
+      PROCESS:
+      1. Client sends: Authorization: Bearer <token>
+      2. get_current_user extracts token from header
+      3. Verifies signature with SECRET_KEY
+      4. Checks expiry time
+      5. Queries database for user by userId in token
+      6. Returns User object or raises 401 Unauthorized
+      
+      PROTECTED ENDPOINTS (require valid token):
+      - POST /api/products (create listing)
+      - PUT /api/products/{id} (update product)
+      - DELETE /api/products/{id} (delete product)
+      - POST /api/saved-items/toggle (bookmark product)
+      - GET /api/users/{id} (get user profile)
+      - PUT /api/users/{id} (update profile)
+      - POST /api/upload (upload image)
+      
+      TOKEN FORMAT: JWT with 3 parts
+      - Header: {"alg": "HS256", "typ": "JWT"}
+      - Payload: {"userId": 1, "exp": 1700000000}
+      - Signature: HMAC-SHA256 signed with SECRET_KEY
+      
+      EXPIRY: 7 days (tokens expire after 1 week)
+      LOCATION: backend/auth.py (line 45): ACCESS_TOKEN_EXPIRE_MINUTES
+
+FR5 - Email Verification (University Domain)
+      REQUIREMENT: Only university emails allowed (@bazeuniversity.edu.ng)
+      LOCATION: backend/main.py (lines 163-170)
+      VALIDATION: email.endswith(f"@{university.domain}")
+      
+      BEHAVIOR:
+      - During registration, email domain is checked
+      - Domain must match university's domain from database
+      - Currently only Baze University (ID=1) is open for registration
+      - Other universities show "Coming Soon" message
+
+
+PRODUCT MANAGEMENT & LISTING
+=============================
+
+FR6 - Create Product Listing (Sell an Item)
+      REQUIREMENT: Users can list products for sale
+      LOCATION: backend/main.py (lines 325-370) - POST /api/products
+      LOCATION: frontend/sell.html
+      
+      PARAMETERS:
+      {
+          "name": "Calculus Textbook",
+          "description": "Clean copy, no markings",
+          "price": 3500.00,
+          "categoryId": 2,
+          "condition": "Like New",
+          "size": "M",
+          "color": "Blue",
+          "images": [
+              "/uploads/products/uuid1.jpg",
+              "/uploads/products/uuid2.jpg",
+              "/uploads/products/uuid3.jpg"
+          ]
+      }
+      
+      VALIDATION RULES (FR6.1):
+      1. User must be authenticated (JWT token required)
+      2. Product name: 1-255 characters
+      3. Description: 1-5000 characters (product details)
+      4. Price: 0-10,000,000 (numeric, no negative)
+      5. Category must exist in database
+      6. Condition must be: New, Like New, Good, or Fair
+      7. Images: MUST be 3-5 images (mandatory minimum/maximum)
+      8. Each image must be uploaded via /api/upload first
+      
+      IMAGE VALIDATION (FR6.2):
+      - Minimum images: 3
+      - Maximum images: 5
+      - File types: JPEG, PNG, GIF, WebP, etc.
+      - Max file size: Unlimited (implementation allows any size)
+      - Storage: Backend saves to backend/uploads/products/
+      - Returns: URL format /uploads/products/{uuid}.{ext}
+      
+      LOCATION: backend/main.py (lines 721-765) - POST /api/upload
+      LOCATION: frontend/sell.html (image upload & validation)
+      
+      RESPONSE:
+      {
+          "id": 42,
+          "name": "Calculus Textbook",
+          "price": 3500,
+          "description": "...",
+          "condition": "Like New",
+          "status": "available",
+          "createdAt": "2025-11-22T10:30:00",
+          "images": [
+              {
+                  "id": 101,
+                  "imageUrl": "/uploads/products/abc123def.jpg",
+                  "isPrimary": 1
+              }
+          ],
+          "seller": {
+              "id": 1,
+              "fullName": "John Doe",
+              "username": "johndoe",
+              "profileImage": "/uploads/products/avatar.jpg"
+          },
+          "category": {
+              "id": 2,
+              "name": "Textbooks"
+          }
+      }
+      
+      DATABASE: Stored in products table + product_images table
+      LOCATION: backend/models.py (lines 183-264)
+
+FR7 - Browse & Search Products
+      REQUIREMENT: Users can search and filter products
+      LOCATION: backend/main.py (lines 372-430) - GET /api/products
+      LOCATION: frontend/products.html
+      
+      QUERY PARAMETERS:
+      - search (string): Search product names & descriptions (optional)
+      - category (string): Filter by category (optional)
+      - priceMin (integer): Minimum price filter (optional)
+      - priceMax (integer): Maximum price filter (optional)
+      - condition (string): Filter by condition (optional)
+      - skip (integer): Pagination offset (default 0)
+      - limit (integer): Items per page (default 20, max 100)
+      
+      SEARCH BEHAVIOR (FR7.1):
+      - Searches product names (case-insensitive)
+      - Searches product descriptions
+      - Searches by multiple keywords (OR logic)
+      - Location: backend/main.py (lines 390-410)
+      
+      FILTERING BEHAVIOR (FR7.2):
+      - Filters by category ID
+      - Filters by price range
+      - Filters by product condition
+      - All filters combinable
+      - Location: backend/main.py (lines 412-428)
+      
+      SORTING (FR7.3):
+      - Default: By creation date (newest first)
+      - Can extend with: price sort, popularity sort (future)
+      
+      RETURNS: Array of product objects with seller info
+      STATUS: 200 OK (even if no results found)
+      PAGINATION: skip/limit for infinite scroll or pagination
+
+FR8 - View Product Details
+      REQUIREMENT: Users can view full product info & seller profile
+      LOCATION: backend/main.py (lines 432-460) - GET /api/products/{id}
+      LOCATION: frontend/product-detail.html
+      
+      RETURNS: Full product with all related data
+      - Product info (name, description, price, condition, color, size)
+      - All images with primary indicator
+      - Seller profile (name, username, profile picture)
+      - Seller stats (number of listings, sales count)
+      - Category info
+      - Timestamps (created, updated)
+      
+      SECURITY: Product must have status="available" (soft delete)
+      ERROR: 404 Not Found if product doesn't exist or is deleted
+
+FR9 - Update Product Listing
+      REQUIREMENT: Sellers can edit their own products
+      LOCATION: backend/main.py (lines 462-540) - PUT /api/products/{id}
+      
+      AUTHORIZATION: Only product seller can update
+      - Check: current_user.id == product.seller_id
+      - Error: 403 Forbidden if not owner
+      
+      UPDATABLE FIELDS:
+      - name, description, price
+      - condition, size, color
+      - images (replace old images with new ones)
+      
+      PROCESS:
+      1. User must be authenticated
+      2. User must own the product
+      3. Product must exist and not be deleted
+      4. Update database fields
+      5. Update images if provided
+      6. Update timestamp (updated_at)
+      
+      RESPONSE: Updated product object
+
+FR10 - Delete Product Listing (Soft Delete)
+       REQUIREMENT: Sellers can remove their listings
+       LOCATION: backend/main.py (lines 542-570) - DELETE /api/products/{id}
+       
+       SOFT DELETE: Product not permanently deleted
+       - status changed from "available" to "deleted"
+       - Can be restored later (future feature)
+       - Soft delete preserves history for analytics
+       
+       AUTHORIZATION: Only product seller can delete
+       - Check: current_user.id == product.seller_id
+       - Error: 403 Forbidden if not owner
+       
+       RESPONSE: {"message": "Product deleted successfully."}
+       STATUS: 200 OK
+
+
+SAVED ITEMS & WISHLIST
+======================
+
+FR11 - Save/Bookmark Products
+       REQUIREMENT: Users can save products to wishlist
+       LOCATION: backend/main.py (lines 572-610) - POST /api/saved-items/toggle
+       LOCATION: frontend/product-detail.html (bookmark button)
+       
+       BEHAVIOR: Toggle save (add if not saved, remove if saved)
+       
+       REQUEST:
+       {
+           "productId": 42
+       }
+       
+       AUTHORIZATION: User must be authenticated
+       
+       RESPONSE:
+       {
+           "isSaved": true,
+           "message": "Product saved."
+       }
+       
+       DATABASE: Stored in saved_items table
+       LOCATION: backend/models.py (lines 310-342)
+       
+       RELATIONSHIPS:
+       - One user has many saved_items
+       - One product can be saved by many users
+       - Junction table (many-to-many relationship)
+
+FR12 - View Saved Items
+       REQUIREMENT: Users can view their bookmarked products
+       LOCATION: backend/main.py (lines 612-640) - GET /api/saved-items
+       LOCATION: frontend/saved-items.html
+       
+       AUTHORIZATION: User must be authenticated
+       - Only returns current user's saved items
+       - Returns empty array if nothing saved
+       
+       RETURNS: Array of saved product objects with all details
+       
+       SECURITY: Only account owner can view their saved items
+       - Access control: saved-items.html checks localStorage for token
+       - Redirects to login if not authenticated
+
+
+USER PROFILE & ACCOUNT MANAGEMENT
+==================================
+
+FR13 - User Profile Page
+       REQUIREMENT: Users can view profiles (own or others)
+       LOCATION: backend/main.py (lines 642-670) - GET /api/users/{id}
+       LOCATION: frontend/profile.html
+       
+       INFORMATION DISPLAYED:
+       - Profile picture (or placeholder if not uploaded)
+       - Full name and username
+       - Bio (or "No bio yet" if empty)
+       - Stats: Listings count, Sales count
+       - Seller's products (My Listings tab)
+       
+       AUTHORIZATION:
+       - Any user can view any profile
+       - Only account owner sees "Edit Profile" button (FR13.1)
+       - Only account owner sees "Saved Items" tab
+       - Only account owner sees "New Listing" button
+       
+       QUERY PARAMETER:
+       - userId (optional): View other user's profile
+       - If not provided: View current logged-in user's profile
+       
+       RESPONSE:
+       {
+           "id": 1,
+           "fullName": "John Doe",
+           "username": "johndoe",
+           "email": "john@bazeuniversity.edu.ng",
+           "bio": "Love reading and gaming",
+           "profileImage": "/uploads/products/avatar.jpg",
+           "phone": "0801234567",
+           "listings_count": 5,
+           "sales_count": 3,
+           "created_at": "2025-11-01T10:30:00"
+       }
+
+FR13.1 - Edit Profile (Owner-Only)
+        REQUIREMENT: Users can edit their own profile
+        LOCATION: backend/main.py (lines 672-720) - PUT /api/users/{id}
+        LOCATION: frontend/edit-profile.html
+        
+        AUTHORIZATION: Only account owner can edit
+        - Check: current_user.id == user_id
+        - Error: 403 Forbidden if not owner
+        
+        EDITABLE FIELDS:
+        - fullName (2-255 chars)
+        - bio (optional, max 1000 chars)
+        - profileImage (avatar URL from upload)
+        - phone (optional, max 20 chars)
+        
+        IMMUTABLE FIELDS:
+        - username (cannot be changed)
+        - email (cannot be changed)
+        - university (cannot be changed)
+        
+        REQUEST:
+        {
+            "fullName": "John Doe Updated",
+            "bio": "I love studying",
+            "avatarUrl": "/uploads/products/avatar.jpg",
+            "phone": "0801234567"
+        }
+        
+        RESPONSE: Updated user object
+        STATUS: 200 OK
+
+FR14 - Profile Picture Upload
+       REQUIREMENT: Users can upload custom profile picture
+       LOCATION: backend/main.py (lines 721-765) - POST /api/upload
+       LOCATION: frontend/edit-profile.html
+       
+       BEHAVIOR:
+       1. No default image - placeholder until user uploads
+       2. Click camera icon to select image
+       3. See instant preview
+       4. Image auto-uploads to backend
+       5. Frontend saves URL in localStorage
+       6. When profile saved, avatar URL sent to backend
+       
+       FILE VALIDATION (FR14.1):
+       - Must be image file (MIME type: image/*)
+       - Supported: JPEG, PNG, GIF, WebP, SVG, etc.
+       - File size: No limit (should add in production)
+       - Resolution: No limit (should optimize in production)
+       
+       STORAGE:
+       - Location: backend/uploads/products/{uuid}.{ext}
+       - Filename: Random UUID + original extension
+       - No overwrites (unique names prevent collisions)
+       
+       RESPONSE:
+       {
+           "imageUrl": "/uploads/products/3fa85f64-5717-4562-b3fc-2c963f66afa6.jpg"
+       }
+       
+       SECURITY: Images served from /uploads path (static files)
+
+
+NAVIGATION & UI STATE
+=====================
+
+FR15 - Dynamic Navbar Based on Login Status
+       REQUIREMENT: Navbar shows different options based on authentication
+       LOCATION: frontend/js/app.js (lines 181-200) - updateNavbarAuthState()
+       LOCATION: frontend/index.html, products.html
+       
+       LOGGED OUT STATE:
+       - Shows "Log In" button
+       - Shows "Sign Up" button
+       - No other icons visible
+       
+       LOGGED IN STATE:
+       - Hides Login/SignUp buttons
+       - Shows 4 icons instead:
+         * Bell icon (Notifications - placeholder for future)
+         * Message square icon (links to messages.html)
+         * Bookmark icon (links to saved-items.html)
+         * User icon (links to profile.html)
+       
+       IMPLEMENTATION:
+       - JavaScript checks for JWT token in localStorage
+       - If token exists: Toggle visibility of logged-in elements
+       - If no token: Show login/signup buttons
+       - Updates on page load
+       - Updates when token is set/removed
+       
+       APPLIES TO: All pages with .user-actions element
+
+FR16 - Logout Functionality
+       REQUIREMENT: Users can log out and clear session
+       LOCATION: backend/auth.py (logout function not in backend - frontend only)
+       LOCATION: frontend/js/app.js (lines 244-250) - logout()
+       
+       PROCESS:
+       1. Remove JWT token from localStorage
+       2. Remove user data from localStorage
+       3. Redirect to home page (/)
+       4. Navbar updates to show Login/SignUp buttons
+       
+       SECURITY: Token cannot be revoked server-side (stateless auth)
+       - Client-side removal is sufficient for logout
+       - Token expires after 7 days anyway
+
+
+CATEGORIES & ORGANIZATION
+==========================
+
+FR17 - Product Categories
+       REQUIREMENT: Products organized into categories
+       LOCATION: backend/models.py (lines 156-178) - Category table
+       LOCATION: backend/main.py (lines 766-774) - GET /api/categories
+       
+       CATEGORIES:
+       - Textbooks
+       - Electronics
+       - Clothing
+       - Furniture
+       - Other
+       
+       USAGE: Filter products by category, organize listings
+       
+       DATABASE:
+       - Stored in categories table
+       - One category has many products
+       - Products filtered by category_id
+
+
+================================================================================
+3. NON-FUNCTIONAL REQUIREMENTS (NFR)
+================================================================================
+
+PERFORMANCE
+===========
+
+NFR1 - Page Load Time
+       REQUIREMENT: Pages should load quickly
+       TARGET: < 3 seconds initial load
+       LOCATION: frontend/css/style.css, frontend/js/app.js
+       IMPLEMENTATION:
+       - Lazy loading for product images
+       - CSS minification
+       - Efficient database queries with indexes
+       - Pagination (limit 20 items per page)
+       - Caching: img lazy loading attributes
+
+NFR2 - Database Query Optimization
+       REQUIREMENT: Queries should be efficient
+       LOCATION: backend/models.py (indexes on searchable columns)
+       IMPLEMENTATION:
+       - Index on Product.name (searchable)
+       - Index on Product.created_at (sorting)
+       - Index on User.email (login)
+       - Index on User.username (login)
+       - Relationships with lazy loading
+       - JOIN queries instead of N+1 queries
+       
+       EXAMPLE: serialize_product() at backend/main.py (lines 277-321)
+       - Single query fetches product with all related data
+       - Relationships (images, seller, category) loaded efficiently
+
+SECURITY
+========
+
+NFR3 - Password Hashing
+       REQUIREMENT: Passwords encrypted using bcrypt
+       LOCATION: backend/auth.py (get_password_hash, verify_password)
+       STANDARD: bcrypt with 12 rounds
+       PROTECTION:
+       - Prevents rainbow table attacks (salting)
+       - Prevents brute force attacks (intentionally slow)
+       - One-way hashing (cannot decrypt, only verify)
+
+NFR4 - JWT Token Security
+       REQUIREMENT: API uses JWT tokens for stateless auth
+       LOCATION: backend/auth.py (create_access_token, get_current_user)
+       ALGORITHM: HS256 (HMAC-SHA256)
+       EXPIRY: 7 days (604,800 seconds)
+       TRANSMISSION: Authorization header with Bearer scheme
+       STORAGE: Frontend localStorage (HttpOnly not available in frontend JS)
+       
+       PRODUCTION RECOMMENDATIONS:
+       - Use HTTPS only (enforce in production)
+       - Use HttpOnly cookies instead of localStorage
+       - Store SECRET_KEY in environment variable (not hardcoded)
+       - Rotate SECRET_KEY periodically
+       - Implement refresh token rotation
+
+NFR5 - SQL Injection Prevention
+       REQUIREMENT: Protect against SQL injection attacks
+       LOCATION: All database queries use SQLAlchemy ORM
+       IMPLEMENTATION:
+       - No raw SQL strings in code
+       - Parameter binding through ORM
+       - Pydantic validation on inputs
+       - Example: db.query(Product).filter(Product.id == product_id)
+       
+       SQLAlchemy prevents SQL injection automatically
+
+NFR6 - CORS (Cross-Origin Resource Sharing)
+       REQUIREMENT: Frontend and backend on different ports (5000 vs 8000)
+       LOCATION: backend/main.py (lines 71-77)
+       IMPLEMENTATION:
+       - CORS middleware allows all origins (development mode)
+       - Frontend can call backend API without browser blocking
+       - Production: Restrict to specific domain only
+       
+       CONFIGURATION:
+       {
+           "allow_origins": ["*"],      // Development
+           "allow_credentials": true,   // Allow cookies
+           "allow_methods": ["*"],      // Allow all HTTP methods
+           "allow_headers": ["*"]       // Allow all headers
+       }
+
+NFR7 - Input Validation
+       REQUIREMENT: All inputs validated before processing
+       LOCATION: backend/schemas.py (Pydantic models)
+       IMPLEMENTATION:
+       - Type checking (int, str, etc.)
+       - Length validation (min_length, max_length)
+       - Pattern validation (email format)
+       - Custom validators for business logic
+       
+       EXAMPLES:
+       - Email validation: EmailStr (automatically validates)
+       - Password length: Field(..., min_length=6, max_length=72)
+       - Username length: Field(..., min_length=3, max_length=100)
+       
+       RESPONSE: 422 Unprocessable Entity if validation fails
+
+USABILITY
+=========
+
+NFR8 - Responsive Design
+       REQUIREMENT: Works on desktop, tablet, mobile
+       LOCATION: frontend/css/style.css (media queries)
+       BREAKPOINTS:
+       - Mobile: < 768px
+       - Tablet: 768px - 1024px
+       - Desktop: > 1024px
+       
+       IMPLEMENTATION:
+       - Flexible grid layouts
+       - Mobile hamburger menu
+       - Responsive images
+       - Touch-friendly buttons
+
+NFR9 - User Feedback & Loading States
+       REQUIREMENT: Users see status of their actions
+       LOCATION: frontend/signup.html, login.html
+       IMPLEMENTATION:
+       - Green loading spinner during submission
+       - Success checkmark (green) on success
+       - Error X (red) on failure
+       - Success message persists, errors auto-dismiss after 3s
+       - Prevents double-submission with disabled button
+
+NFR10 - Real-time Image Previews
+        REQUIREMENT: Users see preview before confirming upload
+        LOCATION: frontend/edit-profile.html (image preview)
+        LOCATION: frontend/sell.html (multiple image previews)
+        IMPLEMENTATION:
+        - FileReader API loads image as data URL
+        - Shows preview before upload/save
+        - Users can change selection
+        - Only uploads after selection (no auto-upload for some)
+
+MAINTAINABILITY
+===============
+
+NFR11 - Code Organization
+        REQUIREMENT: Code well-organized and documented
+        LOCATION: All files have header comments
+        STRUCTURE:
+        - backend/: FastAPI backend code
+          * main.py: All API endpoints
+          * models.py: Database table definitions
+          * auth.py: Authentication logic
+          * schemas.py: Request/response validation
+          * database.py: Database connection
+        - frontend/: HTML/CSS/JavaScript
+          * *.html: Page templates
+          * css/: Stylesheets
+          * js/app.js: Global JavaScript
+        
+        FILE DOCUMENTATION:
+        - Each file has header comment explaining purpose
+        - Each function has docstring with parameters
+        - Each class has docstring with relationships
+        - Complex logic has inline comments
+
+NFR12 - Database Design
+        REQUIREMENT: Database schema is normalized
+        LOCATION: backend/models.py
+        RELATIONSHIPS:
+        - University has many Users
+        - User has many Products
+        - User has many SavedItems
+        - Product belongs to Category
+        - Product belongs to User (seller)
+        - Product has many ProductImages
+        - ProductImage belongs to Product
+        - SavedItem is junction table (User - Product)
+        
+        NORMALIZATION:
+        - No data duplication
+        - Foreign keys enforce referential integrity
+        - Proper primary keys
+        - Indexes on frequently searched columns
+
+COMPATIBILITY
+=============
+
+NFR13 - Browser Compatibility
+        REQUIREMENT: Works on modern browsers
+        TESTED: Chrome, Firefox, Safari, Edge
+        TECHNOLOGIES:
+        - ES6 JavaScript (arrow functions, const/let, fetch API)
+        - CSS Grid & Flexbox
+        - HTML5 semantic elements
+        - Lucide Icons via CDN
+        
+        FALLBACKS:
+        - Progressive enhancement (works without JS, images lazy load)
+        - Graceful degradation
+
+NFR14 - Database Portability
+        REQUIREMENT: Easy switch from SQLite to PostgreSQL
+        LOCATION: backend/database.py
+        IMPLEMENTATION:
+        - Uses SQLAlchemy ORM (database-agnostic)
+        - Connection string in environment variable
+        - Same code works with SQLite or PostgreSQL
+        - Migration: Only change DATABASE_URL
+        
+        PRODUCTION:
+        - SQLite: sqlite:///./test.db (current)
+        - PostgreSQL: postgresql://user:pass@host/dbname (production)
+
+
+================================================================================
+4. LEGAL & COMPLIANCE REQUIREMENTS
+================================================================================
+
+LR1 - Data Privacy
+      REQUIREMENT: Student data protected
+      IMPLEMENTATION:
+      - Passwords hashed (cannot recover)
+      - No plain text passwords in logs
+      - No sensitive data in URLs
+      - HTTPS recommended for production
+      LOCATION: backend/auth.py - Password hashing
+
+LR2 - Terms of Service Placeholder
+      REQUIREMENT: Disclaimer for marketplace
+      LOCATION: All pages have footer with links placeholder
+      FUTURE: Implement terms, privacy policy, usage guidelines
+
+LR3 - Content Moderation
+      REQUIREMENT: Admin can moderate listings (future feature)
+      CURRENT: Soft delete exists (status = "deleted")
+      FUTURE: Admin dashboard, content reports
+
+LR4 - User Verification
+      REQUIREMENT: Only verified students can access
+      IMPLEMENTATION: Email domain verification (@bazeuniversity.edu.ng)
+      LOCATION: backend/main.py (lines 163-170)
+
+
+================================================================================
+5. SYSTEM ARCHITECTURE & METHODOLOGY
+================================================================================
+
+ARCHITECTURE DIAGRAM:
+┌─────────────────────────────────────────────────────────────┐
+│                  FRONTEND (Static HTML/CSS/JS)             │
+│  ├─ Pages: signup, login, profile, products, sell, etc.   │
+│  ├─ CSS: Responsive design, dark/light modes               │
+│  └─ JS: Event handlers, API calls, local state (localStorage) │
+└──────────────────┬──────────────────────────────────────────┘
+                   │ HTTP/REST API
+                   │ Port 5000 (Frontend Server)
+                   │ Port 8000 (Backend API)
+                   ▼
+┌─────────────────────────────────────────────────────────────┐
+│               BACKEND (FastAPI - Python)                    │
+│  ├─ main.py: All HTTP endpoints                            │
+│  ├─ models.py: Database schema (ORM)                       │
+│  ├─ auth.py: Password & JWT security                       │
+│  ├─ schemas.py: Request/response validation                │
+│  └─ database.py: SQLAlchemy connection                     │
+└──────────────────┬──────────────────────────────────────────┘
+                   │ SQL Queries
+                   ▼
+┌─────────────────────────────────────────────────────────────┐
+│              DATABASE (SQLite / PostgreSQL)                │
+│  ├─ users: Student accounts                               │
+│  ├─ products: Item listings                               │
+│  ├─ product_images: Product photos                        │
+│  ├─ categories: Product categories                        │
+│  ├─ saved_items: Wishlist/bookmarks                       │
+│  ├─ universities: University information                  │
+│  └─ Relationships & Indexes for performance               │
+└─────────────────────────────────────────────────────────────┘
+
+TECHNOLOGY STACK:
+Backend:
+  - Framework: FastAPI (modern, fast Python web framework)
+  - Database ORM: SQLAlchemy (database-agnostic)
+  - Database: SQLite (dev), PostgreSQL (production-ready)
+  - Authentication: JWT (stateless), bcrypt (password hashing)
+  - API Documentation: Automatic Swagger UI at /docs
+  
+Frontend:
+  - HTML5 (semantic markup)
+  - CSS3 (flexbox, grid, responsive)
+  - JavaScript ES6+ (vanilla, no frameworks)
+  - Icons: Lucide Icons (CDN)
+  - Storage: localStorage (client-side)
+  
+Security:
+  - CORS: Enabled for dev, restricts for production
+  - Password: bcrypt 12-round hashing
+  - Tokens: JWT with 7-day expiry
+  - Validation: Pydantic (automatic, comprehensive)
+
+DEVELOPMENT METHODOLOGY
+=======================
+
+AGILE APPROACH:
+- Iterative development with user feedback
+- Feature-driven development
+- Regular testing and refinement
+- Version control: Git
+
+TESTING APPROACH:
+Manual Testing Performed:
+- User registration and login flows
+- Password validation and security
+- Product creation with image requirements (3-5 images)
+- Profile viewing and editing
+- Access control (own profile vs others)
+- Bookmark/save functionality
+- Search and filtering
+- Responsive design on mobile/tablet/desktop
+
+TESTING SCENARIOS (Functional):
+1. Registration:
+   - Valid data → Creates account, auto-login
+   - Invalid email domain → Rejects
+   - Weak password → Rejects
+   - Duplicate email → Rejects
+   
+2. Login:
+   - Valid credentials → Returns token
+   - Invalid password → Rejects with 401
+   - Non-existent email → Rejects with 401
+   
+3. Products:
+   - Create with 3+ images → Success
+   - Create with <3 images → Rejects
+   - Create with 6+ images → Rejects
+   - Only owner can edit/delete
+   
+4. Profiles:
+   - Account owner sees edit button
+   - Other users see read-only profile
+   - Profile picture optional until upload
+   - Placeholder shown if no image
+
+5. Permissions:
+   - Saved items redirect to login if not authenticated
+   - Protected endpoints return 401 if no token
+   - Users can't edit others' products (403)
+   - Users can't edit others' profiles (403)
+
+
+================================================================================
+6. IMPLEMENTATION CHECKLIST & CODE LOCATIONS
+================================================================================
+
+AUTHENTICATION SYSTEM
+✅ User Registration
+   Location: backend/main.py (116-188) - register()
+   Location: frontend/signup.html
+
+✅ User Login
+   Location: backend/main.py (190-246) - login()
+   Location: frontend/login.html
+
+✅ Password Hashing (bcrypt)
+   Location: backend/auth.py (85-117) - get_password_hash()
+   Location: backend/auth.py (55-83) - verify_password()
+
+✅ JWT Token Generation
+   Location: backend/auth.py (123-155) - create_access_token()
+
+✅ JWT Token Verification
+   Location: backend/auth.py (156-200) - get_current_user()
+
+✅ Email Domain Validation
+   Location: backend/main.py (163-170) - University domain check
+
+✅ Password Strength Requirements
+   Location: frontend/signup.html - regex validation
+   Location: frontend/login.html - show/hide toggle
+
+✅ Auto-Login After Signup
+   Location: frontend/signup.html (~150-160)
+
+✅ Logout Functionality
+   Location: frontend/js/app.js (244-250) - logout()
+
+
+PRODUCT MANAGEMENT
+✅ Create Listing
+   Location: backend/main.py (325-370) - create_product()
+   Location: frontend/sell.html
+
+✅ Image Upload (3-5 required)
+   Location: backend/main.py (721-765) - upload_image()
+   Location: frontend/sell.html - validation
+
+✅ View Products (with search/filter)
+   Location: backend/main.py (372-430) - list_products()
+   Location: frontend/products.html
+
+✅ View Product Details
+   Location: backend/main.py (432-460) - get_product()
+   Location: frontend/product-detail.html
+
+✅ Edit Product (owner only)
+   Location: backend/main.py (462-540) - update_product()
+
+✅ Delete Product (soft delete)
+   Location: backend/main.py (542-570) - delete_product()
+
+
+USER PROFILES
+✅ View Profile (any user)
+   Location: backend/main.py (642-670) - get_user()
+   Location: frontend/profile.html
+
+✅ Edit Profile (owner only)
+   Location: backend/main.py (672-720) - update_user()
+   Location: frontend/edit-profile.html
+
+✅ Profile Picture Upload
+   Location: backend/main.py (721-765) - upload_image()
+   Location: frontend/edit-profile.html
+
+✅ Access Control
+   Location: frontend/profile.html - Show/hide buttons based on owner
+   Location: frontend/edit-profile.html - Owner-only page
+   Location: frontend/saved-items.html - Redirects if not logged in
+
+
+SAVED ITEMS
+✅ Bookmark Product
+   Location: backend/main.py (572-610) - toggle_saved_item()
+   Location: frontend/product-detail.html
+
+✅ View Saved Items (owner only)
+   Location: backend/main.py (612-640) - get_saved_items()
+   Location: frontend/saved-items.html
+
+
+NAVIGATION & UI
+✅ Dynamic Navbar (logged in vs out)
+   Location: frontend/js/app.js (181-200) - updateNavbarAuthState()
+   Location: frontend/index.html (48-73)
+   Location: frontend/products.html (59-81)
+
+✅ Loading States & Feedback
+   Location: frontend/signup.html - Status indicator
+   Location: frontend/login.html - Status indicator
+
+✅ Image Previews
+   Location: frontend/edit-profile.html - Avatar preview
+   Location: frontend/sell.html - Product image previews
+
+
+DATABASE
+✅ User Table
+   Location: backend/models.py (87-151) - User class
+
+✅ Product Table
+   Location: backend/models.py (183-264) - Product class
+
+✅ Product Images
+   Location: backend/models.py (269-305) - ProductImage class
+
+✅ Saved Items
+   Location: backend/models.py (310-342) - SavedItem class
+
+✅ Categories
+   Location: backend/models.py (156-178) - Category class
+
+✅ Universities
+   Location: backend/models.py (55-82) - University class
+
+
+================================================================================
+7. FUTURE ENHANCEMENTS & SCALABILITY
+================================================================================
+
+PLANNED FEATURES:
+1. Messaging System (real-time chat between buyer/seller)
+2. Rating & Review System (seller reputation)
+3. Payment Integration (Stripe, Paystack, etc.)
+4. Order Management (track transactions)
+5. Admin Dashboard (moderate content, view analytics)
+6. Push Notifications
+7. Email Notifications
+8. Advanced Search (filters, saved searches)
+9. Recommendation Engine (suggestions based on browsing)
+10. Multi-university Support (expand to other schools)
+
+SCALABILITY IMPROVEMENTS:
+1. Redis Caching (speed up frequent queries)
+2. Image CDN (serve images from edge servers)
+3. Database Replication (failover & reliability)
+4. Load Balancing (distribute traffic)
+5. Microservices (separate auth, products, messaging)
+6. Elasticsearch (advanced full-text search)
+7. WebSockets (real-time updates)
+8. Message Queue (background jobs)
+
+PERFORMANCE OPTIMIZATION:
+1. Database query optimization (indexes, eager loading)
+2. API response compression (gzip)
+3. Frontend bundling (minify JS/CSS)
+4. Image optimization (resize, compress)
+5. Lazy loading (load content on demand)
+6. Caching strategy (Redis for sessions, HTTP caching)
+
+DEPLOYMENT IMPROVEMENTS:
+1. CI/CD Pipeline (automated testing & deployment)
+2. Environment Configuration (different configs for dev/prod)
+3. SSL/TLS Certificate (HTTPS)
+4. Database Migrations (version control for schema)
+5. Logging & Monitoring (track errors, performance)
+6. Backup & Recovery (protect data)
+
+
+================================================================================
+8. REQUIREMENTS TRACEABILITY MATRIX
+================================================================================
+
+REQUIREMENT ID → CODE LOCATION
+
+FR1 (Registration) → backend/main.py:116-188 | frontend/signup.html
+FR1.1 (Password Req) → frontend/signup.html | frontend/js validation
+FR1.2 (Auto-login) → frontend/signup.html:150-160
+FR2 (Login) → backend/main.py:190-246 | frontend/login.html
+FR2.1 (Token Security) → backend/auth.py:156-200
+FR3 (Password Hash) → backend/auth.py:85-117
+FR4 (JWT Auth) → backend/auth.py:156-200
+FR5 (Email Domain) → backend/main.py:163-170
+FR6 (Create Product) → backend/main.py:325-370 | frontend/sell.html
+FR6.1 (Image Validation) → backend/main.py:480-485 | frontend/sell.html
+FR6.2 (Image Upload) → backend/main.py:721-765
+FR7 (Browse/Search) → backend/main.py:372-430 | frontend/products.html
+FR7.1 (Search) → backend/main.py:390-410
+FR7.2 (Filtering) → backend/main.py:412-428
+FR7.3 (Sorting) → backend/main.py:429-430
+FR8 (Product Details) → backend/main.py:432-460 | frontend/product-detail.html
+FR9 (Update Product) → backend/main.py:462-540
+FR10 (Delete Product) → backend/main.py:542-570
+FR11 (Save Items) → backend/main.py:572-610
+FR12 (View Saved) → backend/main.py:612-640 | frontend/saved-items.html
+FR13 (Profile) → backend/main.py:642-670 | frontend/profile.html
+FR13.1 (Edit Profile) → backend/main.py:672-720 | frontend/edit-profile.html
+FR14 (Picture Upload) → backend/main.py:721-765 | frontend/edit-profile.html
+FR15 (Dynamic Navbar) → frontend/js/app.js:181-200
+FR16 (Logout) → frontend/js/app.js:244-250
+
+NFR1 (Performance) → frontend/css/style.css | backend/models.py indexes
+NFR2 (Query Optimization) → backend/models.py indexes
+NFR3 (Password Hashing) → backend/auth.py:85-117
+NFR4 (JWT Security) → backend/auth.py | backend/main.py CORS
+NFR5 (SQL Injection) → All backend uses SQLAlchemy ORM
+NFR6 (CORS) → backend/main.py:71-77
+NFR7 (Input Validation) → backend/schemas.py
+NFR8 (Responsive Design) → frontend/css/style.css media queries
+NFR9 (User Feedback) → frontend/signup.html, login.html status indicator
+NFR10 (Image Preview) → frontend/edit-profile.html, sell.html
+NFR11 (Code Organization) → All files have header comments
+NFR12 (Database Design) → backend/models.py entire file
+NFR13 (Browser Compatibility) → Modern browser standard features
+NFR14 (Database Portability) → backend/database.py
+
+LR1 (Data Privacy) → backend/auth.py password handling
+LR2 (Terms Placeholder) → footer on all pages
+LR3 (Content Moderation) → Soft delete in product deletion
+LR4 (User Verification) → backend/main.py:163-170 email domain
+
+================================================================================
+9. TESTING SUMMARY
+================================================================================
+
+Manual Testing Completed:
+1. ✅ User can sign up with valid email and password
+2. ✅ User can log in with correct credentials
+3. ✅ User rejected if email doesn't match domain
+4. ✅ User rejected if password weak
+5. ✅ User auto-logged in after signup
+6. ✅ User can create product with 3-5 images
+7. ✅ User rejected if <3 or >5 images
+8. ✅ User can view own profile with edit button
+9. ✅ User can view others' profiles (read-only)
+10. ✅ User can upload profile picture
+11. ✅ User can edit profile (name, bio)
+12. ✅ User can search products
+13. ✅ User can filter by category, price, condition
+14. ✅ User can bookmark/save products
+15. ✅ User can view saved items (owner only)
+16. ✅ Navbar shows icons when logged in
+17. ✅ Navbar shows buttons when logged out
+18. ✅ User can logout
+19. ✅ Password visibility toggle works
+20. ✅ Loading indicators work
+
+Automated Testing:
+- Not currently implemented
+- Recommendation: Add pytest for backend (unit & integration tests)
+- Recommendation: Add Jest for frontend (component & integration tests)
+
+
+================================================================================
+10. CODE DOCUMENTATION STRATEGY
+================================================================================
+
+DOCUMENTATION STANDARDS APPLIED:
+
+1. FILE HEADER (top of each file)
+   - What the file does
+   - Key components/endpoints
+   - Where to find specific features
+   
+2. FUNCTION DOCSTRINGS (above each function)
+   - What the function does
+   - Parameters (name, type, description)
+   - Return value (type, example)
+   - Validation rules
+   - Error responses
+   - Example request/response JSON
+   
+3. CLASS DOCSTRINGS (above each class)
+   - What the class represents
+   - Columns/attributes with descriptions
+   - Relationships to other tables
+   - Usage examples
+   
+4. INLINE COMMENTS (in code)
+   - Complex logic explanation
+   - "Why" not just "what"
+   - Security-critical sections
+   - Performance considerations
+   
+5. CODE LOCATION MAPPING
+   - This document maps every requirement to code location
+   - Developers can find any feature instantly
+   - Cross-references between frontend/backend
+
+
+DOCUMENTATION LOCATIONS:
+- Backend code docs: inline + header comments
+- Frontend code docs: inline + header comments
+- Requirements mapping: THIS FILE (THESIS_CHAPTER_3_REQUIREMENTS.txt)
+- Architecture notes: replit.md
+- API Docs: Auto-generated at http://localhost:8000/docs (Swagger UI)
+
+
+================================================================================
+CONCLUSION
+================================================================================
+
+UniMarket successfully implements a complete peer-to-peer campus marketplace
+with robust security, comprehensive features, and scalable architecture.
+
+KEY ACHIEVEMENTS:
+- Secure authentication (bcrypt + JWT)
+- University-gated access (email domain validation)
+- Complete product management system
+- User profile system with access control
+- Image upload with multiple file support
+- Search and filtering capabilities
+- Responsive design for all devices
+- Well-documented, maintainable codebase
+- Database-agnostic architecture (SQLite → PostgreSQL)
+
+READY FOR PRODUCTION DEPLOYMENT
+With some security enhancements:
+- Configure environment variables (JWT_SECRET_KEY)
+- Enable HTTPS
+- Use PostgreSQL instead of SQLite
+- Add email verification
+- Implement rate limiting
+- Add audit logging
+- Set up automated backups
+
+================================================================================

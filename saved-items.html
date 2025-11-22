@@ -1,4 +1,120 @@
 <!DOCTYPE html>
+<!--
+================================================================================
+UNIMARKET - SAVED ITEMS PAGE (saved-items.html)
+================================================================================
+PURPOSE: Display user's bookmarked/saved products (wishlist)
+AUTHENTICATION: Requires logged-in user (JWT token)
+ACCESS CONTROL: Only account owner can view their saved items
+FEATURES:
+- View all bookmarked products
+- See product details in grid format
+- Remove bookmarks (un-save products)
+- Empty state message if no saved items
+
+SECURITY:
+- Redirect to login if not authenticated
+- JavaScript checks: localStorage.getItem('token')
+- If no token: window.location.href = 'login.html'
+- Only current user can view their saved items
+- Backend validates user ownership in API
+
+PAGE CONTENT:
+1. Header/Navigation (responsive navbar)
+   - Logo and navigation links
+   - Search bar
+   - User action icons (logged in state)
+   
+2. Page Title: "Saved Items"
+   
+3. Back Button: Easy navigation to previous page
+   
+4. Product Grid: Display saved products
+   - Product cards with images
+   - Product name and price (₦)
+   - Bookmark button (to remove from saved)
+   - Click card to view product details
+   
+5. Empty State (if no saved items):
+   - Icon showing bookmark
+   - Title: "You have no saved items"
+   - Description: "Start browsing to save items you're interested in."
+   - Button: "Start Browsing" (links to products.html)
+
+API ENDPOINT: backend/main.py (lines 612-640) GET /api/saved-items
+AUTHORIZATION: Required (JWT token)
+RESPONSE: Array of product objects that user saved
+INCLUDES:
+- All product details (id, name, price, images, etc.)
+- Seller information
+- Category
+- Condition, size, color
+- Created/updated timestamps
+
+JAVASCRIPT LOGIC (find in this file):
+- checkAuthAccess(): Verify user is logged in
+  * Checks token and user data in localStorage
+  * Redirects to login if not authenticated
+  * Prevents unauthorized access to this page
+  
+- On page load:
+  * Check authentication status
+  * If authenticated: Load saved items from API
+  * If not: Redirect to login.html
+  
+- Fetch saved items: GET /api/saved-items with Authorization header
+  * Token format: Authorization: Bearer <token>
+  
+- Render product grid: Build HTML from product data
+  
+- Handle empty state: Show message if no products
+
+PRODUCT CARD FEATURES:
+- Clicking card: Navigate to product-detail.html
+- Bookmark button: Un-save the product
+- Product image: Lazy loaded for performance
+- Price displayed in Nigerian Naira (₦)
+
+RESPONSIVE DESIGN:
+- Mobile: 1 column (full width products)
+- Tablet: 2 columns
+- Desktop: 4-5 columns
+- Back button always visible
+
+NAVIGATION:
+- Home: Logo link
+- Shop: products.html
+- About: about.html (placeholder)
+- Messages: messages.html (navbar icon)
+- Profile: profile.html (navbar icon)
+- Saved Items: (current page) - navbar bookmark icon
+
+BOOKMARK BEHAVIOR:
+- Bookmark button: Toggled filled/outlined
+- Click to remove: Un-saves product
+- Product disappears from grid after un-saving
+- Updates instantly without page refresh
+
+ERROR HANDLING:
+- Network error: Display error message
+- 401 Unauthorized: Redirect to login
+- 403 Forbidden: User trying to access others' saved items
+- API error: Show error message
+
+FUTURE ENHANCEMENTS:
+- Load more (pagination) for many saved items
+- Sort saved items (by date, price, etc.)
+- Filter saved items (by category, etc.)
+- Clear all saved items button
+- Organize into wishlists/collections
+
+NEXT STEPS FROM HERE:
+- Click product card: Go to product-detail.html
+- Click bookmark button: Un-save and remove from list
+- Navigate navbar: Go to other pages
+- Click "Start Browsing": Go to products.html if empty
+================================================================================
+-->
 <html lang="en">
 
 <head>

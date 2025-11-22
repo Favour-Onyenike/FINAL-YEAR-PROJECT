@@ -1,4 +1,70 @@
 <!DOCTYPE html>
+<!--
+================================================================================
+UNIMARKET - LOGIN PAGE (login.html)
+================================================================================
+PURPOSE: Allow existing students to log into UniMarket
+
+FORM FIELDS:
+1. Email Address (email) - University email (@bazeuniversity.edu.ng)
+2. Password (password) - User password
+3. Password visibility toggle (eye icon) - Show/hide password
+4. Forgot password link (placeholder for future feature)
+
+API ENDPOINT: backend/main.py (lines 190-246) POST /api/auth/login
+REQUEST: {email, password}
+RESPONSE: 201 OK + {token, user}
+
+JAVASCRIPT LOGIC (find in this file):
+- Password toggle: Shows/hides password text
+- Form submission: Sends to /api/auth/login
+- Status indicator: Shows loading spinner, success checkmark, or error X
+- On success: Stores token + user data, redirects to products.html
+- On error: Display error message for 3 seconds
+
+USER FEEDBACK:
+- Green spinner during submission
+- Success checkmark (green) - redirects to products page
+- Error X (red) - auto-dismisses after 3 seconds
+- Shows specific error: "Invalid email or password"
+
+RESPONSE STRUCTURE:
+{
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "user": {
+        "id": 1,
+        "fullName": "John Doe",
+        "email": "john@bazeuniversity.edu.ng",
+        "username": "johndoe",
+        "bio": "Optional biography",
+        "profileImage": "/uploads/products/avatar.jpg",
+        "phone": "0801234567"
+    }
+}
+
+LOCAL STORAGE (on success):
+- Stores JWT token: localStorage.setItem('token', token)
+- Stores user data: localStorage.setItem('user', userJSON)
+- Navbar updates to show icons instead of login/signup buttons
+
+TOKEN USAGE:
+- Added to every API request: Authorization: Bearer <token>
+- Expires in 7 days (604,800 seconds)
+- Can be manually cleared by logout function
+
+SECURITY:
+- Password sent to backend for bcrypt verification (never plain text)
+- Token used for all authenticated requests
+- Password toggle uses eye icon for UX
+
+ERROR HANDLING:
+- Invalid email or password → 401 Unauthorized
+- Network error → Displays error message
+- Expired token → User must log in again
+
+NEXT STEP: User redirected to products.html (shop page) after login
+================================================================================
+-->
 <html lang="en">
 
 <head>

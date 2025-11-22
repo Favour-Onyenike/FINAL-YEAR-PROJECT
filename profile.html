@@ -1,4 +1,77 @@
 <!DOCTYPE html>
+<!--
+================================================================================
+UNIMARKET - USER PROFILE PAGE (profile.html)
+================================================================================
+PURPOSE: Display user profile (own or other users)
+FEATURES:
+- View profile information (name, username, bio, picture, stats)
+- View user's product listings (My Listings tab)
+- View saved items (Saved tab) - owner only
+- Edit profile button - owner only
+- New Listing button - owner only
+
+ACCESS CONTROL:
+- Account owner: Can see Edit Profile button, Saved tab, New Listing button
+- Other visitors: Can see profile read-only, no edit options
+- Profile information displayed: name, username, bio, avatar, stats
+
+PROFILE DATA SHOWN:
+- Avatar (profile picture or placeholder icon if not uploaded)
+- Full Name and Username
+- Bio (or "No bio yet" if empty)
+- Stats: Number of Listings, Number of Sales
+- User's Products: List of items they're selling
+
+TABS:
+1. "My Listings" or "[Username]'s Listings" - Product grid
+2. "Saved" (owner-only) - Bookmarked products
+
+API ENDPOINTS:
+- GET /api/users/{id} (get user profile data)
+- GET /api/products?userId={id} (get user's products)
+- GET /api/saved-items (get user's saved items - owner only)
+
+QUERY PARAMETERS:
+- userId (optional): View specific user's profile
+- If not provided: View current logged-in user's profile
+
+JAVASCRIPT LOGIC (find in this file):
+- loadUserProfile(): Loads user data from API or localStorage
+- Checks if current user is profile owner
+- Shows/hides owner-only buttons based on ownership
+- switchTab(): Toggle between Listings and Saved tabs
+- Dynamic UI: Titles change ("My" vs "[Username]'s")
+
+SECURITY:
+- Redirect to login if no token and trying to edit
+- Only account owner can see Saved Items tab
+- Only account owner can see Edit Profile button
+- Only account owner can see New Listing button
+- Edit profile page requires authentication
+
+LOCAL STORAGE:
+- User data stored from login/signup
+- Used to pre-fill edit profile form
+
+RESPONSIVE DESIGN:
+- Mobile: Single column layout
+- Tablet: Two column layout
+- Desktop: Full width with sidebar
+
+STYLING:
+- Profile header: Avatar + info + buttons
+- Tabs: Toggle between listings and saved
+- Product grid: Responsive grid layout
+- Empty state: "No listings yet" message
+
+NEXT STEPS FROM HERE:
+- Edit Profile: Redirect to edit-profile.html
+- New Listing: Redirect to sell.html
+- View Saved: Show saved-items tab
+- View Product: Click product to go to product-detail.html
+================================================================================
+-->
 <html lang="en">
 
 <head>

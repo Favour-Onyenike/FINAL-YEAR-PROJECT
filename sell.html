@@ -1,4 +1,114 @@
 <!DOCTYPE html>
+<!--
+================================================================================
+UNIMARKET - CREATE PRODUCT LISTING PAGE (sell.html)
+================================================================================
+PURPOSE: Allow users to create and list products for sale
+AUTHENTICATION: Requires logged-in user (JWT token in localStorage)
+FEATURES:
+- Product form with all required fields
+- Multiple image upload (3-5 required)
+- Real-time image validation feedback
+- Image previews before upload
+- Automatic form submission and product creation
+
+FORM FIELDS:
+1. Product Name (text, required, max 255 chars)
+2. Description (textarea, required, max 5000 chars)
+3. Price (number, required, ₦0-₦10,000)
+4. Category (dropdown, required):
+   - Textbooks
+   - Electronics
+   - Clothing
+   - Furniture
+   - Other
+5. Condition (dropdown, required):
+   - New
+   - Like New
+   - Good
+   - Fair
+6. Size (text, optional, for clothing items)
+7. Color (text, optional)
+8. Images (file upload, required 3-5 images):
+   - Click to select files
+   - See previews immediately
+   - Real-time validation: must be 3-5 images
+   - File types: JPEG, PNG, GIF, WebP, SVG, etc.
+
+IMAGE UPLOAD PROCESS:
+1. User clicks image area or upload button
+2. File picker opens (shows image files only)
+3. Selected images show instant preview
+4. Real-time counter shows: "X/5 images"
+5. Green checkmark when 3-5 images ready
+6. Red X if <3 or >5 images
+7. Images upload to /api/upload endpoint
+8. URLs stored for product creation
+
+VALIDATION RULES:
+- Product name: 1-255 chars (required)
+- Description: 1-5000 chars (required)
+- Price: 0-10,000,000 (required)
+- Category: Must select (required)
+- Condition: Must select (required)
+- Images: Must be 3-5 images (REQUIRED MINIMUM/MAXIMUM)
+  * Shows error if < 3 images
+  * Shows error if > 5 images
+  * Green checkmark when valid (3-5)
+
+API ENDPOINTS:
+1. POST /api/upload (upload each image)
+   - File sent as multipart/form-data
+   - Returns: {imageUrl: "/uploads/products/uuid.jpg"}
+   
+2. POST /api/products (create product listing)
+   - Sends all product data + image URLs
+   - Returns: Complete product object with ID
+
+JAVASCRIPT LOGIC (find in this file):
+- Validate form inputs before submission
+- Image file selection handling
+- Image preview generation (FileReader API)
+- Real-time image count validation
+- Upload images to /api/upload
+- Submit product to /api/products
+- Show loading spinner during submission
+- Show success message and redirect to profile
+- Show error message if validation fails
+
+LOADING & FEEDBACK:
+- Loading spinner during image upload
+- Loading spinner during product creation
+- Status messages: "Uploading...", "Creating listing..."
+- Success: Redirect to profile.html with new product
+- Error: Display error message, stay on form
+
+SECURITY:
+- Requires JWT token (redirects to login if not present)
+- Backend validates user ownership
+- Backend validates image types
+- Backend validates product data
+- Images stored in backend/uploads/products/
+
+RESPONSIVE DESIGN:
+- Mobile: Single column, full width inputs
+- Tablet: Two column layout
+- Desktop: Three column layout
+- Images always full width for preview
+
+NEXT STEP AFTER SUBMISSION:
+- Success: Redirect to profile.html
+- User sees new product in their "My Listings" tab
+- Product appears in product search/browse
+- Product can be edited or deleted from profile
+
+TROUBLESHOOTING:
+- No image selected: Message says "Add 3-5 images"
+- Only 2 images: Red X "Need 3 images minimum"
+- 6 images: Red X "Max 5 images only"
+- Exactly 3-5: Green checkmark "Ready to sell!"
+================================================================================
+-->
 <html lang="en">
 
 <head>
