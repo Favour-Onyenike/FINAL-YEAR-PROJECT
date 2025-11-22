@@ -198,12 +198,12 @@ TROUBLESHOOTING:
         <form class="form-card" id="sell-form">
             <div class="form-group">
                 <label class="form-label">Product Name *</label>
-                <input type="text" class="input" placeholder="e.g., Engineering Mechanics Textbook" required>
+                <input type="text" id="product-name" class="input" placeholder="e.g., Engineering Mechanics Textbook" required>
             </div>
 
             <div class="form-group">
                 <label class="form-label">Description *</label>
-                <textarea class="input" placeholder="Describe the condition, features, and any other details..."
+                <textarea id="product-description" class="input" placeholder="Describe the condition, features, and any other details..."
                     required></textarea>
             </div>
 
@@ -407,8 +407,8 @@ TROUBLESHOOTING:
             
             try {
                 // Get form data
-                const productName = document.querySelector('input[placeholder*="Engineering"]').value;
-                const description = document.querySelector('textarea').value;
+                const productName = document.getElementById('product-name').value;
+                const description = document.getElementById('product-description').value;
                 const price = parseFloat(document.getElementById('price-input').value);
                 const category = document.getElementById('category-select').value;
                 const condition = document.getElementById('condition-select').value;
