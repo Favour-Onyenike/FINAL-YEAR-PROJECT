@@ -434,17 +434,37 @@
 
         if (categorySelect && clothingFilters) {
             categorySelect.addEventListener('change', (e) => {
-                if (e.target.value === 'clothing') {
+                // Show/hide clothing-specific filters
+                if (e.target.value === 'Clothing') {
                     clothingFilters.classList.remove('hidden');
                 } else {
                     clothingFilters.classList.add('hidden');
                 }
+                // Update filter and fetch products
+                updateCategory(e.target.value);
             });
         }
 
         if (priceRange && priceValue) {
             priceRange.addEventListener('input', (e) => {
                 priceValue.textContent = `$${e.target.value}`;
+                updatePriceRange(0, parseInt(e.target.value));
+            });
+        }
+
+        // Condition filter listeners
+        const conditionRadios = document.querySelectorAll('input[name="condition"]');
+        conditionRadios.forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                updateCondition(e.target.value);
+            });
+        });
+
+        // Sort dropdown listener
+        const sortSelect = document.getElementById('sort-select');
+        if (sortSelect) {
+            sortSelect.addEventListener('change', (e) => {
+                updateSort(e.target.value);
             });
         }
 
