@@ -41,14 +41,16 @@
 
         <form class="form-card" id="edit-profile-form">
             <div class="form-group" style="text-align: center;">
-                <div class="profile-avatar" style="margin: 0 auto 1rem; position: relative; cursor: pointer;" id="avatar-upload-btn">
-                    <img id="edit-avatar-img" src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=2000&auto=format&fit=crop"
-                        alt="Avatar" style="cursor: pointer;">
+                <div class="profile-avatar" style="margin: 0 auto 1rem; position: relative; cursor: pointer; background: var(--secondary); display: flex; align-items: center; justify-content: center;" id="avatar-upload-btn">
+                    <img id="edit-avatar-img" style="cursor: pointer; display: none;">
+                    <div id="avatar-placeholder" style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;">
+                        <i data-lucide="camera" style="width: 3rem; height: 3rem; color: var(--muted);"></i>
+                    </div>
                     <button type="button" class="btn-icon btn-primary" style="position: absolute; bottom: 0; right: 0;">
                         <i data-lucide="camera" style="width: 1rem;"></i>
                     </button>
                 </div>
-                <p style="font-size: 0.875rem; color: var(--muted);">Click to change profile photo</p>
+                <p style="font-size: 0.875rem; color: var(--muted);">Click to add profile photo</p>
                 
                 <!-- Hidden file input -->
                 <input type="file" id="avatar-file-input" accept="image/*" style="display: none;">
@@ -119,6 +121,8 @@
                     }
                     if (data.avatar_url) {
                         document.getElementById('edit-avatar-img').src = data.avatar_url;
+                        document.getElementById('edit-avatar-img').style.display = 'block';
+                        document.getElementById('avatar-placeholder').style.display = 'none';
                     }
                 })
                 .catch(err => console.log('Could not load extended profile data'));
@@ -140,6 +144,8 @@
             const reader = new FileReader();
             reader.onload = (event) => {
                 document.getElementById('edit-avatar-img').src = event.target.result;
+                document.getElementById('edit-avatar-img').style.display = 'block';
+                document.getElementById('avatar-placeholder').style.display = 'none';
             };
             reader.readAsDataURL(file);
             
