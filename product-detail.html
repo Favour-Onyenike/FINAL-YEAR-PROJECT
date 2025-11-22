@@ -104,22 +104,10 @@
         <!-- Left Column: Gallery -->
         <div class="gallery-container">
             <div class="main-image">
-                <img src="https://images.unsplash.com/photo-1544816155-12df9643f363?q=80&w=2000&auto=format&fit=crop"
-                    alt="Product Image" id="main-img">
+                <img src="" alt="Product Image" id="main-img" style="background: var(--secondary); min-height: 400px;">
             </div>
-            <div class="gallery-thumbnails">
-                <div class="thumbnail active" onclick="changeImage(this.querySelector('img').src)">
-                    <img src="https://images.unsplash.com/photo-1544816155-12df9643f363?q=80&w=2000&auto=format&fit=crop"
-                        alt="Thumbnail 1">
-                </div>
-                <div class="thumbnail" onclick="changeImage(this.querySelector('img').src)">
-                    <img src="https://images.unsplash.com/photo-1532012197267-da84d127e765?q=80&w=2000&auto=format&fit=crop"
-                        alt="Thumbnail 2">
-                </div>
-                <div class="thumbnail" onclick="changeImage(this.querySelector('img').src)">
-                    <img src="https://images.unsplash.com/photo-1589829085413-56de8ae18c73?q=80&w=2000&auto=format&fit=crop"
-                        alt="Thumbnail 3">
-                </div>
+            <div class="gallery-thumbnails" id="gallery-thumbnails">
+                <!-- Thumbnails will be loaded dynamically -->
             </div>
         </div>
 
@@ -130,22 +118,21 @@
                 <span>Back</span>
             </button>
             <div>
-                <span class="detail-category">Textbooks</span>
-                <h1 class="detail-title">Engineering Mechanics: Statics & Dynamics</h1>
+                <span class="detail-category">Loading...</span>
+                <h1 class="detail-title">Loading product...</h1>
             </div>
 
-            <div class="detail-price">₦45.00</div>
+            <div class="detail-price">Loading...</div>
 
             <div class="seller-card">
                 <div class="seller-avatar">
-                    <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=2000&auto=format&fit=crop"
-                        alt="Seller">
+                    <img src="" alt="Seller" style="background: var(--secondary);">
                 </div>
                 <div class="seller-info">
-                    <h4>Sold by Alex Johnson</h4>
-                    <div class="seller-rating">
+                    <h4>Loading seller info...</h4>
+                    <div class="seller-rating" style="display: none;">
                         <i data-lucide="star" style="width: 1rem; fill: #fbbf24; color: #fbbf24;"></i>
-                        <span>4.8 (24 reviews)</span>
+                        <span>Loading...</span>
                     </div>
                 </div>
                 <a href="messages.html" class="btn btn-outline" style="margin-left: auto;">Contact</a>
@@ -153,8 +140,7 @@
 
             <div class="detail-description">
                 <h3>Description</h3>
-                <p>Used for one semester. In great condition, no highlighting or markings inside. Includes the access
-                    code for online materials (unused). Can meet at the library or student center for pickup.</p>
+                <p>Loading product description...</p>
             </div>
 
             <div class="detail-actions">
@@ -490,7 +476,7 @@
                     }
                     
                     // Update thumbnails
-                    const galleryThumbnails = document.querySelector('.gallery-thumbnails');
+                    const galleryThumbnails = document.getElementById('gallery-thumbnails');
                     if (galleryThumbnails) {
                         galleryThumbnails.innerHTML = product.images.map((img, index) => `
                             <div class="thumbnail ${index === 0 ? 'active' : ''}" onclick="changeImage(this.querySelector('img').src)">
