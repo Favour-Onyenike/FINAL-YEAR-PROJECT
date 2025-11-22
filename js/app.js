@@ -346,13 +346,22 @@ function requireLogin() {
 async function updateMessageBadge() {
     try {
         const token = getToken();
-        const userId = localStorage.getItem('userId');
+        const userStr = localStorage.getItem('user');
         
-        if (!token || !userId) {
+        if (!token || !userStr) {
             // Hide badge if not logged in
             const badge = document.getElementById('message-badge');
             if (badge) badge.classList.add('hidden');
             console.debug('Badge update skipped: user not logged in');
+            return;
+        }
+        
+        // Parse user object to get ID
+        const user = JSON.parse(userStr);
+        const userId = user.id;
+        
+        if (!userId) {
+            console.debug('No userId found in user object');
             return;
         }
         
