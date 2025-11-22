@@ -324,7 +324,7 @@ NEXT STEPS FROM HERE:
             // Render products
             grid.innerHTML = products.map(product => {
                 const primaryImage = product.images && product.images.length > 0 
-                    ? product.images[0].image_url 
+                    ? getImageUrl(product.images[0].image_url)
                     : 'https://via.placeholder.com/300x300?text=No+Image';
                 
                 return `
