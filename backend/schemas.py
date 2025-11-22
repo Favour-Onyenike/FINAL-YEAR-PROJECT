@@ -465,3 +465,24 @@ class UploadResponse(BaseModel):
     <img src="/uploads/products/3fa85f64-5717-4562-b3fc-2c963f66afa6.jpg" />
     """
     imageUrl: str
+
+# =============================================================================
+# MESSAGE SCHEMAS (Real-time Chat)
+# =============================================================================
+
+class MessageCreate(BaseModel):
+    """Schema for creating a new message"""
+    receiverId: int
+    content: str
+
+class MessageResponse(BaseModel):
+    """Schema for message response"""
+    id: int
+    senderId: int
+    receiverId: int
+    content: str
+    createdAt: datetime
+    isRead: int
+    
+    class Config:
+        from_attributes = True

@@ -36,14 +36,15 @@ import os
 import shutil
 import uuid  # Generate unique filenames
 from datetime import datetime
+import socketio  # Real-time websocket communication
 
 # Import database and authentication functions
 from backend.database import get_db, init_db
-from backend.models import User, University, Product, ProductImage, SavedItem, Category
+from backend.models import User, University, Product, ProductImage, SavedItem, Category, Message
 from backend.schemas import (
     UserRegister, UserLogin, UserResponse, LoginResponse, UserUpdate,
     ProductCreate, ProductUpdate, ProductResponse, ProductListResponse,
-    SavedItemToggle, SavedItemResponse, UploadResponse,
+    SavedItemToggle, SavedItemResponse, UploadResponse, MessageCreate, MessageResponse,
     SellerInfo, CategoryResponse, ProductImageResponse
 )
 from backend.auth import (
@@ -61,6 +62,18 @@ app = FastAPI(
     # Swagger UI will be available at /docs
     # ReDoc will be available at /redoc
 )
+
+# Initialize Socket.IO for real-time messaging
+sio = socketio.AsyncServer(
+    async_mode='asgi',
+    cors_allowed_origins=['*'],  # Allow all origins for development
+    logger=False,
+    engineio_logger=False
+)
+
+# Create ASGI app that combines FastAPI and Socket.IO
+from socketio import ASGIApp
+app_with_sio = ASGIApp(sio, app)
 
 # =============================================================================
 # CORS MIDDLEWARE
@@ -875,3 +888,150 @@ def get_categories(db: Session = Depends(get_db)):
     """
     categories = db.query(Category).all()
     return [{"id": c.id, "name": c.name} for c in categories]
+
+# =============================================================================
+# REAL-TIME MESSAGING (Socket.IO)
+# =============================================================================
+
+# Track connected users: {user_id: socket_id}
+connected_users = {}
+
+@sio.event
+async def connect(sid, environ):
+    """Handle user connection to Socket.IO"""
+    print(f"Client connected: {sid}")
+
+@sio.event
+async def disconnect(sid):
+    """Handle user disconnection from Socket.IO"""
+    # Remove user from connected list
+    for user_id, socket_id in list(connected_users.items()):
+        if socket_id == sid:
+            del connected_users[user_id]
+    print(f"Client disconnected: {sid}")
+
+@sio.event
+async def authenticate(sid, data):
+    """Authenticate user for Socket.IO connection"""
+    user_id = data.get('userId')
+    if user_id:
+        connected_users[user_id] = sid
+        await sio.emit('authenticated', {'status': 'ok', 'userId': user_id}, to=sid)
+
+@sio.event
+async def send_message(sid, data, environ):
+    """Handle real-time message sending via Socket.IO"""
+    # This is just the real-time event - messages are also saved via REST API
+    receiver_id = data.get('receiverId')
+    content = data.get('content')
+    sender_id = data.get('senderId')
+    
+    # Emit to receiver if connected
+    if receiver_id in connected_users:
+        receiver_sid = connected_users[receiver_id]
+        await sio.emit('receive_message', {
+            'senderId': sender_id,
+            'content': content,
+            'timestamp': datetime.utcnow().isoformat()
+        }, to=receiver_sid)
+    
+    # Emit back to sender for confirmation
+    await sio.emit('message_sent', {'status': 'success'}, to=sid)
+
+# =============================================================================
+# MESSAGE REST API ENDPOINTS
+# =============================================================================
+
+@app.post("/api/messages", response_model=MessageResponse)
+async def send_message_api(
+    message_data: MessageCreate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Send a message to another user.
+    
+    REQUIRES: Valid JWT token
+    
+    REQUEST BODY:
+    {
+        "receiverId": 5,
+        "content": "Hi, is this still available?"
+    }
+    
+    RETURNS: Message object with timestamp
+    """
+    # Verify receiver exists
+    receiver = db.query(User).filter(User.id == message_data.receiverId).first()
+    if not receiver:
+        raise HTTPException(status_code=404, detail="Receiver not found")
+    
+    # Create message
+    new_message = Message(
+        sender_id=current_user.id,
+        receiver_id=message_data.receiverId,
+        content=message_data.content
+    )
+    
+    db.add(new_message)
+    db.commit()
+    db.refresh(new_message)
+    
+    # Emit real-time notification via Socket.IO if receiver is connected
+    if message_data.receiverId in connected_users:
+        await sio.emit('receive_message', {
+            'senderId': current_user.id,
+            'content': message_data.content,
+            'timestamp': new_message.created_at.isoformat()
+        }, to=connected_users[message_data.receiverId])
+    
+    return {
+        "id": new_message.id,
+        "senderId": new_message.sender_id,
+        "receiverId": new_message.receiver_id,
+        "content": new_message.content,
+        "createdAt": new_message.created_at,
+        "isRead": new_message.is_read
+    }
+
+@app.get("/api/messages/{user_id}", response_model=List[MessageResponse])
+def get_messages(
+    user_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Get all messages between current user and another user.
+    
+    REQUIRES: Valid JWT token
+    
+    PARAMETERS:
+    - user_id: The other user's ID (conversation partner)
+    
+    RETURNS: List of messages in chronological order
+    """
+    # Get all messages between these two users
+    messages = db.query(Message).filter(
+        or_(
+            and_(Message.sender_id == current_user.id, Message.receiver_id == user_id),
+            and_(Message.sender_id == user_id, Message.receiver_id == current_user.id)
+        )
+    ).order_by(Message.created_at).all()
+    
+    # Mark messages as read
+    for msg in messages:
+        if msg.receiver_id == current_user.id and msg.is_read == 0:
+            msg.is_read = 1
+    db.commit()
+    
+    return [
+        {
+            "id": m.id,
+            "senderId": m.sender_id,
+            "receiverId": m.receiver_id,
+            "content": m.content,
+            "createdAt": m.created_at,
+            "isRead": m.is_read
+        }
+        for m in messages
+    ]

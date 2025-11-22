@@ -11,8 +11,10 @@ dependencies = [
     "psycopg2-binary>=2.9.11",
     "pydantic[email]>=2.12.4",
     "pyjwt>=2.10.1",
+    "python-engineio>=4.12.3",
     "python-jose[cryptography]>=3.5.0",
     "python-multipart>=0.0.20",
+    "python-socketio>=5.14.3",
     "sqlalchemy>=2.0.44",
     "uvicorn[standard]>=0.38.0",
 ]

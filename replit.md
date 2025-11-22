@@ -55,21 +55,33 @@ UniMarket employs a client-server architecture with a clear separation between t
 - ✅ **Like Feature**: Completely removed - clean UI with save & comment only
 
 ### Recent Changes (2025-11-22)
-1. **Profile Update Functionality**: Added backend PUT endpoint (PUT /api/users/{user_id}) and GET endpoint (GET /api/users/{user_id}) for profile management
+1. **Socket.IO Real-time Chat Integration**: Implemented WebSocket support for real-time messaging
+   - Installed `python-socketio` and `python-engineio` packages
+   - Created `Message` database model for persistent message storage
+   - Added Socket.IO event handlers: `connect`, `disconnect`, `authenticate`, `send_message`
+   - Created REST API endpoints for messages: `POST /api/messages` and `GET /api/messages/{user_id}`
+   - Socket.IO client library added to all 14 HTML pages via CDN
+   - Backend now runs `app_with_sio` (ASGI app combining FastAPI + Socket.IO)
+   - Real-time message delivery when users are online; fallback to REST API
+   - Messages persist to SQLite database
+   - User presence tracking via `connected_users` dictionary
+   - **UI/Functionality unchanged** - All existing features remain fully functional
+
+2. **Profile Update Functionality**: Added backend PUT endpoint (PUT /api/users/{user_id}) and GET endpoint (GET /api/users/{user_id}) for profile management
    - Full Name, Bio, and Avatar URL can now be updated
    - Changes persist to database and are immediately visible
-2. **Profile Dropdown Menu**: Replaced separate logout button with a profile dropdown
+3. **Profile Dropdown Menu**: Replaced separate logout button with a profile dropdown
    - Click profile icon to reveal dropdown menu
    - Dropdown options: "View Profile" and "Log Out"
    - Cleaner navbar with consolidated profile actions
    - Works across all pages (index, products, messages, profile, saved-items, edit-profile, sell)
-3. **Removed Notification Icon**: Cleaned up desktop navbar by removing notification bell icon
+4. **Removed Notification Icon**: Cleaned up desktop navbar by removing notification bell icon
    - Messages section already handles all communication needs
    - Navbar now shows: Messages, Saved Items, Profile (with dropdown)
-4. **Like Feature Removal**: All heart icons removed from homepage, products, profile, and saved-items pages
-5. **Image Validation**: Enforced 3-5 image minimum/maximum per product listing with live feedback
-6. **UI Cleanup**: All references to likes removed for a simpler, focused interface
-7. **Working Account Creation**: 
+5. **Like Feature Removal**: All heart icons removed from homepage, products, profile, and saved-items pages
+6. **Image Validation**: Enforced 3-5 image minimum/maximum per product listing with live feedback
+7. **UI Cleanup**: All references to likes removed for a simpler, focused interface
+8. **Working Account Creation**: 
    - Signup and login forms now connected to real backend API
    - Users can create accounts with full name, email (@bazeuniversity.edu.ng), and password
    - **Password Requirements**: Minimum 6 characters, 1 uppercase letter, 1 number
@@ -80,7 +92,7 @@ UniMarket employs a client-server architecture with a clear separation between t
    - JWT tokens issued and stored for authenticated sessions
    - Users can log in and access profile page
    - Auto-login after signup for seamless experience
-5. **Dynamic User Profiles**:
+9. **Dynamic User Profiles**:
    - Each new signup creates their own profile page with their name/username
    - Profile page loads user data from localStorage on signup
    - Users can edit their profile (name, bio) from "Edit Profile" button
@@ -88,23 +100,23 @@ UniMarket employs a client-server architecture with a clear separation between t
    - Each user's profile is independent and shows only their data
    - Only account owners can edit their profile and view saved items
    - Other users can view profiles but see limited read-only information
-6. **Profile Picture Upload**:
-   - No default profile image - users must upload their own
-   - Click camera icon on Edit Profile page to upload a picture
-   - Instant preview of selected image before saving
-   - Image automatically uploaded to backend when file selected
-   - Avatar URL saved with profile changes
-   - Supports all standard image formats (JPG, PNG, GIF, WebP, etc.)
-   - Placeholder icons show until user uploads an image
-7. **Navbar Authentication State**:
-   - When logged out: Shows "Log In" and "Sign Up" buttons
-   - When logged in: Shows icon buttons (Notification bell, Message, Saved bookmark, Profile)
-   - Automatically updates based on JWT token presence in localStorage
-   - Logout removes token and user data
-8. **API Proxy**:
-   - Frontend server (port 5000) now proxies /api/* requests to backend (port 8000)
-   - Enables API calls from embedded Replit domain without "connection error"
-   - Seamless authentication flow for signup and login
+10. **Profile Picture Upload**:
+    - No default profile image - users must upload their own
+    - Click camera icon on Edit Profile page to upload a picture
+    - Instant preview of selected image before saving
+    - Image automatically uploaded to backend when file selected
+    - Avatar URL saved with profile changes
+    - Supports all standard image formats (JPG, PNG, GIF, WebP, etc.)
+    - Placeholder icons show until user uploads an image
+11. **Navbar Authentication State**:
+    - When logged out: Shows "Log In" and "Sign Up" buttons
+    - When logged in: Shows icon buttons (Notification bell, Message, Saved bookmark, Profile)
+    - Automatically updates based on JWT token presence in localStorage
+    - Logout removes token and user data
+12. **API Proxy**:
+    - Frontend server (port 5000) now proxies /api/* requests to backend (port 8000)
+    - Enables API calls from embedded Replit domain without "connection error"
+    - Seamless authentication flow for signup and login
 
 ## External Dependencies
 - **FastAPI**: Python web framework for building the backend API.
@@ -114,4 +126,7 @@ UniMarket employs a client-server architecture with a clear separation between t
 - **python-jose[cryptography]**: For JWT (JSON Web Token) authentication.
 - **bcrypt**: For secure password hashing.
 - **uvicorn**: ASGI server to run FastAPI applications.
+- **python-socketio**: WebSocket support for real-time messaging via Socket.IO.
+- **python-engineio**: Engine for Socket.IO communication protocol.
 - **Lucide Icons**: Icon library used via CDN for frontend iconography.
+- **Socket.IO Client**: JavaScript library (via CDN) for real-time client-side communication.

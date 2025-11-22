@@ -341,3 +341,49 @@ class SavedItem(Base):
     
     # Relationship: This saved item points to one product
     product = relationship("Product", back_populates="saved_by")
+
+# =============================================================================
+# MESSAGE TABLE (Real-time Chat)
+# =============================================================================
+class Message(Base):
+    """
+    Represents a message between two users in a chat conversation.
+    Stores message content, sender, receiver, and timestamps.
+    
+    COLUMNS:
+    - id: Primary key
+    - sender_id: User who sent the message
+    - receiver_id: User who received the message
+    - content: Message text
+    - created_at: When the message was sent
+    - is_read: Whether the receiver has read it
+    
+    RELATIONSHIPS:
+    - sender: The user who sent the message
+    - receiver: The user who received the message
+    """
+    __tablename__ = "messages"
+    
+    # Unique ID for each message
+    id = Column(Integer, primary_key=True, index=True)
+    
+    # Foreign key: Who sent this message?
+    sender_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    
+    # Foreign key: Who received this message?
+    receiver_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    
+    # Message content
+    content = Column(Text, nullable=False)
+    
+    # Whether the receiver has read it
+    is_read = Column(Integer, default=0)  # 0 = unread, 1 = read
+    
+    # Timestamp of when message was created
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+    
+    # Relationship: Sender user
+    sender = relationship("User", foreign_keys=[sender_id])
+    
+    # Relationship: Receiver user
+    receiver = relationship("User", foreign_keys=[receiver_id])
