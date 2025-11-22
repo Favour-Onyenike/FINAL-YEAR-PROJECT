@@ -974,6 +974,7 @@ async def send_message(sid, data, environ):
 @app.post("/api/messages", response_model=MessageResponse)
 async def send_message_api(
     message_data: MessageCreate,
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """
@@ -992,9 +993,9 @@ async def send_message_api(
     if not receiver:
         raise HTTPException(status_code=404, detail="Receiver not found")
     
-    # Create message (sender is always user 6 for now)
+    # Create message with current user as sender
     new_message = Message(
-        sender_id=6,
+        sender_id=current_user.id,
         receiver_id=message_data.receiverId,
         content=message_data.content
     )
@@ -1023,6 +1024,7 @@ async def send_message_api(
 @app.get("/api/messages/{user_id}", response_model=List[MessageResponse])
 def get_messages(
     user_id: int,
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """
@@ -1033,17 +1035,17 @@ def get_messages(
     
     RETURNS: List of messages in chronological order
     """
-    # Get all messages between these two users
+    # Get all messages between the current user and the specified user
     messages = db.query(Message).filter(
         or_(
-            and_(Message.sender_id == 6, Message.receiver_id == user_id),
-            and_(Message.sender_id == user_id, Message.receiver_id == 6)
+            and_(Message.sender_id == current_user.id, Message.receiver_id == user_id),
+            and_(Message.sender_id == user_id, Message.receiver_id == current_user.id)
         )
     ).order_by(Message.created_at).all()
     
-    # Mark messages as read (for user 6)
+    # Mark messages as read (for current user)
     for msg in messages:
-        if msg.receiver_id == 6 and msg.is_read == 0:
+        if msg.receiver_id == current_user.id and msg.is_read == 0:
             msg.is_read = 1
     db.commit()
     
