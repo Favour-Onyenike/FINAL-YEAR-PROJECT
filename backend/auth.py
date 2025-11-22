@@ -204,33 +204,23 @@ def get_current_user(
     try:
         # Extract the token from the credentials
         # credentials.credentials contains the token part of "Bearer <token>"
-        if not credentials:
-            print("ERROR: No credentials provided!")
-            raise credentials_exception
-            
         token = credentials.credentials
-        print(f"DEBUG: Token length: {len(token)}, First 20 chars: {token[:20]}")
-        print(f"DEBUG: SECRET_KEY being used: {SECRET_KEY[:10]}...")
         
         # Decode the JWT token using SECRET_KEY
         # jwt.decode verifies the signature and checks expiration
         # If token is invalid or expired, raises JWTError
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        print(f"DEBUG: Token decoded successfully! Payload: {payload}")
         
         # Extract userId from token payload
         # We stored userId in create_access_token
         user_id = payload.get("userId")
-        print(f"DEBUG: Extracted userId from token: {user_id}")
         
         # Check if userId was found in token
         if user_id is None:
-            print("ERROR: userId not found in token payload!")
             raise credentials_exception
             
-    except JWTError as e:
+    except JWTError:
         # If any JWT error occurs (invalid, expired, etc.)
-        print(f"ERROR: JWT validation failed: {str(e)}")
         raise credentials_exception
     
     # Query database for the user with this ID

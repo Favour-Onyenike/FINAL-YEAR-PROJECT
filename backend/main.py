@@ -243,10 +243,9 @@ def login(credentials: UserLogin, db: Session = Depends(get_db)):
     # Create JWT token
     # Token contains userId and expires in 7 days
     access_token = create_access_token(data={"userId": user.id})
-    print(f"DEBUG LOGIN: Created token for user {user.id}: {access_token[:30]}...")
     
     # Return token + user info
-    response = {
+    return {
         "token": access_token,
         "user": {
             "id": user.id,
@@ -258,8 +257,6 @@ def login(credentials: UserLogin, db: Session = Depends(get_db)):
             "phone": user.phone
         }
     }
-    print(f"DEBUG LOGIN: Returning response with token key: {'token' in response}, token value type: {type(response.get('token'))}")
-    return response
 
 @app.get("/api/auth/me", response_model=UserResponse)
 def get_me(current_user: User = Depends(get_current_user)):
