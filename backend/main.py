@@ -948,7 +948,7 @@ async def authenticate(sid, data):
         await sio.emit('authenticated', {'status': 'ok', 'userId': user_id}, to=sid)
 
 @sio.event
-async def send_message(sid, data, environ):
+async def send_message(sid, data):
     """Handle real-time message sending via Socket.IO"""
     # This is just the real-time event - messages are also saved via REST API
     receiver_id = data.get('receiverId')
