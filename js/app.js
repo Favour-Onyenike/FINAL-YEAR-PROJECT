@@ -490,7 +490,7 @@ async function updateMessageBadge() {
             if (unreadCount > 0) {
                 badge.textContent = '●';
                 badge.classList.remove('hidden');
-                badge.style.fontSize = '0.75rem';
+                badge.style.fontSize = '0.5rem';
                 badge.style.color = '#ef4444';
                 console.log('✅ Badge updated with unread count:', unreadCount);
             } else {
