@@ -437,6 +437,8 @@
                     
                     // Fetch message counts for each user
                     let conversationsWithMessages = [];
+                    const currentUserIdFromStorage = JSON.parse(localStorage.getItem('user')).id;
+                    
                     for (let user of conversations) {
                         try {
                             const msgResponse = await fetch(`/api/messages/${user.id}`, {
@@ -448,6 +450,10 @@
                                 if (messages.length > 0) {
                                     user.lastMessage = messages[messages.length - 1].content;
                                     user.lastMessageTime = messages[messages.length - 1].createdAt;
+                                    // Store messages for unread count calculation
+                                    user.messages = messages;
+                                    // Calculate unread count (messages from this user that we haven't read)
+                                    user.unreadCount = messages.filter(m => m.receiverId === currentUserIdFromStorage && m.isRead === 0).length;
                                     conversationsWithMessages.push(user);
                                 }
                             }
@@ -492,6 +498,7 @@
 
             container.innerHTML = convos.map(user => `
                 <div class="conversation-item" style="position: relative;">
+                    ${user.unreadCount > 0 ? `<div style="position: absolute; top: -5px; right: -5px; background: #ef4444; color: white; border-radius: 50%; width: 1.5rem; height: 1.5rem; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: bold; z-index: 10;">${user.unreadCount}</div>` : ''}
                     <a href="profile.html?userId=${user.id}" class="conversation-avatar" style="width: 3rem; height: 3rem; background: var(--secondary); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; text-decoration: none; flex-shrink: 0; overflow: hidden;">
                         ${user.profileImage ? `<img src="${getImageUrl(user.profileImage)}" alt="${user.username}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block;">` : `<i data-lucide="user" style="width: 1.5rem; height: 1.5rem;"></i>`}
                     </a>
@@ -552,7 +559,19 @@
                     }
                 });
                 if (response.ok) {
-                    // After marking as read, update the badge
+                    // After marking as read, update badges
+                    if (allUsers[userId]) {
+                        allUsers[userId].unreadCount = 0;
+                    }
+                    // Remove the unread badge from this conversation
+                    const conversationItems = document.querySelectorAll('.conversation-item');
+                    conversationItems.forEach((item, index) => {
+                        const badge = item.querySelector('div[style*="background: #ef4444"]');
+                        if (badge) {
+                            badge.remove();
+                        }
+                    });
+                    // Update navbar badge
                     if (window.updateMessageBadge) {
                         window.updateMessageBadge();
                     }
