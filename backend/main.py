@@ -77,7 +77,7 @@ from fastapi import FastAPI, Depends, HTTPException, status, UploadFile, File, Q
 from fastapi.middleware.cors import CORSMiddleware  # Allow cross-origin requests
 from fastapi.staticfiles import StaticFiles  # Serve static files (images)
 from sqlalchemy.orm import Session
-from sqlalchemy import or_, and_  # SQL query helpers
+from sqlalchemy import or_, and_, func, desc  # SQL query helpers
 from typing import List, Optional
 import os
 import shutil
@@ -1351,6 +1351,58 @@ def get_messages(
         }
         for m in messages
     ]
+
+@app.get("/api/conversations")
+def get_conversations(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Get all conversations for the current user.
+    Returns a list of users with the last message and unread count.
+    Optimized to avoid N+1 queries.
+    """
+    # Fetch all messages where current_user is sender or receiver
+    # Ordered by newest first
+    messages = db.query(Message).filter(
+        or_(
+            Message.sender_id == current_user.id,
+            Message.receiver_id == current_user.id
+        )
+    ).order_by(Message.created_at.desc()).all()
+    
+    conversations = {}
+    
+    print(f"DEBUG: Current User ID: {current_user.id}")
+    
+    for msg in messages:
+        other_user_id = msg.receiver_id if msg.sender_id == current_user.id else msg.sender_id
+        
+        print(f"DEBUG: Msg ID: {msg.id}, Sender: {msg.sender_id}, Receiver: {msg.receiver_id}, Other User ID: {other_user_id}")
+        
+        if other_user_id not in conversations:
+            # Fetch user details (cache this if possible, but for now query is okay as it's per unique user)
+            # To further optimize, we could fetch all relevant users in one query
+            other_user = db.query(User).filter(User.id == other_user_id).first()
+            if not other_user:
+                print(f"DEBUG: User {other_user_id} not found")
+                continue
+                
+            conversations[other_user_id] = {
+                "id": other_user.id,
+                "fullName": other_user.full_name,
+                "username": other_user.username,
+                "profileImage": other_user.profile_image,
+                "lastMessage": msg.content,
+                "lastMessageTime": msg.created_at,
+                "unreadCount": 0
+            }
+            
+        # Count unread messages (only if I am the receiver)
+        if msg.receiver_id == current_user.id and msg.is_read == 0:
+            conversations[other_user_id]["unreadCount"] += 1
+            
+    return list(conversations.values())
 
 @app.put("/api/messages/{user_id}/mark-read")
 def mark_messages_read(

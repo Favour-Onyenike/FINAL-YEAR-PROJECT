@@ -127,7 +127,7 @@ NEXT STEP:
             <a href="index.html" class="logo">UniMarket</a>
             <nav class="nav-links">
                 <a href="products.html" class="nav-link">Shop</a>
-                <a href="#" class="nav-link">About</a>
+                <a href="about.html" class="nav-link">About</a>
             </nav>
             <div class="search-bar">
                 <i data-lucide="search" class="search-icon"></i>
@@ -139,7 +139,7 @@ NEXT STEP:
                     <a href="login.html" class="btn btn-ghost">Log In</a>
                     <a href="signup-select-university.html" class="btn btn-primary">Sign Up</a>
                 </div>
-                
+
                 <!-- Logged In State -->
                 <div id="logged-in-actions" class="hidden" style="display: flex; gap: 1rem; align-items: center;">
                     <a href="messages.html" class="btn-icon btn-ghost nav-icon" title="Messages">
@@ -190,9 +190,13 @@ NEXT STEP:
 
         <form class="form-card" id="edit-profile-form">
             <div class="form-group" style="text-align: center;">
-                <div class="profile-avatar" style="margin: 0 auto 1rem; position: relative; cursor: pointer; background: var(--secondary); display: flex; align-items: center; justify-content: center;" id="avatar-upload-btn">
-                    <img id="edit-avatar-img" style="cursor: pointer; display: none; width: 100%; height: 100%; object-fit: cover;">
-                    <div id="avatar-placeholder" style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;">
+                <div class="profile-avatar"
+                    style="margin: 0 auto 1rem; position: relative; cursor: pointer; background: var(--secondary); display: flex; align-items: center; justify-content: center;"
+                    id="avatar-upload-btn">
+                    <img id="edit-avatar-img"
+                        style="cursor: pointer; display: none; width: 100%; height: 100%; object-fit: cover;">
+                    <div id="avatar-placeholder"
+                        style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;">
                         <i data-lucide="camera" style="width: 3rem; height: 3rem; color: var(--muted);"></i>
                     </div>
                     <button type="button" class="btn-icon btn-primary" style="position: absolute; bottom: 0; right: 0;">
@@ -200,7 +204,7 @@ NEXT STEP:
                     </button>
                 </div>
                 <p style="font-size: 0.875rem; color: var(--muted);">Click to add profile photo</p>
-                
+
                 <!-- Hidden file input -->
                 <input type="file" id="avatar-file-input" accept="image/*" style="display: none;">
             </div>
@@ -218,8 +222,7 @@ NEXT STEP:
 
             <div class="form-group">
                 <label class="form-label">Bio</label>
-                <textarea id="edit-bio" class="input"
-                    placeholder="Tell us about yourself..."></textarea>
+                <textarea id="edit-bio" class="input" placeholder="Tell us about yourself..."></textarea>
             </div>
 
             <div class="form-actions">
@@ -241,7 +244,7 @@ NEXT STEP:
     <script>
         let selectedAvatarFile = null;
         let uploadedAvatarUrl = null;
-        
+
         // Get the backend API URL
         // In Replit, frontend is on port 5000, backend is on port 8000
         function getBackendUrl(path) {
@@ -252,20 +255,20 @@ NEXT STEP:
             backendUrl.pathname = path;
             return backendUrl.toString();
         }
-        
+
         // Load user profile data for editing
         function loadUserData() {
             const user = JSON.parse(localStorage.getItem('user'));
-            
+
             if (!user) {
                 window.location.href = 'login.html';
                 return;
             }
-            
+
             // Load user data from localStorage
             document.getElementById('edit-fullname').value = user.name || '';
             document.getElementById('edit-username').value = user.username || '';
-            
+
             // Try to load additional profile data from backend
             const token = localStorage.getItem('token');
             if (token) {
@@ -274,36 +277,36 @@ NEXT STEP:
                         'Authorization': `Bearer ${token}`
                     }
                 })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.bio) {
-                        document.getElementById('edit-bio').value = data.bio;
-                    }
-                    if (data.profileImage) {
-                        // Convert relative image path to full backend URL
-                        const imageUrl = data.profileImage.startsWith('http') 
-                            ? data.profileImage 
-                            : getBackendUrl(data.profileImage);
-                        document.getElementById('edit-avatar-img').src = imageUrl;
-                        document.getElementById('edit-avatar-img').style.display = 'block';
-                        document.getElementById('avatar-placeholder').style.display = 'none';
-                    }
-                })
-                .catch(err => console.log('Could not load extended profile data'));
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.bio) {
+                            document.getElementById('edit-bio').value = data.bio;
+                        }
+                        if (data.profileImage) {
+                            // Convert relative image path to full backend URL
+                            const imageUrl = data.profileImage.startsWith('http')
+                                ? data.profileImage
+                                : getBackendUrl(data.profileImage);
+                            document.getElementById('edit-avatar-img').src = imageUrl;
+                            document.getElementById('edit-avatar-img').style.display = 'block';
+                            document.getElementById('avatar-placeholder').style.display = 'none';
+                        }
+                    })
+                    .catch(err => console.log('Could not load extended profile data'));
             }
         }
-        
+
         // Handle file input change
         document.getElementById('avatar-file-input').addEventListener('change', async (e) => {
             const file = e.target.files[0];
             if (!file) return;
-            
+
             // Validate file is an image
             if (!file.type.startsWith('image/')) {
                 alert('Please select an image file');
                 return;
             }
-            
+
             // Show preview immediately
             const reader = new FileReader();
             reader.onload = (event) => {
@@ -312,17 +315,17 @@ NEXT STEP:
                 document.getElementById('avatar-placeholder').style.display = 'none';
             };
             reader.readAsDataURL(file);
-            
+
             // Upload to backend
             try {
                 const formData = new FormData();
                 formData.append('file', file);
-                
+
                 const response = await fetch('/api/upload', {
                     method: 'POST',
                     body: formData
                 });
-                
+
                 if (response.ok) {
                     const data = await response.json();
                     uploadedAvatarUrl = data.imageUrl;
@@ -335,42 +338,42 @@ NEXT STEP:
                 alert('Error uploading image. Please try again.');
             }
         });
-        
+
         // Make avatar clickable to upload
         document.getElementById('avatar-upload-btn').addEventListener('click', () => {
             document.getElementById('avatar-file-input').click();
         });
-        
+
         // Handle form submission
         document.getElementById('edit-profile-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
+
             const user = JSON.parse(localStorage.getItem('user'));
             const token = localStorage.getItem('token');
-            
+
             if (!token) {
                 alert('Please log in to update your profile');
                 return;
             }
-            
+
             const fullName = document.getElementById('edit-fullname').value;
             const bio = document.getElementById('edit-bio').value;
-            
+
             // Update localStorage with new name
             user.name = fullName;
             localStorage.setItem('user', JSON.stringify(user));
-            
+
             // Build update data
             const updateData = {
                 fullName: fullName,
                 bio: bio
             };
-            
+
             // Include avatar URL if one was uploaded
             if (uploadedAvatarUrl) {
                 updateData.avatarUrl = uploadedAvatarUrl;
             }
-            
+
             // Try to save to backend
             try {
                 const response = await fetch(`/api/users/${user.id}`, {
@@ -381,7 +384,7 @@ NEXT STEP:
                     },
                     body: JSON.stringify(updateData)
                 });
-                
+
                 if (response.ok) {
                     alert('✅ Profile updated successfully!');
                     window.location.href = 'profile.html';
@@ -395,7 +398,7 @@ NEXT STEP:
                 window.location.href = 'profile.html';
             }
         });
-        
+
         // Load profile data when page loads
         loadUserData();
     </script>

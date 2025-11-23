@@ -553,111 +553,45 @@ function requireLogin() {
  */
 async function updateMessageBadge() {
     try {
-        // Get authentication token
         const token = getToken();
-        // Get user object from localStorage (set during login)
-        const userStr = localStorage.getItem('user');
-        
-        // If not logged in, hide badge and exit
-        if (!token || !userStr) {
+        if (!token) {
             const badge = document.getElementById('message-badge');
             if (badge) badge.classList.add('hidden');
-            console.debug('Badge update skipped: user not logged in');
             return;
         }
         
-        // Parse user object to extract our user ID
-        const user = JSON.parse(userStr);
-        const userId = user.id;
-        
-        // Verify we have a user ID
-        if (!userId) {
-            console.debug('No userId found in user object');
-            return;
-        }
-        
-        console.debug('Updating message badge for user:', userId);
-        
-        // STEP 1: Get list of all users on the platform
-        const response = await fetch('/api/users', {
+        // Use the optimized endpoint to get all conversations with unread counts
+        const response = await fetch('/api/conversations', {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         
-        // Error handling: If we can't get users, skip badge update
-        if (!response.ok) {
-            console.warn('Failed to fetch users for message badge. Status:', response.status);
-            return;
-        }
+        if (!response.ok) return;
         
-        // Parse response
-        const users = await response.json();
-        let unreadCount = 0;  // Total count of unread messages
+        const conversations = await response.json();
+        let unreadCount = 0;
         
-        // STEP 2: For EACH user, check messages and count unread ones
-        for (let user of users) {
-            // Skip checking messages with ourselves
-            if (user.id === parseInt(userId)) continue;
-            
-            try {
-                // Get all messages between me and this user
-                const msgResponse = await fetch(`/api/messages/${user.id}`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                
-                // If fetch succeeds, process messages
-                if (msgResponse.ok) {
-                    const messages = await msgResponse.json();
-                    
-                    // STEP 3: Count unread messages
-                    // An unread message is:
-                    // - is_read = 0 (hasn't been read yet)
-                    // - receiverId = my_id (I'm the one receiving it)
-                    for (let msg of messages) {
-                        if (msg.isRead === 0 && msg.receiverId === parseInt(userId)) {
-                            // This is an unread message addressed to me!
-                            unreadCount++;
-                        }
-                    }
-                }
-            } catch (error) {
-                // If this one user fails, continue checking others
-                // Don't let one failure break the whole notification system
-                console.debug('Error checking messages with user', user.id);
+        // Sum up unread counts from all conversations
+        for (let convo of conversations) {
+            if (convo.unreadCount) {
+                unreadCount += convo.unreadCount;
             }
         }
         
-        // STEP 4: Update the notification badge on the DOM
-        // The badge is a small red dot (●) on the message icon in the navbar
+        // Update the badge
         const badge = document.getElementById('message-badge');
-        console.log('Badge element:', badge, 'Unread count:', unreadCount);
-        
         if (badge) {
-            // If we have unread messages, show the red dot
             if (unreadCount > 0) {
-                // Set content to red dot
                 badge.textContent = '●';
-                // Make it visible (remove hidden class)
                 badge.classList.remove('hidden');
-                // Style it to be small and red
                 badge.style.fontSize = '0.5rem';
-                badge.style.color = '#ef4444';  // Red color
-                console.log('✅ Badge updated with unread count:', unreadCount);
+                badge.style.color = '#ef4444';
             } else {
-                // No unread messages - hide the badge completely
                 badge.classList.add('hidden');
-                badge.textContent = '';  // Clear badge text
-                badge.style.display = 'none';  // Force hide
-                console.log('No unread messages');
+                badge.style.display = 'none';
             }
-        } else {
-            // Badge element doesn't exist on this page
-            // (OK for pages that don't have the badge, like profile page)
-            console.warn('Message badge element not found on this page');
         }
     } catch (error) {
-        // Catch any unexpected errors
         console.error('Error updating message badge:', error);
-        // Don't crash the app if badge update fails
     }
 }
 

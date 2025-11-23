@@ -25,7 +25,19 @@ import os
 # Examples:
 # - SQLite: "sqlite:///./unimarket.db"
 # - PostgreSQL: "postgresql://user:password@localhost/unimarket"
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./unimarket.db")
+
+# Calculate absolute path to project root (one level up from backend folder)
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DB_PATH = os.path.join(PROJECT_ROOT, "unimarket.db")
+
+
+# Default SQLite path (for local development)
+DEFAULT_DB_PATH = os.path.join(PROJECT_ROOT, "unimarket.db")
+DEFAULT_DATABASE_URL = f"sqlite:///{DEFAULT_DB_PATH}"
+
+# Get DATABASE_URL from environment variable (for production)
+# If not set, use the default local SQLite path
+SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL", DEFAULT_DATABASE_URL)
 
 # =============================================================================
 # CREATE DATABASE ENGINE
@@ -33,13 +45,17 @@ DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./unimarket.db")
 # The engine is what actually manages the connection to the database
 # 
 # Parameters explained:
-# - DATABASE_URL: Connection string (tells it which database to use)
+# - SQLALCHEMY_DATABASE_URL: Connection string (tells it which database to use)
 # - connect_args: Additional settings for the driver
 #   * check_same_thread=False: SQLite specific - allows multiple threads to access DB
 #   * This is only used for SQLite, not PostgreSQL
+
+# Create the database engine
+# check_same_thread=False is needed only for SQLite
+connect_args = {"check_same_thread": False} if "sqlite" in SQLALCHEMY_DATABASE_URL else {}
+
 engine = create_engine(
-    DATABASE_URL,
-    connect_args={"check_same_thread": False} if "sqlite" in DATABASE_URL else {}
+    SQLALCHEMY_DATABASE_URL, connect_args=connect_args
 )
 
 # =============================================================================

@@ -135,7 +135,7 @@ NEXT STEPS FROM HERE:
             <a href="index.html" class="logo">UniMarket</a>
             <nav class="nav-links">
                 <a href="products.html" class="nav-link">Shop</a>
-                <a href="#" class="nav-link">About</a>
+                <a href="about.html" class="nav-link">About</a>
             </nav>
             <div class="search-bar">
                 <i data-lucide="search" class="search-icon"></i>
@@ -147,14 +147,15 @@ NEXT STEPS FROM HERE:
                     <a href="login.html" class="btn btn-ghost">Log In</a>
                     <a href="signup-select-university.html" class="btn btn-primary">Sign Up</a>
                 </div>
-                
+
                 <!-- Logged In State -->
                 <div id="logged-in-actions" class="hidden" style="display: flex; gap: 1rem; align-items: center;">
                     <a href="messages.html" class="btn-icon btn-ghost nav-icon" title="Messages">
                         <i data-lucide="message-square"></i>
                         <span class="notification-badge hidden" id="message-badge">0</span>
                     </a>
-                    <a href="saved-items.html" class="btn-icon btn-ghost nav-icon" title="Saved Items" style="color: var(--foreground);">
+                    <a href="saved-items.html" class="btn-icon btn-ghost nav-icon" title="Saved Items"
+                        style="color: var(--foreground);">
                         <i data-lucide="bookmark"></i>
                     </a>
                     <div class="profile-dropdown" style="position: relative;">
@@ -180,7 +181,8 @@ NEXT STEPS FROM HERE:
             <hr style="border-color: var(--border); margin: 0.5rem 0;">
             <a href="sell.html" class="nav-link" style="font-size: 1.1rem; padding: 0.5rem 0;">Sell</a>
             <a href="messages.html" class="nav-link" style="font-size: 1.1rem; padding: 0.5rem 0;">Messages</a>
-            <a href="saved-items.html" class="nav-link" style="font-size: 1.1rem; padding: 0.5rem 0; color: var(--foreground);">Saved Items</a>
+            <a href="saved-items.html" class="nav-link"
+                style="font-size: 1.1rem; padding: 0.5rem 0; color: var(--foreground);">Saved Items</a>
             <a href="profile.html" class="nav-link" style="font-size: 1.1rem; padding: 0.5rem 0;">Profile</a>
             <hr style="border-color: var(--border); margin: 0.5rem 0;">
             <button onclick="logout()" class="btn btn-outline" style="text-align: center; width: 100%;">Log Out</button>
@@ -265,13 +267,13 @@ NEXT STEPS FROM HERE:
         // Load saved items from API
         async function loadSavedItems() {
             const token = localStorage.getItem('token');
-            
+
             // If no token, redirect to login
             if (!token) {
                 window.location.href = 'login.html?returnTo=saved-items.html';
                 return;
             }
-            
+
             try {
                 const response = await fetch('/api/saved-items', {
                     method: 'GET',
@@ -280,7 +282,7 @@ NEXT STEPS FROM HERE:
                         'Content-Type': 'application/json'
                     }
                 });
-                
+
                 if (!response.ok) {
                     if (response.status === 401) {
                         // Token invalid/expired - clear and redirect to login
@@ -292,7 +294,7 @@ NEXT STEPS FROM HERE:
                     }
                     throw new Error('Failed to load saved items');
                 }
-                
+
                 const products = await response.json();
                 renderSavedItems(products);
             } catch (error) {
@@ -300,12 +302,12 @@ NEXT STEPS FROM HERE:
                 document.getElementById('products-grid').innerHTML = '<p>Error loading saved items. Please try again.</p>';
             }
         }
-        
+
         // Render saved items to grid
         function renderSavedItems(products) {
             const grid = document.getElementById('products-grid');
             const emptyState = document.getElementById('empty-state');
-            
+
             if (!products || products.length === 0) {
                 // Show empty state
                 grid.innerHTML = '';
@@ -317,16 +319,16 @@ NEXT STEPS FROM HERE:
                 emptyState.style.textAlign = 'center';
                 return;
             }
-            
+
             // Hide empty state
             emptyState.style.display = 'none';
-            
+
             // Render products
             grid.innerHTML = products.map(product => {
-                const primaryImage = product.images && product.images.length > 0 
+                const primaryImage = product.images && product.images.length > 0
                     ? getImageUrl(product.images[0].imageUrl)
                     : 'https://via.placeholder.com/300x300?text=No+Image';
-                
+
                 return `
                     <a href="product-detail.html?id=${product.id}" class="product-card">
                         <div class="product-image-container">
@@ -348,18 +350,18 @@ NEXT STEPS FROM HERE:
                     </a>
                 `;
             }).join('');
-            
+
             // Reinitialize lucide icons
             lucide.createIcons();
         }
-        
+
         // Toggle save/unsave item
         async function toggleSaveItem(event, productId) {
             event.preventDefault();
             event.stopPropagation();
-            
+
             const token = localStorage.getItem('token');
-            
+
             try {
                 const response = await fetch(`/api/products/${productId}/toggle-save`, {
                     method: 'POST',
@@ -368,7 +370,7 @@ NEXT STEPS FROM HERE:
                         'Content-Type': 'application/json'
                     }
                 });
-                
+
                 if (response.ok) {
                     // Reload saved items after unsaving
                     loadSavedItems();
@@ -377,7 +379,7 @@ NEXT STEPS FROM HERE:
                 console.error('Error toggling save status:', error);
             }
         }
-        
+
         // Load items when page loads
         loadSavedItems();
     </script>

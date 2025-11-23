@@ -29,7 +29,7 @@
 
             <nav class="nav-links">
                 <a href="products.html" class="nav-link">Shop</a>
-                <a href="#" class="nav-link">About</a>
+                <a href="about.html" class="nav-link">About</a>
             </nav>
 
             <div class="search-bar">
@@ -43,7 +43,7 @@
                     <a href="login.html" class="btn btn-ghost">Log In</a>
                     <a href="signup-select-university.html" class="btn btn-primary">Sign Up</a>
                 </div>
-                
+
                 <!-- Logged In State -->
                 <div id="logged-in-actions" class="hidden" style="display: flex; gap: 1rem; align-items: center;">
                     <a href="messages.html" class="btn-icon btn-ghost nav-icon" title="Messages">
@@ -81,9 +81,10 @@
                 <a href="about.html" class="nav-link" style="font-size: 1.1rem; padding: 0.5rem 0;">About</a>
                 <hr style="border-color: var(--border); margin: 0.5rem 0;">
                 <a href="login.html" class="btn btn-ghost" style="text-align: center; width: 100%;">Log In</a>
-                <a href="signup-select-university.html" class="btn btn-primary" style="text-align: center; width: 100%;">Sign Up</a>
+                <a href="signup-select-university.html" class="btn btn-primary"
+                    style="text-align: center; width: 100%;">Sign Up</a>
             </div>
-            
+
             <!-- Logged In State -->
             <div id="mobile-logged-in-actions" class="hidden">
                 <a href="products.html" class="nav-link" style="font-size: 1.1rem; padding: 0.5rem 0;">Shop</a>
@@ -91,10 +92,12 @@
                 <hr style="border-color: var(--border); margin: 0.5rem 0;">
                 <a href="sell.html" class="nav-link" style="font-size: 1.1rem; padding: 0.5rem 0;">Sell</a>
                 <a href="messages.html" class="nav-link" style="font-size: 1.1rem; padding: 0.5rem 0;">Messages</a>
-                <a href="saved-items.html" class="nav-link" style="font-size: 1.1rem; padding: 0.5rem 0;">Saved Items</a>
+                <a href="saved-items.html" class="nav-link" style="font-size: 1.1rem; padding: 0.5rem 0;">Saved
+                    Items</a>
                 <a href="profile.html" class="nav-link" style="font-size: 1.1rem; padding: 0.5rem 0;">Profile</a>
                 <hr style="border-color: var(--border); margin: 0.5rem 0;">
-                <button onclick="logout()" class="btn btn-outline" style="text-align: center; width: 100%;">Log Out</button>
+                <button onclick="logout()" class="btn btn-outline" style="text-align: center; width: 100%;">Log
+                    Out</button>
             </div>
         </div>
     </div>
@@ -113,7 +116,8 @@
 
         <!-- Right Column: Details -->
         <div class="product-detail-info">
-            <button onclick="window.history.back()" class="btn-back" style="background: none; border: none; padding: 0; cursor: pointer; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; color: var(--foreground); font-size: 1rem;">
+            <button onclick="window.history.back()" class="btn-back"
+                style="background: none; border: none; padding: 0; cursor: pointer; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; color: var(--foreground); font-size: 1rem;">
                 <i data-lucide="arrow-left" style="width: 1.2rem; height: 1.2rem;"></i>
                 <span>Back</span>
             </button>
@@ -144,7 +148,8 @@
             </div>
 
             <div class="detail-actions">
-                <a href="#" id="view-profile-btn" class="btn btn-primary flex-1" style="text-decoration: none; display: flex; align-items: center; justify-content: center;">
+                <a href="#" id="view-profile-btn" class="btn btn-primary flex-1"
+                    style="text-decoration: none; display: flex; align-items: center; justify-content: center;">
                     <i data-lucide="user" style="width: 1.2rem; margin-right: 0.5rem;"></i> View Profile
                 </a>
                 <button id="save-btn" class="btn btn-outline" title="Save item">
@@ -176,9 +181,10 @@
                 <i data-lucide="send" style="width: 1rem;"></i>
             </button>
         </div>
-        
+
         <!-- Login Prompt (Shown if not logged in) -->
-        <div id="comment-login-prompt" style="display: none; padding: 1.5rem; background: var(--secondary); border-radius: 8px; text-align: center;">
+        <div id="comment-login-prompt"
+            style="display: none; padding: 1.5rem; background: var(--secondary); border-radius: 8px; text-align: center;">
             <p style="margin-bottom: 1rem;">Sign in to leave a comment</p>
             <a href="login.html?returnTo=product-detail.html" class="btn btn-primary">Sign In</a>
         </div>
@@ -245,48 +251,48 @@
     <script>
         // Get product ID from URL
         const productId = new URLSearchParams(window.location.search).get('id');
-        
+
         // Get current user info from localStorage
         function getCurrentUser() {
             const user = localStorage.getItem('user');
             return user ? JSON.parse(user) : null;
         }
-        
+
         // Load comments from API
         async function loadComments() {
             if (!productId) return;
-            
+
             try {
                 const response = await fetch(`/api/products/${productId}/comments`);
                 if (!response.ok) throw new Error('Failed to load comments');
-                
+
                 const comments = await response.json();
                 renderComments(comments);
-                
+
                 // Update comment count
                 document.getElementById('comment-count').textContent = `(${comments.length})`;
             } catch (error) {
                 console.error('Error loading comments:', error);
             }
         }
-        
+
         // Format date as relative time
         function formatDate(dateStr) {
             try {
                 // Parse ISO string from backend (UTC)
                 const date = new Date(dateStr);
-                
+
                 // Get current UTC time (convert browser local time to UTC)
                 const now = new Date();
                 const offsetMs = now.getTimezoneOffset() * 60 * 1000;
                 const nowUTC = new Date(now.getTime() + offsetMs);
-                
+
                 // Calculate difference in milliseconds and convert to seconds
                 let seconds = Math.floor((nowUTC.getTime() - date.getTime()) / 1000);
-                
+
                 // Handle negative differences (clock skew)
                 if (seconds < 0) seconds = 0;
-                
+
                 if (seconds < 60) return 'just now';
                 const minutes = Math.floor(seconds / 60);
                 if (minutes < 60) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
@@ -299,22 +305,22 @@
                 return 'unknown date';
             }
         }
-        
+
         // Render comments
         function renderComments(comments) {
             const commentList = document.getElementById('comment-list');
             const currentUser = getCurrentUser();
-            
+
             if (comments.length === 0) {
                 commentList.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 2rem;">No comments yet. Be the first to ask a question!</p>';
                 return;
             }
-            
+
             commentList.innerHTML = comments.map(comment => {
                 const isAuthor = currentUser && currentUser.id === comment.authorId;
                 const hasProfileImage = comment.author.profileImage;
                 const profileImage = hasProfileImage ? getImageUrl(comment.author.profileImage) : null;
-                
+
                 return `
                     <div class="comment-item">
                         <a href="profile.html?userId=${comment.authorId}" style="text-decoration: none; cursor: pointer;">
@@ -335,16 +341,16 @@
                     </div>
                 `;
             }).join('');
-            
+
             // Re-initialize Lucide icons for the new comment HTML
             lucide.createIcons();
-            
+
             // Add delete event listeners
             document.querySelectorAll('.btn-delete-comment').forEach(btn => {
                 btn.addEventListener('click', (e) => deleteComment(e.target.dataset.commentId));
             });
         }
-        
+
         // Submit comment
         async function submitComment() {
             const currentUser = getCurrentUser();
@@ -354,18 +360,18 @@
                 document.getElementById('comment-login-prompt').style.display = 'block';
                 return;
             }
-            
+
             const content = document.getElementById('comment-input').value.trim();
             if (!content) {
                 alert('Please write a comment');
                 return;
             }
-            
+
             if (!productId) {
                 alert('Product not found');
                 return;
             }
-            
+
             try {
                 const response = await fetch(`/api/products/${productId}/comments`, {
                     method: 'POST',
@@ -375,7 +381,7 @@
                     },
                     body: JSON.stringify({ content })
                 });
-                
+
                 if (!response.ok) {
                     if (response.status === 401) {
                         alert('Please sign in to comment');
@@ -386,7 +392,7 @@
                     }
                     throw new Error('Failed to post comment');
                 }
-                
+
                 // Clear input and reload comments
                 document.getElementById('comment-input').value = '';
                 loadComments();
@@ -395,11 +401,11 @@
                 alert('Failed to post comment');
             }
         }
-        
+
         // Delete comment
         async function deleteComment(commentId) {
             if (!confirm('Delete this comment?')) return;
-            
+
             try {
                 const response = await fetch(`/api/comments/${commentId}`, {
                     method: 'DELETE',
@@ -407,7 +413,7 @@
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
                 });
-                
+
                 if (!response.ok) {
                     if (response.status === 401) {
                         alert('Please sign in');
@@ -416,18 +422,18 @@
                     }
                     throw new Error('Failed to delete comment');
                 }
-                
+
                 loadComments();
             } catch (error) {
                 console.error('Error deleting comment:', error);
                 alert('Failed to delete comment');
             }
         }
-        
+
         // Initialize comments
         function initializeComments() {
             const currentUser = getCurrentUser();
-            
+
             if (currentUser) {
                 document.getElementById('comment-form').style.display = 'flex';
                 document.getElementById('comment-login-prompt').style.display = 'none';
@@ -435,52 +441,52 @@
                 document.getElementById('comment-form').style.display = 'none';
                 document.getElementById('comment-login-prompt').style.display = 'block';
             }
-            
+
             // Add event listener to submit button
             document.getElementById('comment-submit-btn').addEventListener('click', submitComment);
-            
+
             // Allow submitting with Ctrl+Enter or Cmd+Enter
             document.getElementById('comment-input').addEventListener('keydown', (e) => {
                 if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
                     submitComment();
                 }
             });
-            
+
             loadComments();
         }
-        
+
         // Load product data and setup View Profile button
         async function loadProductData() {
             if (!productId) return;
-            
+
             try {
                 const response = await fetch(`/api/products/${productId}`);
                 if (!response.ok) throw new Error('Failed to load product');
-                
+
                 const product = await response.json();
                 const sellerId = product.seller.id;
-                
+
                 // Update product category
                 document.querySelector('.detail-category').textContent = product.category.name;
-                
+
                 // Update product title
                 document.querySelector('.detail-title').textContent = product.name;
-                
+
                 // Update product price
                 document.querySelector('.detail-price').textContent = `₦${product.price.toFixed(2)}`;
-                
+
                 // Update product description
                 const descriptionDiv = document.querySelector('.detail-description p');
                 if (descriptionDiv) {
                     descriptionDiv.textContent = product.description;
                 }
-                
+
                 // Update seller info
                 const sellerCard = document.querySelector('.seller-card');
                 if (sellerCard) {
                     const sellerAvatarImg = sellerCard.querySelector('.seller-avatar img');
                     const sellerNameH4 = sellerCard.querySelector('.seller-info h4');
-                    
+
                     if (sellerAvatarImg) {
                         sellerAvatarImg.src = getImageUrl(product.seller.profileImage || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=2000&auto=format&fit=crop');
                     }
@@ -488,7 +494,7 @@
                         sellerNameH4.textContent = `Sold by ${product.seller.fullName}`;
                     }
                 }
-                
+
                 // Update product images
                 if (product.images && product.images.length > 0) {
                     // Update main image (use first image)
@@ -496,7 +502,7 @@
                     if (mainImg) {
                         mainImg.src = getImageUrl(product.images[0].imageUrl);
                     }
-                    
+
                     // Update thumbnails
                     const galleryThumbnails = document.getElementById('gallery-thumbnails');
                     if (galleryThumbnails) {
@@ -507,13 +513,13 @@
                         `).join('');
                     }
                 }
-                
+
                 // Set up View Profile button
                 const viewProfileBtn = document.getElementById('view-profile-btn');
                 if (viewProfileBtn) {
                     viewProfileBtn.href = `/profile.html?userId=${sellerId}`;
                 }
-                
+
                 // Set up Contact Seller button to go to messages with seller ID
                 const contactBtn = document.getElementById('contact-seller-btn');
                 if (contactBtn) {
@@ -524,10 +530,10 @@
                         window.location.href = `/messages.html?userId=${sellerId}`;
                     };
                 }
-                
+
                 // Update page title
                 document.title = `${product.name} - UniMarket`;
-                
+
                 // Check if current user is the product owner and show owner controls
                 const currentUser = getCurrentUser();
                 if (currentUser && currentUser.id === sellerId) {
@@ -536,55 +542,55 @@
                     if (ownerControls) {
                         ownerControls.classList.remove('hidden');
                     }
-                    
+
                     // Hide View Profile button
                     const detailActions = document.querySelector('.detail-actions:not(#owner-controls)');
                     if (detailActions) {
                         detailActions.classList.add('hidden');
                     }
-                    
+
                     // Set edit button href
                     const editBtn = document.getElementById('edit-product-btn');
                     if (editBtn) {
                         editBtn.href = `/edit-product.html?id=${productId}`;
                     }
                 }
-                
+
                 // Check if product is already saved by current user
                 checkIfSaved();
             } catch (error) {
                 console.error('Error loading product data:', error);
             }
         }
-        
+
         // Check if product is already saved
         async function checkIfSaved() {
             const currentUser = getCurrentUser();
             if (!currentUser) return;
-            
+
             try {
                 const token = localStorage.getItem('token');
                 const response = await fetch('/api/saved-items', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-                
+
                 if (!response.ok) return;
-                
+
                 const savedItems = await response.json();
                 const isSaved = savedItems.some(item => item.id === parseInt(productId));
-                
+
                 // Update button appearance
                 updateSaveButton(isSaved);
             } catch (error) {
                 console.error('Error checking saved items:', error);
             }
         }
-        
+
         // Update save button appearance
         function updateSaveButton(isSaved) {
             const saveBtn = document.getElementById('save-btn');
             if (!saveBtn) return;
-            
+
             if (isSaved) {
                 saveBtn.classList.add('saved');
                 saveBtn.style.color = '#ef4444';
@@ -601,7 +607,7 @@
                 window.lucide.createIcons();
             }
         }
-        
+
         // Delete product listing
         async function deleteProduct() {
             const currentUser = getCurrentUser();
@@ -609,23 +615,23 @@
                 alert('Please sign in');
                 return;
             }
-            
+
             if (!productId) {
                 alert('Product not found');
                 return;
             }
-            
+
             // Confirm deletion
             if (!confirm('Are you sure you want to delete this listing? This action cannot be undone.')) {
                 return;
             }
-            
+
             const deleteBtn = document.getElementById('delete-btn');
             if (deleteBtn) {
                 deleteBtn.disabled = true;
                 deleteBtn.textContent = 'Deleting...';
             }
-            
+
             try {
                 const token = localStorage.getItem('token');
                 const response = await fetch(`/api/products/${productId}`, {
@@ -634,7 +640,7 @@
                         'Authorization': `Bearer ${token}`
                     }
                 });
-                
+
                 if (!response.ok) {
                     if (response.status === 401) {
                         alert('Please sign in');
@@ -647,7 +653,7 @@
                     }
                     throw new Error('Failed to delete product');
                 }
-                
+
                 // Show success message and redirect
                 showNotification('✓ Listing deleted successfully!', 'success');
                 setTimeout(() => {
@@ -662,7 +668,7 @@
                 }
             }
         }
-        
+
         // Handle save button click
         async function toggleSaveItem() {
             const currentUser = getCurrentUser();
@@ -671,15 +677,15 @@
                 window.location.href = `login.html?returnTo=product-detail.html?id=${productId}`;
                 return;
             }
-            
+
             if (!productId) {
                 alert('Product not found');
                 return;
             }
-            
+
             const saveBtn = document.getElementById('save-btn');
             saveBtn.disabled = true;
-            
+
             try {
                 const token = localStorage.getItem('token');
                 const response = await fetch('/api/saved-items', {
@@ -690,17 +696,17 @@
                     },
                     body: JSON.stringify({ productId: parseInt(productId) })
                 });
-                
+
                 if (!response.ok) {
                     throw new Error('Failed to save item');
                 }
-                
+
                 const result = await response.json();
                 const isSaved = result.isSaved;
-                
+
                 // Update button appearance
                 updateSaveButton(isSaved);
-                
+
                 // Show feedback message
                 const message = isSaved ? '✓ Item saved!' : '✗ Item removed from saved';
                 showNotification(message, isSaved ? 'success' : 'info');
@@ -711,7 +717,7 @@
                 saveBtn.disabled = false;
             }
         }
-        
+
         // Show notification
         function showNotification(message, type = 'info') {
             const notification = document.createElement('div');
@@ -729,36 +735,36 @@
             `;
             notification.textContent = message;
             document.body.appendChild(notification);
-            
+
             setTimeout(() => {
                 notification.style.animation = 'slideOut 0.3s ease-in-out';
                 setTimeout(() => notification.remove(), 300);
             }, 3000);
         }
-        
+
         // Hide loader when page is fully loaded
         window.addEventListener('load', () => {
             const loader = document.getElementById('loader');
             if (loader) {
                 loader.classList.add('hidden');
             }
-            
+
             // Add click handler to save button
             const saveBtn = document.getElementById('save-btn');
             if (saveBtn) {
                 saveBtn.addEventListener('click', toggleSaveItem);
             }
-            
+
             // Add click handler to delete button
             const deleteBtn = document.getElementById('delete-btn');
             if (deleteBtn) {
                 deleteBtn.addEventListener('click', deleteProduct);
             }
-            
+
             loadProductData();
             initializeComments();
         });
-        
+
         // Simple gallery script
         function changeImage(src) {
             document.getElementById('main-img').src = getImageUrl(src);

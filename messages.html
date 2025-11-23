@@ -317,10 +317,11 @@ SECURITY:
                     <a href="login.html" class="btn btn-ghost">Log In</a>
                     <a href="signup-select-university.html" class="btn btn-primary">Sign Up</a>
                 </div>
-                
+
                 <!-- Logged In State -->
                 <div id="logged-in-actions" class="hidden" style="display: flex; gap: 1rem; align-items: center;">
-                    <a href="messages.html" class="btn-icon btn-ghost nav-icon" title="Messages" style="color: var(--foreground);">
+                    <a href="messages.html" class="btn-icon btn-ghost nav-icon" title="Messages"
+                        style="color: var(--foreground);">
                         <i data-lucide="message-square"></i>
                         <span class="notification-badge hidden" id="message-badge">0</span>
                     </a>
@@ -352,20 +353,24 @@ SECURITY:
                 <a href="about.html" class="nav-link" style="font-size: 1.1rem; padding: 0.5rem 0;">About</a>
                 <hr style="border-color: var(--border); margin: 0.5rem 0;">
                 <a href="login.html" class="btn btn-ghost" style="text-align: center; width: 100%;">Log In</a>
-                <a href="signup-select-university.html" class="btn btn-primary" style="text-align: center; width: 100%;">Sign Up</a>
+                <a href="signup-select-university.html" class="btn btn-primary"
+                    style="text-align: center; width: 100%;">Sign Up</a>
             </div>
-            
+
             <!-- Logged In State -->
             <div id="mobile-logged-in-actions" class="hidden">
                 <a href="products.html" class="nav-link" style="font-size: 1.1rem; padding: 0.5rem 0;">Shop</a>
                 <a href="about.html" class="nav-link" style="font-size: 1.1rem; padding: 0.5rem 0;">About</a>
                 <hr style="border-color: var(--border); margin: 0.5rem 0;">
                 <a href="sell.html" class="nav-link" style="font-size: 1.1rem; padding: 0.5rem 0;">Sell</a>
-                <a href="messages.html" class="nav-link" style="font-size: 1.1rem; padding: 0.5rem 0; color: var(--foreground);">Messages</a>
-                <a href="saved-items.html" class="nav-link" style="font-size: 1.1rem; padding: 0.5rem 0;">Saved Items</a>
+                <a href="messages.html" class="nav-link"
+                    style="font-size: 1.1rem; padding: 0.5rem 0; color: var(--foreground);">Messages</a>
+                <a href="saved-items.html" class="nav-link" style="font-size: 1.1rem; padding: 0.5rem 0;">Saved
+                    Items</a>
                 <a href="profile.html" class="nav-link" style="font-size: 1.1rem; padding: 0.5rem 0;">Profile</a>
                 <hr style="border-color: var(--border); margin: 0.5rem 0;">
-                <button onclick="logout()" class="btn btn-outline" style="text-align: center; width: 100%;">Log Out</button>
+                <button onclick="logout()" class="btn btn-outline" style="text-align: center; width: 100%;">Log
+                    Out</button>
             </div>
         </div>
     </div>
@@ -391,7 +396,8 @@ SECURITY:
                 <button class="chat-header-back-btn" onclick="showConversationsList()">
                     <i data-lucide="chevron-left" style="width: 1.25rem; height: 1.25rem;"></i>
                 </button>
-                <div class="conversation-avatar" id="chat-header-avatar" style="width: 2.5rem; height: 2.5rem; background: var(--secondary); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                <div class="conversation-avatar" id="chat-header-avatar"
+                    style="width: 2.5rem; height: 2.5rem; background: var(--secondary); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
                     <i data-lucide="user" style="width: 1.25rem; height: 1.25rem; color: var(--muted);"></i>
                 </div>
                 <div style="flex: 1; min-width: 0;">
@@ -425,13 +431,13 @@ SECURITY:
         // 2. Loading and displaying conversations
         // 3. Handling message input and sending
         // 4. Updating notification badges
-        
+
         // STATE MANAGEMENT - Variables to track the current state of the messaging interface
         let currentConversationUserId = null;  // Which user's conversation is currently open
         let currentUserId = null;              // The logged-in user's ID
         let allUsers = {};                     // Cache of all user data (for quick lookup)
         let conversations = [];                // List of users we have conversations with
-        
+
         // =============================================================================
         // SOCKET.IO CONNECTION SETUP
         // =============================================================================
@@ -446,7 +452,7 @@ SECURITY:
         // - Frontend: Serves static HTML/CSS/JS files (port 5000)
         // - Backend: Runs FastAPI + Socket.IO server (port 8000)
         // - They communicate via WebSocket over port 8000
-        
+
         const backendUrl = window.location.protocol + '//' + window.location.hostname + ':8000';
         const socket = io(backendUrl, {
             reconnection: true,                // Auto-reconnect if connection drops
@@ -459,7 +465,7 @@ SECURITY:
         // SOCKET.IO EVENT LISTENERS
         // =============================================================================
         // These handle real-time events from the backend server
-        
+
         /**
          * CONNECT EVENT - Fires when WebSocket connection is established
          * 
@@ -474,11 +480,11 @@ SECURITY:
          */
         socket.on('connect', () => {
             console.log('Connected to messaging server');
-            
+
             // Get our user ID from localStorage (set during login)
             const token = localStorage.getItem('token');
             const userId = localStorage.getItem('userId');
-            
+
             // Send authenticate event to backend with our user ID
             if (userId) {
                 // Backend receives this and stores: connected_users[userId] = socket_id
@@ -507,12 +513,12 @@ SECURITY:
          */
         socket.on('receive_message', (data) => {
             console.log('Received message:', data);
-            
+
             // Update the notification badge (red dot) to show we have unread messages
             if (typeof updateMessageBadge === 'function') {
                 updateMessageBadge();
             }
-            
+
             // If the message is from the user we're currently chatting with, reload messages
             // This makes the new message appear in the chat immediately
             if (currentConversationUserId && data.senderId == currentConversationUserId) {
@@ -531,7 +537,7 @@ SECURITY:
             const params = new URLSearchParams(window.location.search);
             return params.get('userId');
         }
-        
+
         // =============================================================================
         // PAGE INITIALIZATION - Set up messaging interface when page loads
         // =============================================================================
@@ -544,14 +550,14 @@ SECURITY:
                 window.location.href = '/login.html';
                 return;
             }
-            
+
             // Step 2: Initialize UI
             lucide.createIcons();           // Load icons from Lucide library
             initializeLayout();             // Set up mobile/desktop layout
-            
+
             // Step 3: Fetch all conversations from database
             await loadConversations();
-            
+
             // Step 4: If coming from a user's profile (via link or message)
             // Auto-open the conversation with that user
             const targetUserId = getTargetUserId();  // Get user ID from URL ?userId=X
@@ -577,7 +583,12 @@ SECURITY:
         // 5. Renders the conversation list
         // 
         // CALLED BY: Page load, when socket receives new message
+        let isLoadingConversations = false;
+
         async function loadConversations() {
+            if (isLoadingConversations) return;
+            isLoadingConversations = true;
+
             try {
                 const token = getToken();
                 if (!token) return;
@@ -586,55 +597,23 @@ SECURITY:
                 const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
 
                 try {
-                    const response = await fetch('/api/users', {
+                    // Use the new optimized endpoint
+                    const response = await fetch('/api/conversations', {
                         headers: { 'Authorization': `Bearer ${token}` },
                         signal: controller.signal
                     });
 
                     if (!response.ok) {
-                        console.error('Failed to load users:', response.status);
+                        console.error('Failed to load conversations:', response.status);
                         renderConversations([]);
                         return;
                     }
 
-                    const users = await response.json();
-                    
-                    // For now, show all users except current user as potential conversations
-                    conversations = users.filter(u => u.id !== currentUserId).slice(0, 20);
-                    
-                    // Fetch message counts for each user
-                    let conversationsWithMessages = [];
-                    const currentUserIdFromStorage = JSON.parse(localStorage.getItem('user')).id;
-                    
-                    for (let user of conversations) {
-                        try {
-                            const msgResponse = await fetch(`/api/messages/${user.id}`, {
-                                headers: { 'Authorization': `Bearer ${token}` },
-                                signal: controller.signal
-                            });
-                            if (msgResponse.ok) {
-                                const messages = await msgResponse.json();
-                                if (messages.length > 0) {
-                                    user.lastMessage = messages[messages.length - 1].content;
-                                    user.lastMessageTime = messages[messages.length - 1].createdAt;
-                                    // Store messages for unread count calculation
-                                    user.messages = messages;
-                                    // Calculate unread count (messages from this user that we haven't read)
-                                    user.unreadCount = messages.filter(m => m.receiverId === currentUserIdFromStorage && m.isRead === 0).length;
-                                    conversationsWithMessages.push(user);
-                                }
-                            }
-                        } catch (err) {
-                            console.debug('Error fetching messages for user', user.id);
-                        }
-                        allUsers[user.id] = user;
-                    }
+                    const conversationsWithMessages = await response.json();
 
-                    // Sort conversations by most recent message first
-                    conversationsWithMessages.sort((a, b) => {
-                        const timeA = new Date(a.lastMessageTime).getTime();
-                        const timeB = new Date(b.lastMessageTime).getTime();
-                        return timeB - timeA; // Descending order (newest first)
+                    // Update allUsers cache so we have user details for selectConversation
+                    conversationsWithMessages.forEach(user => {
+                        allUsers[user.id] = user;
                     });
 
                     renderConversations(conversationsWithMessages);
@@ -651,13 +630,15 @@ SECURITY:
                 } else {
                     console.error('Error loading conversations:', error);
                 }
+            } finally {
+                isLoadingConversations = false;
             }
         }
 
         // Render conversations list
         function renderConversations(convos) {
             const container = document.getElementById('conversations-container');
-            
+
             if (convos.length === 0) {
                 container.innerHTML = '<div style="padding: 2rem 1rem; text-align: center; color: var(--muted);">No conversations yet</div>';
                 return;
@@ -680,7 +661,7 @@ SECURITY:
                 </div>
             `;
             }).join('');
-            
+
             lucide.createIcons();
         }
 
@@ -706,20 +687,20 @@ SECURITY:
         async function selectConversation(userId, userName) {
             // DEBUG: Log when conversation is selected
             console.log('📍 selectConversation called with userId:', userId, 'userName:', userName);
-            
+
             // Step 1: Save which conversation is open
             currentConversationUserId = userId;
-            
+
             // Step 2: Update chat header with user's information
             const user = allUsers[userId] || { fullName: userName };
             document.getElementById('chat-header-name').textContent = user.fullName || userName;
             document.getElementById('chat-header-product').textContent = `@${user.username || 'user'}`;
-            
+
             // Step 3: Set user's profile image in header (if they have one)
             if (user.profileImage) {
                 document.getElementById('chat-header-avatar').innerHTML = `<img src="${getImageUrl(user.profileImage)}" alt="${userName}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
             }
-            
+
             // Step 4: Make header clickable to navigate to user's profile
             const chatHeader = document.getElementById('chat-header');
             if (chatHeader) {
@@ -739,7 +720,7 @@ SECURITY:
 
             // Step 6: Load all messages between me and this user from database
             await loadMessages(userId);
-            
+
             // Step 7: Mark messages as read (removes notification badge)
             try {
                 const token = localStorage.getItem('token');
@@ -751,14 +732,14 @@ SECURITY:
                         'Content-Type': 'application/json'
                     }
                 });
-                
+
                 if (response.ok) {
                     console.log('✅ Messages marked as read successfully');
                     // Step 7a: Update local data - set unread count to 0
                     if (allUsers[userId]) {
                         allUsers[userId].unreadCount = 0;
                     }
-                    
+
                     // Step 7b: Remove badge from conversation list
                     const conversationItems = document.querySelectorAll('.conversation-item');
                     conversationItems.forEach((item, index) => {
@@ -767,7 +748,7 @@ SECURITY:
                             badge.remove();  // Remove red number badge
                         }
                     });
-                    
+
                     // Step 7c: Update navbar message badge (red dot)
                     if (window.updateMessageBadge) {
                         window.updateMessageBadge();
@@ -791,7 +772,7 @@ SECURITY:
             document.querySelectorAll('.conversation-item').forEach(item => {
                 item.classList.remove('active');
             });
-            
+
             // Add active status to this conversation
             const conversationItems = document.querySelectorAll('.conversation-item');
             conversationItems.forEach((item, index) => {
@@ -813,18 +794,18 @@ SECURITY:
         function formatMessageTime(dateStr) {
             try {
                 const date = new Date(dateStr);
-                
+
                 // Get current time in UTC for comparison
                 const now = new Date();
                 const offsetMs = now.getTimezoneOffset() * 60 * 1000;
                 const nowUTC = new Date(now.getTime() + offsetMs);
-                
+
                 // Calculate difference in milliseconds
                 const diff = nowUTC.getTime() - date.getTime();
-                
+
                 // If less than 1 minute old, show "just now"
                 if (diff < 60000) return 'just now';
-                
+
                 // Otherwise show time of day (e.g., "2:34 PM")
                 return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             } catch (e) {
@@ -851,7 +832,7 @@ SECURITY:
         async function loadMessages(userId) {
             try {
                 const token = getToken();
-                
+
                 // Fetch messages from backend API
                 // GET /api/messages/5 -> All messages between me and user 5
                 const response = await fetch(`/api/messages/${userId}`, {
@@ -890,7 +871,7 @@ SECURITY:
         // CALLED BY: loadMessages()
         function renderMessages(messages) {
             const container = document.getElementById('chat-messages');
-            
+
             // If no messages, show placeholder
             if (messages.length === 0) {
                 container.innerHTML = '<div style="padding: 2rem 1rem; text-align: center; color: var(--muted);">No messages yet. Start a conversation!</div>';
@@ -901,19 +882,19 @@ SECURITY:
             container.innerHTML = messages.map(msg => {
                 // Determine who sent the message
                 const isMe = msg.senderId === currentUserId;
-                
+
                 // Format the timestamp
                 const time = formatMessageTime(msg.createdAt);
-                
+
                 // Get sender's profile info
                 const sender = allUsers[msg.senderId] || {};
-                
+
                 // Only show avatar for received messages (not for my messages)
                 const hasProfilePic = sender.profileImage && !isMe;
-                
+
                 // Check if message is unread (to show red indicator)
                 const isUnread = !isMe && msg.isRead === 0;
-                
+
                 // Build message HTML
                 return `
                     <div class="message ${isMe ? 'me' : ''}" style="${isUnread ? 'background-color: rgba(0, 0, 0, 0.03); padding: 0.5rem; border-radius: 0.5rem; margin: -0.5rem -0.5rem 0 -0.5rem;' : ''}">
@@ -937,7 +918,7 @@ SECURITY:
 
             // Load Lucide icons
             lucide.createIcons();
-            
+
             // Auto-scroll to bottom to show latest messages
             // Use setTimeout to wait for DOM to fully render
             setTimeout(() => {
@@ -963,13 +944,13 @@ SECURITY:
         async function sendMessage() {
             const input = document.getElementById('message-input');
             const content = input.value.trim();  // Get message text and trim whitespace
-            
+
             if (!content || !currentConversationUserId) return;
 
             try {
                 const token = getToken();
-                console.log('Sending message - Token exists:', !!token, 'Conversation user:', currentConversationUserId, 'Content:', content.substring(0,20));
-                
+                console.log('Sending message - Token exists:', !!token, 'Conversation user:', currentConversationUserId, 'Content:', content.substring(0, 20));
+
                 if (!token) {
                     console.error('ERROR: No token found! User must log in.');
                     alert('❌ You are not logged in. Please log in again.');
@@ -995,7 +976,7 @@ SECURITY:
                     input.value = '';
                     console.log('✅ Message sent successfully');
                     await loadMessages(currentConversationUserId);
-                    
+
                     // Also emit via Socket.IO for real-time
                     socket.emit('send_message', {
                         senderId: currentUserId,

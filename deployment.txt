@@ -1,0 +1,50 @@
+DEPLOYMENT GUIDE: UNIMARKET ON RENDER.COM
+===========================================
+
+WHY WE CHOSE RENDER.COM
+-----------------------
+We selected Render.com over Vercel for this specific project because:
+
+1. PERSISTENT STORAGE (CRITICAL)
+   - Your app uses SQLite (`unimarket.db`), which is a file-based database.
+   - Vercel is "serverless", meaning it destroys the server file system after every request. If we deployed there, your database would be deleted instantly, and all user data would be lost.
+   - Render offers "Persistent Disks", which allows us to save the `unimarket.db` file permanently, just like on your local computer.
+
+2. WEBSOCKET SUPPORT (CRITICAL)
+   - Your chat system uses Socket.IO, which requires a continuous, open connection between the server and the user.
+   - Vercel's serverless functions have a 10-second timeout, which kills these connections.
+   - Render runs a standard server (like your local `uvicorn`), keeping connections open for real-time chat.
+
+3. PYTHON SUPPORT
+   - Render has native support for Python and FastAPI, making setup extremely simple.
+
+HOW I PREPARED THE CODE
+-----------------------
+I have made the following changes to get your code ready for production:
+
+1. CREATED `requirements.txt`
+   - This file lists all the Python libraries your app needs (FastAPI, SQLAlchemy, Socket.IO, etc.).
+   - Render reads this file to know what to install on the server.
+
+2. UPDATED `backend/database.py`
+   - I modified the database connection logic to look for a `DATABASE_URL` environment variable.
+   - This allows Render to tell the app where to find the database on the persistent disk, while still working perfectly on your local machine.
+
+STEPS TO DEPLOY
+---------------
+1. Push your code to GitHub.
+2. Create a new "Web Service" on Render.
+3. Connect your GitHub repository.
+4. Use the following settings:
+   - Name: unimarket
+   - Runtime: Python 3
+   - Build Command: `pip install -r requirements.txt`
+   - Start Command: `uvicorn backend.main:app_with_sio --host 0.0.0.0 --port 10000`
+5. Add a "Persistent Disk" in the Render settings:
+   - Name: unimarket_data
+   - Mount Path: /var/data
+6. Add an Environment Variable:
+   - Key: DATABASE_URL
+   - Value: sqlite:////var/data/unimarket.db
+
+Once deployed, Render will give you a URL (e.g., https://unimarket.onrender.com) that you can share with users!

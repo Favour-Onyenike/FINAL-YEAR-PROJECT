@@ -56,7 +56,7 @@ API ENDPOINTS:
             <a href="index.html" class="logo">UniMarket</a>
             <nav class="nav-links">
                 <a href="products.html" class="nav-link">Shop</a>
-                <a href="#" class="nav-link">About</a>
+                <a href="about.html" class="nav-link">About</a>
             </nav>
             <div class="search-bar">
                 <i data-lucide="search" class="search-icon"></i>
@@ -68,7 +68,7 @@ API ENDPOINTS:
                     <a href="login.html" class="btn btn-ghost">Log In</a>
                     <a href="signup-select-university.html" class="btn btn-primary">Sign Up</a>
                 </div>
-                
+
                 <!-- Logged In State -->
                 <div id="logged-in-actions" class="hidden" style="display: flex; gap: 1rem; align-items: center;">
                     <a href="messages.html" class="btn-icon btn-ghost nav-icon" title="Messages">
@@ -116,13 +116,14 @@ API ENDPOINTS:
         <form class="form-card" id="edit-form">
             <div class="form-group">
                 <label class="form-label">Product Name *</label>
-                <input type="text" id="product-name" class="input" placeholder="e.g., Engineering Mechanics Textbook" required>
+                <input type="text" id="product-name" class="input" placeholder="e.g., Engineering Mechanics Textbook"
+                    required>
             </div>
 
             <div class="form-group">
                 <label class="form-label">Description *</label>
-                <textarea id="product-description" class="input" placeholder="Describe the condition, features, and any other details..."
-                    required></textarea>
+                <textarea id="product-description" class="input"
+                    placeholder="Describe the condition, features, and any other details..." required></textarea>
             </div>
 
             <div class="grid grid-cols-1 grid-cols-2 gap-4">
@@ -184,7 +185,7 @@ API ENDPOINTS:
 
                     <div class="form-group">
                         <label class="form-label">Color *</label>
-                        <input type="text" class="input" id="color-input" placeholder="e.g., Red, Black, Blue" >
+                        <input type="text" class="input" id="color-input" placeholder="e.g., Red, Black, Blue">
                     </div>
                 </div>
             </div>
@@ -198,7 +199,8 @@ API ENDPOINTS:
             <!-- Replace Images -->
             <div class="form-group">
                 <label class="form-label">Replace Images (Optional)</label>
-                <p style="font-size: 0.875rem; color: var(--muted); margin-bottom: 0.5rem;">Leave empty to keep existing images</p>
+                <p style="font-size: 0.875rem; color: var(--muted); margin-bottom: 0.5rem;">Leave empty to keep existing
+                    images</p>
                 <div class="image-uploader" onclick="document.getElementById('file-input').click()">
                     <i data-lucide="upload"
                         style="width: 3rem; height: 3rem; margin: 0 auto 1rem; color: var(--muted);"></i>
@@ -207,7 +209,8 @@ API ENDPOINTS:
                 </div>
                 <input type="file" id="file-input" accept="image/*" multiple style="display: none;">
                 <div class="image-preview-grid" id="image-preview"></div>
-                <p id="image-count-display" style="font-size: 0.875rem; color: var(--muted); margin-top: 0.5rem;">0 new images selected</p>
+                <p id="image-count-display" style="font-size: 0.875rem; color: var(--muted); margin-top: 0.5rem;">0 new
+                    images selected</p>
                 <p id="image-error" style="font-size: 0.875rem; color: #ef4444; margin-top: 0.5rem; display: none;"></p>
             </div>
 
@@ -379,9 +382,9 @@ API ENDPOINTS:
             const countDisplay = document.getElementById('image-count-display');
             const errorDisplay = document.getElementById('image-error');
             const count = newImageFiles.length;
-            
+
             countDisplay.textContent = `${count} new image${count !== 1 ? 's' : ''} selected`;
-            
+
             // Show error if more than 5
             if (count > 5) {
                 errorDisplay.textContent = `⚠️ Maximum 5 images allowed (${count} selected)`;
@@ -394,7 +397,7 @@ API ENDPOINTS:
         // Form submission
         document.getElementById('edit-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
+
             if (!currentProduct) {
                 alert('Product not loaded');
                 return;
@@ -404,7 +407,7 @@ API ENDPOINTS:
                 alert(`❌ Maximum 5 images allowed. You have selected ${newImageFiles.length} images.`);
                 return;
             }
-            
+
             try {
                 // Get form data
                 const productName = document.getElementById('product-name').value;
@@ -414,31 +417,31 @@ API ENDPOINTS:
                 const condition = document.getElementById('condition-select').value;
                 const size = document.getElementById('size-select').value || null;
                 const color = document.getElementById('color-input').value || null;
-                
+
                 // If user provided new images, upload them
                 let imageUrls = currentProduct.images.map(img => img.imageUrl);
-                
+
                 if (newImageFiles.length > 0) {
                     // Replace all images with new ones
                     imageUrls = [];
                     for (const file of newImageFiles) {
                         const uploadFormData = new FormData();
                         uploadFormData.append('file', file);
-                        
+
                         const uploadResponse = await fetch('/api/upload', {
                             method: 'POST',
                             body: uploadFormData
                         });
-                        
+
                         if (!uploadResponse.ok) {
                             throw new Error('Failed to upload image');
                         }
-                        
+
                         const uploadData = await uploadResponse.json();
                         imageUrls.push(uploadData.imageUrl);
                     }
                 }
-                
+
                 // Validate image count (1-5 required)
                 if (imageUrls.length < 1 || imageUrls.length > 5) {
                     alert(`❌ Product must have between 1 and 5 images`);
@@ -454,7 +457,7 @@ API ENDPOINTS:
                     'Other': 5
                 };
                 const categoryId = categoryMap[category] || 5;
-                
+
                 // Update product
                 const token = localStorage.getItem('token');
                 const updateResponse = await fetch(`/api/products/${productId}`, {
@@ -474,7 +477,7 @@ API ENDPOINTS:
                         images: imageUrls
                     })
                 });
-                
+
                 if (!updateResponse.ok) {
                     let errorMessage = 'Failed to update listing';
                     try {
@@ -485,7 +488,7 @@ API ENDPOINTS:
                     }
                     throw new Error(errorMessage);
                 }
-                
+
                 alert('✅ Listing updated successfully!');
                 window.location.href = `product-detail.html?id=${productId}`;
             } catch (error) {

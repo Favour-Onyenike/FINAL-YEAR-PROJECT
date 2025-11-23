@@ -12,7 +12,7 @@
 
 <body>
 
-<!--
+    <!--
 ================================================================================
 UNIMARKET - USER PROFILE PAGE (profile.html)
 ================================================================================
@@ -127,7 +127,7 @@ SECURITY:
 
             <nav class="nav-links">
                 <a href="products.html" class="nav-link">Shop</a>
-                <a href="#" class="nav-link">About</a>
+                <a href="about.html" class="nav-link">About</a>
             </nav>
 
             <div class="search-bar">
@@ -141,7 +141,7 @@ SECURITY:
                     <a href="login.html" class="btn btn-ghost">Log In</a>
                     <a href="signup-select-university.html" class="btn btn-primary">Sign Up</a>
                 </div>
-                
+
                 <!-- Logged In State -->
                 <div id="logged-in-actions" class="hidden" style="display: flex; gap: 1rem; align-items: center;">
                     <a href="messages.html" class="btn-icon btn-ghost nav-icon" title="Messages">
@@ -179,9 +179,10 @@ SECURITY:
                 <a href="about.html" class="nav-link" style="font-size: 1.1rem; padding: 0.5rem 0;">About</a>
                 <hr style="border-color: var(--border); margin: 0.5rem 0;">
                 <a href="login.html" class="btn btn-ghost" style="text-align: center; width: 100%;">Log In</a>
-                <a href="signup-select-university.html" class="btn btn-primary" style="text-align: center; width: 100%;">Sign Up</a>
+                <a href="signup-select-university.html" class="btn btn-primary"
+                    style="text-align: center; width: 100%;">Sign Up</a>
             </div>
-            
+
             <!-- Logged In State -->
             <div id="mobile-logged-in-actions" class="hidden">
                 <a href="products.html" class="nav-link" style="font-size: 1.1rem; padding: 0.5rem 0;">Shop</a>
@@ -189,10 +190,13 @@ SECURITY:
                 <hr style="border-color: var(--border); margin: 0.5rem 0;">
                 <a href="sell.html" class="nav-link" style="font-size: 1.1rem; padding: 0.5rem 0;">Sell</a>
                 <a href="messages.html" class="nav-link" style="font-size: 1.1rem; padding: 0.5rem 0;">Messages</a>
-                <a href="saved-items.html" class="nav-link" style="font-size: 1.1rem; padding: 0.5rem 0;">Saved Items</a>
-                <a href="profile.html" class="nav-link" style="font-size: 1.1rem; padding: 0.5rem 0; color: var(--foreground);">Profile</a>
+                <a href="saved-items.html" class="nav-link" style="font-size: 1.1rem; padding: 0.5rem 0;">Saved
+                    Items</a>
+                <a href="profile.html" class="nav-link"
+                    style="font-size: 1.1rem; padding: 0.5rem 0; color: var(--foreground);">Profile</a>
                 <hr style="border-color: var(--border); margin: 0.5rem 0;">
-                <button onclick="logout()" class="btn btn-outline" style="text-align: center; width: 100%;">Log Out</button>
+                <button onclick="logout()" class="btn btn-outline" style="text-align: center; width: 100%;">Log
+                    Out</button>
             </div>
         </div>
     </div>
@@ -200,16 +204,19 @@ SECURITY:
     <div class="container">
         <!-- Profile Header -->
         <div class="profile-header">
-            <div class="profile-avatar" style="background: var(--secondary); display: flex; align-items: center; justify-content: center;">
-                <img id="profile-avatar-img" alt="User Avatar" style="display: none; width: 100%; height: 100%; object-fit: cover;">
-                <div id="profile-avatar-placeholder" style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;">
+            <div class="profile-avatar"
+                style="background: var(--secondary); display: flex; align-items: center; justify-content: center;">
+                <img id="profile-avatar-img" alt="User Avatar"
+                    style="display: none; width: 100%; height: 100%; object-fit: cover;">
+                <div id="profile-avatar-placeholder"
+                    style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;">
                     <i data-lucide="user" style="width: 4rem; height: 4rem; color: var(--muted);"></i>
                 </div>
             </div>
 
             <div class="profile-info">
                 <h1 class="profile-username" id="profile-username" style="margin-bottom: 0;">Loading...</h1>
-                
+
                 <div class="profile-stats">
                     <div class="profile-stat">
                         <span class="profile-stat-number" id="profile-listings-count">0</span>
@@ -222,10 +229,12 @@ SECURITY:
                 </div>
 
                 <div style="margin-bottom: 1.5rem;">
-                    <p id="profile-fullname" style="font-weight: 600; margin-bottom: 0.5rem; font-size: 1.1rem;">Loading...</p>
-                    <p id="profile-bio" style="color: var(--muted); max-width: 500px; margin: 0 auto;">No bio yet. Click "Edit Profile" to add one.</p>
+                    <p id="profile-fullname" style="font-weight: 600; margin-bottom: 0.5rem; font-size: 1.1rem;">
+                        Loading...</p>
+                    <p id="profile-bio" style="color: var(--muted); max-width: 500px; margin: 0 auto;">No bio yet. Click
+                        "Edit Profile" to add one.</p>
                 </div>
-                
+
                 <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 1rem;">
                     <a id="edit-profile-btn" href="edit-profile.html" class="btn btn-outline hidden">
                         <i data-lucide="edit-2" style="width: 1rem; margin-right: 0.5rem;"></i>
@@ -249,14 +258,16 @@ SECURITY:
         <div class="profile-tab-content" id="listings-content">
             <div class="flex justify-between items-center" style="margin-bottom: 2rem;">
                 <h2 style="font-size: 1.5rem; font-weight: 700;" id="listings-title">Listings</h2>
-                <a href="#" onclick="checkAuthAndNavigate('sell.html'); return false;" class="btn btn-primary hidden" id="new-listing-btn">
+                <a href="#" onclick="checkAuthAndNavigate('sell.html'); return false;" class="btn btn-primary hidden"
+                    id="new-listing-btn">
                     <i data-lucide="plus" style="width: 1rem; margin-right: 0.5rem;"></i> New Listing
                 </a>
             </div>
 
             <div id="listings-grid" class="product-grid">
                 <!-- Products will be loaded here -->
-                <p style="grid-column: 1 / -1; text-align: center; color: var(--muted); padding: 2rem;">No listings yet. <a href="sell.html">Create your first listing!</a></p>
+                <p style="grid-column: 1 / -1; text-align: center; color: var(--muted); padding: 2rem;">No listings yet.
+                    <a href="sell.html">Create your first listing!</a></p>
             </div>
 
             <!-- Hidden template for product cards (for future dynamic loading) -->
@@ -388,92 +399,92 @@ SECURITY:
             backendUrl.pathname = path;
             return backendUrl.toString();
         }
-        
+
         // Get profile user ID from URL parameter
         function getProfileUserId() {
             const params = new URLSearchParams(window.location.search);
             return params.get('userId') || null;
         }
-        
+
         // Load user profile data
         function loadUserProfile() {
             const currentUser = JSON.parse(localStorage.getItem('user'));
             const profileUserId = getProfileUserId();
-            
+
             // Determine whose profile to show
             const userId = profileUserId || (currentUser ? currentUser.id : null);
             const isOwnProfile = currentUser && userId === currentUser.id;
-            
+
             if (!userId) {
                 window.location.href = 'login.html';
                 return;
             }
-            
+
             // Fetch profile data
             const token = localStorage.getItem('token');
             fetch(`/api/users/${userId}`, {
                 headers: token ? { 'Authorization': `Bearer ${token}` } : {}
             })
-            .then(res => res.json())
-            .then(data => {
-                // Update profile display
-                document.getElementById('profile-username').textContent = data.username || 'User';
-                document.getElementById('profile-fullname').textContent = data.fullName || data.full_name || 'User';
-                document.getElementById('profile-bio').textContent = data.bio || 'No bio yet.';
-                
-                document.getElementById('profile-listings-count').textContent = data.listings_count || 0;
-                document.getElementById('profile-sales-count').textContent = data.sales_count || 0;
-                
-                // Show avatar if it exists
-                if (data.profileImage) {
-                    // Convert relative image path to full backend URL
-                    const imageUrl = data.profileImage.startsWith('http') 
-                        ? data.profileImage 
-                        : getBackendUrl(data.profileImage);
-                    document.getElementById('profile-avatar-img').src = imageUrl;
-                    document.getElementById('profile-avatar-img').style.display = 'block';
-                    document.getElementById('profile-avatar-placeholder').style.display = 'none';
-                }
-                
-                // OWNER-ONLY FEATURES
-                if (isOwnProfile) {
-                    // Show edit profile button
-                    document.getElementById('edit-profile-btn').classList.remove('hidden');
-                    
-                    // Show saved items tab
-                    document.getElementById('saved-tab').classList.remove('hidden');
-                    
-                    // Show new listing button
-                    document.getElementById('new-listing-btn').classList.remove('hidden');
-                    
-                    // Update tab titles for owner
-                    document.getElementById('listings-title').textContent = 'My Listings';
-                    document.getElementById('listings-tab').textContent = 'My Listings';
-                } else {
-                    // Visitor viewing someone else's profile
-                    document.getElementById('listings-title').textContent = `${data.username}'s Listings`;
-                    document.getElementById('listings-tab').textContent = 'Listings';
-                    
-                    // Show message button for other users
-                    document.getElementById('message-btn').classList.remove('hidden');
-                    document.getElementById('message-btn').addEventListener('click', () => {
-                        window.location.href = `messages.html?userId=${userId}`;
-                    });
-                }
-            })
-            .catch(err => {
-                console.log('Could not load profile data');
-                // Fall back to localStorage if backend unavailable
-                if (currentUser && isOwnProfile) {
-                    document.getElementById('profile-username').textContent = currentUser.username || 'User';
-                    document.getElementById('profile-fullname').textContent = currentUser.name || 'Your Name';
-                    document.getElementById('edit-profile-btn').classList.remove('hidden');
-                    document.getElementById('saved-tab').classList.remove('hidden');
-                    document.getElementById('new-listing-btn').classList.remove('hidden');
-                }
-            });
+                .then(res => res.json())
+                .then(data => {
+                    // Update profile display
+                    document.getElementById('profile-username').textContent = data.username || 'User';
+                    document.getElementById('profile-fullname').textContent = data.fullName || data.full_name || 'User';
+                    document.getElementById('profile-bio').textContent = data.bio || 'No bio yet.';
+
+                    document.getElementById('profile-listings-count').textContent = data.listings_count || 0;
+                    document.getElementById('profile-sales-count').textContent = data.sales_count || 0;
+
+                    // Show avatar if it exists
+                    if (data.profileImage) {
+                        // Convert relative image path to full backend URL
+                        const imageUrl = data.profileImage.startsWith('http')
+                            ? data.profileImage
+                            : getBackendUrl(data.profileImage);
+                        document.getElementById('profile-avatar-img').src = imageUrl;
+                        document.getElementById('profile-avatar-img').style.display = 'block';
+                        document.getElementById('profile-avatar-placeholder').style.display = 'none';
+                    }
+
+                    // OWNER-ONLY FEATURES
+                    if (isOwnProfile) {
+                        // Show edit profile button
+                        document.getElementById('edit-profile-btn').classList.remove('hidden');
+
+                        // Show saved items tab
+                        document.getElementById('saved-tab').classList.remove('hidden');
+
+                        // Show new listing button
+                        document.getElementById('new-listing-btn').classList.remove('hidden');
+
+                        // Update tab titles for owner
+                        document.getElementById('listings-title').textContent = 'My Listings';
+                        document.getElementById('listings-tab').textContent = 'My Listings';
+                    } else {
+                        // Visitor viewing someone else's profile
+                        document.getElementById('listings-title').textContent = `${data.username}'s Listings`;
+                        document.getElementById('listings-tab').textContent = 'Listings';
+
+                        // Show message button for other users
+                        document.getElementById('message-btn').classList.remove('hidden');
+                        document.getElementById('message-btn').addEventListener('click', () => {
+                            window.location.href = `messages.html?userId=${userId}`;
+                        });
+                    }
+                })
+                .catch(err => {
+                    console.log('Could not load profile data');
+                    // Fall back to localStorage if backend unavailable
+                    if (currentUser && isOwnProfile) {
+                        document.getElementById('profile-username').textContent = currentUser.username || 'User';
+                        document.getElementById('profile-fullname').textContent = currentUser.name || 'Your Name';
+                        document.getElementById('edit-profile-btn').classList.remove('hidden');
+                        document.getElementById('saved-tab').classList.remove('hidden');
+                        document.getElementById('new-listing-btn').classList.remove('hidden');
+                    }
+                });
         }
-        
+
         function switchTab(tabName) {
             // Hide all tab content
             document.querySelectorAll('.profile-tab-content').forEach(content => {
@@ -491,32 +502,32 @@ SECURITY:
             // Add active class to clicked tab
             event.target.classList.add('active');
         }
-        
+
         // Load user's product listings
         async function loadUserListings() {
             const currentUser = JSON.parse(localStorage.getItem('user'));
             const profileUserId = getProfileUserId();
             const userId = profileUserId || (currentUser ? currentUser.id : null);
-            
+
             if (!userId) return;
-            
+
             try {
                 const token = localStorage.getItem('token');
                 const response = await fetch(`/api/products?userId=${userId}`, {
                     headers: token ? { 'Authorization': `Bearer ${token}` } : {}
                 });
-                
+
                 if (!response.ok) throw new Error('Failed to load listings');
-                
+
                 const data = await response.json();
                 const products = data.products || [];  // Extract products array from pagination wrapper
                 const listingsGrid = document.getElementById('listings-grid');
-                
+
                 if (products.length === 0) {
                     listingsGrid.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; color: var(--muted); padding: 2rem;">No listings yet. <a href="sell.html">Create your first listing!</a></p>';
                     return;
                 }
-                
+
                 // Display products
                 listingsGrid.innerHTML = products.map(product => `
                     <a href="product-detail.html?id=${product.id}" class="product-card">
@@ -540,13 +551,13 @@ SECURITY:
                         </div>
                     </a>
                 `).join('');
-                
+
                 lucide.createIcons();
             } catch (error) {
                 console.error('Error loading listings:', error);
             }
         }
-        
+
         // Load profile when page loads
         loadUserProfile();
         loadUserListings();

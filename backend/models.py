@@ -10,7 +10,7 @@ WHAT HAPPENS HERE:
 - Uses SQLAlchemy ORM which converts these classes to SQL tables
 """
 
-from sqlalchemy import Column, Integer, String, Float, Text, DateTime, ForeignKey, Enum
+from sqlalchemy import Column, Integer, String, Float, Text, DateTime, ForeignKey, Enum, Index
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from backend.database import Base
@@ -369,6 +369,11 @@ class Message(Base):
     - receiver: The user who received the message
     """
     __tablename__ = "messages"
+    __table_args__ = (
+        Index('idx_messages_sender_receiver', 'sender_id', 'receiver_id'),
+        Index('idx_messages_receiver_id', 'receiver_id'),
+        Index('idx_messages_is_read', 'is_read'),
+    )
     
     # Unique ID for each message
     id = Column(Integer, primary_key=True, index=True)
