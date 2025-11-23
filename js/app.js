@@ -1,22 +1,114 @@
 /**
- * UNIMARKET GLOBAL SCRIPTS
- * ========================
- * This file contains global JavaScript functions used across all pages.
- * 
- * WHAT IT DOES:
- * - Initialize Lucide Icons (SVG icons library)
- * - Mobile menu toggle (hamburger menu)
- * - Sticky header shadow on scroll
- * - Animated counter for hero statistics
- * - Navigation bar state management
- * - Logout functionality
- * - Helper function to convert relative image paths to backend URLs
- * 
+ * ================================================================================
+ * UNIMARKET - GLOBAL JAVASCRIPT LIBRARY (app.js)
+ * ================================================================================
+ *
+ * PURPOSE:
+ * This file contains reusable JavaScript functions and utilities used across
+ * ALL pages of UniMarket. Think of it as a "global library" that every page
+ * loads and uses.
+ *
+ * WHAT THIS FILE DOES:
+ * 1. Authentication Management - Token handling, login/logout
+ * 2. Icon Library - Initialize Lucide SVG icons on every page
+ * 3. Notification System - Real-time message badge updates
+ * 4. UI Interactions - Mobile menu, header scroll effects, search
+ * 5. Image Handling - Convert relative paths to backend URLs
+ * 6. Helper Functions - Shared functions used across pages
+ * 7. Global State - Token, user data in localStorage
+ *
+ * KEY FEATURES:
+ * ✓ Authentication: JWT tokens, login/logout, "Remember Me"
+ * ✓ Message Badges: Shows red dot (●) when you have unread messages
+ * ✓ Badge Updates: Every 5 seconds + real-time via Socket.IO
+ * ✓ Mobile Responsive: Touch-friendly hamburger menu
+ * ✓ Image URLs: Converts /uploads/ paths to backend URLs
+ * ✓ Global Search: Search from any page
+ * ✓ Error Handling: Graceful error messages for API failures
+ *
+ * FILE STRUCTURE:
+ * 1. Helper Functions (top):
+ *    - getToken() - Get JWT from localStorage
+ *    - getImageUrl() - Convert relative paths to backend URLs
+ *    - isLoggedIn() - Check if user has valid token
+ *    - requireLogin() - Redirect to login if not authenticated
+ *
+ * 2. Authentication Functions:
+ *    - Login/Register/Logout - Handle auth state
+ *    - Token storage - Save/retrieve JWT
+ *    - User data - Store user profile locally
+ *
+ * 3. Notification System (THE MESSAGE BADGE SYSTEM):
+ *    - updateMessageBadge() - Main function that:
+ *      * Gets all users from backend
+ *      * Checks messages with each user
+ *      * Counts unread messages
+ *      * Updates red dot badge on message icon
+ *    - Periodic updates - Called every 5 seconds
+ *    - Real-time updates - Called when Socket.IO receives message
+ *    - Badge display - Shows ● (red dot) when unread > 0
+ *
+ * 4. UI Initialization:
+ *    - Icon initialization - Convert <i data-lucide="icon"></i> to SVG icons
+ *    - Event listeners - Attach click handlers to buttons
+ *    - Mobile menu - Toggle hamburger menu on click
+ *    - Header effects - Add shadow on scroll
+ *
+ * 5. Global Search:
+ *    - Search bar on all pages
+ *    - Type and press Enter -> Goes to products.html?search=query
+ *
  * HOW IT WORKS:
- * 1. Wait for page to load (DOMContentLoaded)
- * 2. Run initialization code
- * 3. Attach event listeners to interactive elements
- * 4. Handle user interactions (clicks, scrolls, etc.)
+ * 1. Page loads -> Loads app.js
+ * 2. DOMContentLoaded event fires
+ * 3. Initialize icons, menus, event listeners
+ * 4. If user logged in:
+ *    - Load user data from localStorage
+ *    - Display user profile in navbar
+ *    - Update message badge
+ *    - Set 5-second timer to check for new messages
+ * 5. User opens messages page:
+ *    - Socket.IO connects (in messages.html)
+ *    - Listens for receive_message events
+ *    - Calls updateMessageBadge() when message arrives
+ *
+ * NOTIFICATION BADGE FLOW:
+ * +------ REAL-TIME (Socket.IO) ------+
+ * |                                   |
+ * | Message arrives -> receive_message event -> updateMessageBadge()
+ * |                                   |
+ * |---- PERIODIC (5-second interval) -+
+ * |                                   |
+ * | Timer fires -> updateMessageBadge() -> Count unread messages
+ * |                                   |
+ * +--- Result: Red dot appears (●) ---+
+ *
+ * GLOBAL STATE (localStorage):
+ * - token: JWT authentication token (expires in 7 days)
+ * - userId: Your numeric user ID
+ * - user: Full user object (JSON string)
+ * - rememberMe: Boolean flag for "Remember Me" functionality
+ *
+ * SECURITY NOTES:
+ * - All API calls include Authorization header with JWT
+ * - Tokens expire in 7 days
+ * - Never send token in URL (only in headers)
+ * - Clear token on logout
+ * - Check token before accessing protected pages
+ *
+ * COMMON FUNCTIONS:
+ * - getToken() - Returns JWT or null
+ * - isLoggedIn() - Boolean check
+ * - updateMessageBadge() - Update notification badge
+ * - getImageUrl(path) - Convert path to backend URL
+ * - logout() - Clear token and redirect to home
+ *
+ * DEPENDENCIES:
+ * - Lucide Icons (CDN) - Icon rendering
+ * - Socket.IO Client (in messages.html) - Real-time messaging
+ * - REST API (backend) - Data persistence
+ *
+ * ================================================================================
  */
 
 // =============================================================================

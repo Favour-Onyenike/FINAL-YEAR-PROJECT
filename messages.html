@@ -1,3 +1,90 @@
+<!--
+================================================================================
+UNIMARKET - MESSAGES PAGE (messages.html)
+================================================================================
+
+PURPOSE:
+Real-time messaging interface for UniMarket where users can chat with each other
+about products. Displays conversation list, message history, and input for sending
+new messages.
+
+WHAT THIS PAGE DOES:
+1. Shows all conversation partners (users you've messaged)
+2. Displays unread message count for each conversation (numbered badges)
+3. Shows message history when you click a conversation
+4. Allows you to type and send new messages
+5. Marks messages as read when you view them
+6. Shows notification badge (red dot) when you have unread messages
+7. Auto-scrolls to latest messages
+8. Responsive design (hides conversation list on mobile, click back to show)
+
+KEY FEATURES:
+✓ Real-time Chat: Instant message delivery via Socket.IO
+✓ Message History: Load past conversations from database
+✓ Unread Badges: Numbers on each conversation + red dot on icon
+✓ Read Status: Messages marked as read when viewed
+✓ User Info: Shows profile pictures, names, usernames
+✓ Timestamps: Shows when each message was sent
+✓ Responsive: Works on desktop, tablet, and mobile
+
+HOW IT WORKS:
+1. Page loads -> Check if user logged in -> Load conversations
+2. For each user: Fetch messages and count unread ones
+3. Display list of conversations sorted by most recent
+4. User clicks conversation -> Load all messages with that user
+5. User opens chat -> Backend marks messages as read
+6. Notification badges disappear (no more unread)
+7. User types message -> Click send -> POST /api/messages
+8. Backend saves message + emits Socket.IO event if online
+9. Real-time updates: Other user sees message instantly (if online)
+10. If other user offline: They see message when they reconnect
+
+TECHNICAL STACK:
+- Frontend: HTML5, CSS3, JavaScript ES6+
+- Real-time: Socket.IO (WebSocket) for instant delivery
+- APIs: REST endpoints for persistence (POST, GET, PUT)
+- Database: SQLite/PostgreSQL for message storage
+- Icons: Lucide Icons (SVG)
+- Styling: CSS variables for theming
+
+FILE SECTIONS:
+1. Head: Meta tags, stylesheets, libraries
+2. Body: HTML structure
+   - Header: Shows user profile
+   - Conversation list: All your chat partners (left sidebar)
+   - Chat view: Messages and input (main area)
+3. Scripts:
+   - Socket.IO initialization
+   - Event listeners (connect, receive_message)
+   - Page functions (loadConversations, selectConversation, sendMessage)
+   - UI management (renderConversations, renderMessages)
+
+IMPORTANT VARIABLES:
+- currentConversationUserId: Which user's conversation is open
+- currentUserId: Your user ID (logged in)
+- allUsers: Cache of all user data
+- conversations: List of users you're chatting with
+- socket: Socket.IO connection object
+
+WEBSOCKET CONNECTION:
+- Connects to backend on port 8000
+- Auto-reconnects if connection drops
+- Authenticates with user ID on connect
+- Listens for receive_message events
+
+STYLING:
+- Inline styles in JavaScript (for dynamic badges)
+- CSS from style.css (main styling)
+- Mobile-first design with media queries
+- Hidden header shadow, responsive grid layout
+
+SECURITY:
+- JWT token required to access page (stored in localStorage)
+- All API calls include authorization header
+- Messages not sent to strangers (only visible to sender/receiver)
+- Read-only operations for security
+================================================================================
+-->
 <!DOCTYPE html>
 <html lang="en">
 
@@ -7,7 +94,7 @@
     <title>Messages - UniMarket</title>
     <link rel="stylesheet" href="css/style.css">
     <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- Socket.IO Client Library for real-time messaging -->
+    <!-- Socket.IO Client Library for real-time WebSocket messaging -->
     <script src="https://cdn.socket.io/4.8.0/socket.io.min.js"></script>
     <style>
         body {

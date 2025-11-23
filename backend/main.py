@@ -1,29 +1,76 @@
 """
-UNIMARKET API - MAIN ENDPOINTS
-==============================
-This is the main backend API file that handles all HTTP requests.
-It contains all the routes (endpoints) that the frontend calls.
+================================================================================
+UNIMARKET API - BACKEND MAIN SERVER
+================================================================================
 
-STRUCTURE:
-1. Import statements (required libraries)
-2. FastAPI app initialization
-3. CORS middleware setup (allows frontend to call API)
-4. Startup event (runs when server starts)
-5. API endpoints organized by feature:
-   - Health check
-   - Authentication (register, login, get profile)
-   - Products (list, get, create, update, delete)
-   - Saved items (bookmark products)
-   - Image uploads
-   - Categories
+PURPOSE:
+This is the main backend API server for UniMarket, a peer-to-peer campus
+marketplace for Baze University students. It handles all HTTP requests from
+the frontend and manages real-time messaging via Socket.IO.
 
-WHAT HAPPENS WHEN A REQUEST COMES IN:
-1. FastAPI receives HTTP request (POST, GET, etc.)
-2. Matches URL to @app.post/@app.get decorator
-3. Validates request data with Pydantic schema
-4. Gets database session
-5. Executes endpoint function
-6. Returns response as JSON
+WHAT THIS FILE DOES:
+1. Initializes FastAPI web server (port 8000)
+2. Sets up Socket.IO for real-time WebSocket communication
+3. Handles user authentication (register, login, JWT tokens)
+4. Manages product listings (create, edit, delete, view)
+5. Implements messaging system (send, fetch, mark as read)
+6. Handles image uploads and serving
+7. Manages user profiles and saved items (wishlist)
+8. Provides product categories and filtering
+
+KEY FEATURES:
+✓ Real-time Chat: Socket.IO handles instant message delivery
+✓ Message Persistence: REST API saves messages to database
+✓ User Authentication: JWT tokens with 7-day expiry
+✓ Image Management: Upload, compress, and serve images
+✓ Search & Filter: Find products by category, price, condition
+✓ Notification System: Unread message tracking with badges
+
+HOW IT WORKS:
+1. Frontend (port 5000) sends HTTP requests to Backend (port 8000)
+2. Backend validates request with authentication
+3. Executes database queries
+4. Returns JSON response
+5. For real-time features: Uses Socket.IO WebSocket connection
+
+FILE STRUCTURE:
+- Socket.IO initialization and event handlers
+- CORS middleware setup (allows frontend cross-origin requests)
+- Authentication endpoints (register, login, profile)
+- Product endpoints (list, create, edit, delete)
+- Message endpoints (send, fetch, mark as read)
+- Socket.IO real-time event handlers
+- Image upload endpoints
+- Database initialization
+
+DATABASE INTEGRATION:
+- Uses SQLAlchemy ORM
+- SQLite for development, PostgreSQL for production
+- Automatic database initialization on startup
+- User, Product, Message, Category, SavedItem tables
+
+WHEN YOU START THE SERVER:
+1. Loads .env file for environment variables
+2. Initializes database (creates tables if needed)
+3. Sets up CORS to allow frontend requests
+4. Mounts static file directory for image uploads
+5. Starts listening on port 8000
+
+COMMON ENDPOINTS:
+- POST /api/register - Create new account
+- POST /api/login - User login
+- GET /api/products - List all products
+- POST /api/products - Create product
+- POST /api/messages - Send message
+- GET /api/messages/{user_id} - Get conversation history
+- PUT /api/messages/{user_id}/mark-read - Mark messages as read
+- POST /api/images - Upload image
+
+For detailed endpoint documentation, see:
+- /docs (Swagger UI interactive docs)
+- /redoc (ReDoc documentation)
+
+================================================================================
 """
 
 from fastapi import FastAPI, Depends, HTTPException, status, UploadFile, File, Query

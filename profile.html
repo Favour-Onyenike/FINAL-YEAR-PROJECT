@@ -16,33 +16,109 @@
 ================================================================================
 UNIMARKET - USER PROFILE PAGE (profile.html)
 ================================================================================
-PURPOSE: Display user profile (own or other users)
-FEATURES:
-- View profile information (name, username, bio, picture, stats)
-- View user's product listings (My Listings tab)
-- View saved items (Saved tab) - owner only
-- Edit profile button - owner only
-- New Listing button - owner only
+
+PURPOSE:
+Display user profile information and their product listings. Supports viewing
+your own profile with edit capabilities or viewing other users' profiles.
+
+WHAT THIS PAGE DOES:
+1. Shows user's profile information (avatar, name, username, bio)
+2. Displays user statistics (number of listings, number of sales)
+3. Shows user's product listings in a grid
+4. Shows saved items (wishlist) - owner only
+5. Allows editing profile (owner only)
+6. Allows creating new product listing (owner only)
+7. Shows "Message" button to contact seller (other users only)
+
+KEY FEATURES:
+✓ Own Profile View: Edit profile, manage listings, view saved items
+✓ Other User View: Read-only, can message, see their products
+✓ Product Grid: Shows all products user is selling
+✓ Saved Items Tab: Bookmark products for later (owner-only)
+✓ User Stats: Total listings, total sales
+✓ Profile Editing: Update avatar, bio, contact info
+✓ Message Integration: Direct link to chat with user
 
 ACCESS CONTROL:
-- Account owner: Can see Edit Profile button, Saved tab, New Listing button
-- Other visitors: Can see profile read-only, no edit options
-- Profile information displayed: name, username, bio, avatar, stats
+- Account Owner: Can edit profile, create listings, view saved items
+- Other Visitors: Read-only access, can view products and message
+- Authentication: Page checks if logged in, redirects to login if not
 
-PROFILE DATA SHOWN:
-- Avatar (profile picture or placeholder icon if not uploaded)
-- Full Name and Username
-- Bio (or "No bio yet" if empty)
-- Stats: Number of Listings, Number of Sales
-- User's Products: List of items they're selling
+PROFILE DATA DISPLAYED:
+- Avatar (profile picture or default icon)
+- Full Name
+- Username
+- Bio/Description
+- Phone Number (if provided)
+- Statistics:
+  * Number of Listings (products for sale)
+  * Number of Sales (completed transactions)
 
-TABS:
-1. "My Listings" or "[Username]'s Listings" - Product grid
-2. "Saved" (owner-only) - Bookmarked products
+TABS/SECTIONS:
+1. Profile Info Section (top):
+   - Avatar, name, username, bio
+   - Edit Profile button (owner-only)
+   - Message button (others-only)
+   - New Listing button (owner-only)
 
-API ENDPOINTS:
-- GET /api/users/{id} (get user profile data)
-- GET /api/products?userId={id} (get user's products)
+2. Listings Tab:
+   - Shows all products user is selling
+   - Grid layout (responsive)
+   - Click to view product details
+
+3. Saved Tab (owner-only):
+   - Bookmarked products
+   - User can manage saved items
+   - Hidden from other visitors
+
+HOW IT WORKS:
+1. Page loads -> Check URL parameter ?userId=X (which user to view)
+2. Check if logged in -> Redirect to login if not
+3. Fetch user data via GET /api/users/{id}
+4. Determine if viewing own profile or other user
+5. Show/hide edit/create buttons based on ownership
+6. Fetch user's products via GET /api/products?userId={id}
+7. Render product grid with images and info
+8. If owner: Load saved items via GET /api/saved
+9. Attach event listeners for clicks, editing, etc.
+
+API ENDPOINTS USED:
+- GET /api/users/{id} - Get user profile data
+- PUT /api/users/{id} - Update profile (owner only)
+- GET /api/products?userId={id} - Get user's product listings
+- GET /api/saved - Get saved items (owner only)
+- POST /api/products - Create new listing (owner)
+
+IMPORTANT VARIABLES:
+- userId: The user ID being viewed (from URL or localStorage)
+- currentUserId: Your own user ID (logged in user)
+- isOwner: Boolean - are you viewing your own profile?
+
+JAVASCRIPT SECTIONS:
+1. Page initialization - Load user data
+2. Profile rendering - Display user info
+3. Products loading - Fetch and display listings
+4. Tab switching - Toggle between Listings/Saved
+5. Edit profile - Modal for updating info
+6. Create listing - Navigation to create product page
+
+STYLING:
+- Responsive grid layout for products
+- Mobile-first design
+- Avatar styling with border-radius
+- Card layout for products
+- Tab styling for switching views
+
+SECURITY:
+- Only owner can edit profile
+- Only owner can see saved items
+- Only owner can create new listings
+- Edit profile button hidden for other users
+- New Listing button hidden for other users
+- Message button hidden from own profile
+
+================================================================================
+-->
 - GET /api/saved-items (get user's saved items - owner only)
 
 QUERY PARAMETERS:
