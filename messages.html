@@ -564,11 +564,31 @@ SECURITY:
             // Auto-open the conversation with that user
             const targetUserId = getTargetUserId();  // Get user ID from URL ?userId=X
             if (targetUserId) {
-                // Wait for conversations to load, then select target user's conversation
-                setTimeout(() => {
-                    const targetUserData = allUsers[parseInt(targetUserId)];
+                // Wait for conversations to load
+                setTimeout(async () => {
+                    const targetId = parseInt(targetUserId);
+                    let targetUserData = allUsers[targetId];
+
+                    // If user not in existing conversations, fetch their details
+                    if (!targetUserData) {
+                        try {
+                            const token = localStorage.getItem('token');
+                            const response = await fetch(`/api/users/${targetId}`, {
+                                headers: { 'Authorization': `Bearer ${token}` }
+                            });
+                            if (response.ok) {
+                                targetUserData = await response.json();
+                                // Add to cache
+                                allUsers[targetId] = targetUserData;
+                            }
+                        } catch (err) {
+                            console.error('Error fetching target user:', err);
+                        }
+                    }
+
+                    // Open conversation if we have user data
                     if (targetUserData) {
-                        selectConversation(parseInt(targetUserId), targetUserData.full_name || targetUserData.username);
+                        selectConversation(targetId, targetUserData.fullName || targetUserData.username);
                     }
                 }, 500);
             }
