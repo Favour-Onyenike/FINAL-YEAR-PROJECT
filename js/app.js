@@ -643,8 +643,10 @@ async function updateMessageBadge() {
                 badge.style.color = '#ef4444';  // Red color
                 console.log('✅ Badge updated with unread count:', unreadCount);
             } else {
-                // No unread messages - hide the badge
+                // No unread messages - hide the badge completely
                 badge.classList.add('hidden');
+                badge.textContent = '';  // Clear badge text
+                badge.style.display = 'none';  // Force hide
                 console.log('No unread messages');
             }
         } else {
