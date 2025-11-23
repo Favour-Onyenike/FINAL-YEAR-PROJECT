@@ -245,7 +245,8 @@ NEXT STEP: User redirected to products.html (shop page) after login
                 console.log('✅ Login form submitted!');
 
                 const email = emailInput.value.toLowerCase().trim();
-                const password = form.querySelector('input[type="password"]').value.trim();
+                // Use ID selector instead of type="password" because visibility toggle changes type to "text"
+                const password = document.getElementById('password-input').value.trim();
                 console.log('Email:', email, 'Password length:', password.length);
 
                 // Validate email domain
