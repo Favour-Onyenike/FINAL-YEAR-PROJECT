@@ -39,6 +39,10 @@ DEFAULT_DATABASE_URL = f"sqlite:///{DEFAULT_DB_PATH}"
 # If not set, use the default local SQLite path
 SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL", DEFAULT_DATABASE_URL)
 
+# FIX: Render provides 'postgres://' but SQLAlchemy needs 'postgresql://'
+if SQLALCHEMY_DATABASE_URL and SQLALCHEMY_DATABASE_URL.startswith("postgres://"):
+    SQLALCHEMY_DATABASE_URL = SQLALCHEMY_DATABASE_URL.replace("postgres://", "postgresql://", 1)
+
 # =============================================================================
 # CREATE DATABASE ENGINE
 # =============================================================================
