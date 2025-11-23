@@ -283,14 +283,21 @@ def login(credentials: UserLogin, db: Session = Depends(get_db)):
     6. Frontend includes token in Authorization header for future requests
     """
     # Find user by email
-    user = db.query(User).filter(User.email == credentials.email).first()
+    user = db.query(User).filter(User.email == login_data.email).first()
     
-    # Verify password
-    # verify_password does bcrypt comparison (doesn't expose the hash)
-    if not user or not verify_password(credentials.password, user.password_hash):
+    # Check if user exists
+    if not user:
+        raise HTTPException(
+            status_code=404,
+            detail="Account does not exist"
+        )
+    
+    # Check password
+    if not verify_password(login_data.password, user.password_hash):
         raise HTTPException(
             status_code=401,
-            detail="Invalid email or password"
+            detail="Incorrect password",
+            headers={"WWW-Authenticate": "Bearer"},
         )
     
     # Create JWT token

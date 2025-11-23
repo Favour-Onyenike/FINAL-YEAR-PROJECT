@@ -109,19 +109,23 @@ NEXT STEP: User redirected to products.html (shop page) after login
                     </div>
                     <div style="position: relative;">
                         <input type="password" class="input" id="password-input" placeholder="••••••••" required>
-                        <button type="button" class="password-toggle" id="password-toggle" onclick="togglePassword('password-input', 'password-toggle')">
+                        <button type="button" class="password-toggle" id="password-toggle"
+                            onclick="togglePassword('password-input', 'password-toggle')">
                             <i data-lucide="eye" style="width: 1.2rem; height: 1.2rem;"></i>
                         </button>
                     </div>
                 </div>
 
                 <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 1rem;">
-                    <input type="checkbox" id="remember-me-checkbox" style="width: 1.1rem; height: 1.1rem; cursor: pointer;">
-                    <label for="remember-me-checkbox" style="cursor: pointer; font-size: 0.9rem; color: var(--foreground);">Remember me for 24 hours</label>
+                    <input type="checkbox" id="remember-me-checkbox"
+                        style="width: 1.1rem; height: 1.1rem; cursor: pointer;">
+                    <label for="remember-me-checkbox"
+                        style="cursor: pointer; font-size: 0.9rem; color: var(--foreground);">Remember me for 24
+                        hours</label>
                 </div>
 
                 <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1.5rem;">Log in</button>
-                
+
                 <div id="status-indicator" class="status-indicator hidden">
                     <i id="status-icon" data-lucide="loader" class="status-icon loading"></i>
                 </div>
@@ -139,7 +143,7 @@ NEXT STEP: User redirected to products.html (shop page) after login
         function togglePassword(inputId, toggleId) {
             const input = document.getElementById(inputId);
             const toggle = document.getElementById(toggleId);
-            
+
             if (input.type === 'password') {
                 input.type = 'text';
                 toggle.innerHTML = '<i data-lucide="eye-off" style="width: 1.2rem; height: 1.2rem;"></i>';
@@ -147,11 +151,11 @@ NEXT STEP: User redirected to products.html (shop page) after login
                 input.type = 'password';
                 toggle.innerHTML = '<i data-lucide="eye" style="width: 1.2rem; height: 1.2rem;"></i>';
             }
-            
+
             // Re-render lucide icons
             lucide.createIcons();
         }
-        
+
         // Show status indicator with loading spinner
         function showStatusLoading() {
             const indicator = document.getElementById('status-indicator');
@@ -161,7 +165,7 @@ NEXT STEP: User redirected to products.html (shop page) after login
             indicator.classList.remove('hidden');
             lucide.createIcons();
         }
-        
+
         // Show success checkmark
         function showStatusSuccess() {
             const icon = document.getElementById('status-icon');
@@ -169,20 +173,20 @@ NEXT STEP: User redirected to products.html (shop page) after login
             icon.className = 'status-icon success';
             lucide.createIcons();
         }
-        
+
         // Show error X
         function showStatusError() {
             const icon = document.getElementById('status-icon');
             icon.setAttribute('data-lucide', 'x-circle');
             icon.className = 'status-icon error';
             lucide.createIcons();
-            
+
             // Hide error after 3 seconds
             setTimeout(() => {
                 document.getElementById('status-indicator').classList.add('hidden');
             }, 3000);
         }
-        
+
         // Hide status indicator
         function hideStatusIndicator() {
             document.getElementById('status-indicator').classList.add('hidden');
@@ -193,17 +197,17 @@ NEXT STEP: User redirected to products.html (shop page) after login
             const token = localStorage.getItem('token');
             const user = localStorage.getItem('user');
             const expirationTime = localStorage.getItem('tokenExpiration');
-            
+
             // If no expiration time stored, don't auto-login (session-only)
             if (!expirationTime) {
                 return;
             }
-            
+
             // Check if token is still valid (not expired)
             if (token && user && expirationTime) {
                 const now = Date.now();
                 const expiration = parseInt(expirationTime);
-                
+
                 if (now < expiration) {
                     // Token is still valid, auto-login by redirecting
                     const urlParams = new URLSearchParams(window.location.search);
@@ -218,7 +222,7 @@ NEXT STEP: User redirected to products.html (shop page) after login
                 }
             }
         }
-        
+
         // Check for remembered login on page load
         checkRememberedLogin();
 
@@ -227,105 +231,110 @@ NEXT STEP: User redirected to products.html (shop page) after login
             const form = document.getElementById('login-form');
             const emailInput = document.getElementById('email-input');
             const emailError = document.getElementById('email-error');
-            
+
             if (!form || !emailInput || !emailError) {
                 console.error('❌ Form elements not found!');
                 setTimeout(setupFormListener, 100); // Retry after 100ms
                 return;
             }
-            
+
             console.log('✅ Form listener attached successfully');
 
             form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            console.log('✅ Login form submitted!');
+                e.preventDefault();
+                console.log('✅ Login form submitted!');
 
-            const email = emailInput.value.toLowerCase().trim();
-            const password = form.querySelector('input[type="password"]').value.trim();
-            console.log('Email:', email, 'Password length:', password.length);
+                const email = emailInput.value.toLowerCase().trim();
+                const password = form.querySelector('input[type="password"]').value.trim();
+                console.log('Email:', email, 'Password length:', password.length);
 
-            // Validate email domain
-            if (!email.endsWith('@bazeuniversity.edu.ng')) {
-                emailError.classList.remove('hidden');
-                emailInput.style.borderColor = 'var(--destructive)';
-                return;
-            }
+                // Validate email domain
+                if (!email.endsWith('@bazeuniversity.edu.ng')) {
+                    emailError.classList.remove('hidden');
+                    emailInput.style.borderColor = 'var(--destructive)';
+                    return;
+                }
 
-            // Reset error
-            emailError.classList.add('hidden');
-            emailInput.style.borderColor = 'var(--input)';
+                // Reset error
+                emailError.classList.add('hidden');
+                emailInput.style.borderColor = 'var(--input)';
 
-            // Show loading indicator and disable button
-            const btn = form.querySelector('button');
-            const originalText = btn.textContent;
-            btn.textContent = 'Logging in...';
-            btn.disabled = true;
-            showStatusLoading();
+                // Show loading indicator and disable button
+                const btn = form.querySelector('button');
+                const originalText = btn.textContent;
+                btn.textContent = 'Logging in...';
+                btn.disabled = true;
+                showStatusLoading();
 
-            try {
-                // Call backend API through frontend server proxy (port 5000 -> 8000)
-                const response = await fetch('/api/auth/login', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        email: email,
-                        password: password
-                    })
-                });
+                try {
+                    // Call backend API through frontend server proxy (port 5000 -> 8000)
+                    const response = await fetch('/api/auth/login', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            email: email,
+                            password: password
+                        })
+                    });
 
-                const data = await response.json();
+                    const data = await response.json();
 
-                if (response.ok) {
-                    // Show success checkmark
-                    showStatusSuccess();
-                    
-                    // Check if "Remember Me" is checked
-                    const rememberMe = document.getElementById('remember-me-checkbox').checked;
-                    
-                    // Store JWT token and user info
-                    localStorage.setItem('token', data.token);
-                    localStorage.setItem('user', JSON.stringify({
-                        id: data.user.id,
-                        name: data.user.fullName,
-                        username: data.user.username,
-                        email: data.user.email
-                    }));
-                    
-                    // If "Remember Me" is checked, store expiration timestamp (24 hours from now)
-                    if (rememberMe) {
-                        const expirationTime = Date.now() + (24 * 60 * 60 * 1000); // 24 hours in milliseconds
-                        localStorage.setItem('tokenExpiration', expirationTime.toString());
+                    if (response.ok) {
+                        // Show success checkmark
+                        showStatusSuccess();
+
+                        // Check if "Remember Me" is checked
+                        const rememberMe = document.getElementById('remember-me-checkbox').checked;
+
+                        // Store JWT token and user info
+                        localStorage.setItem('token', data.token);
+                        localStorage.setItem('user', JSON.stringify({
+                            id: data.user.id,
+                            name: data.user.fullName,
+                            username: data.user.username,
+                            email: data.user.email
+                        }));
+
+                        // If "Remember Me" is checked, store expiration timestamp (24 hours from now)
+                        if (rememberMe) {
+                            const expirationTime = Date.now() + (24 * 60 * 60 * 1000); // 24 hours in milliseconds
+                            localStorage.setItem('tokenExpiration', expirationTime.toString());
+                        } else {
+                            // Remove expiration if "Remember Me" is not checked (session only)
+                            localStorage.removeItem('tokenExpiration');
+                        }
+
+                        // Redirect after showing success
+                        setTimeout(() => {
+                            // Check if there's a returnTo parameter in the URL
+                            const urlParams = new URLSearchParams(window.location.search);
+                            const returnTo = urlParams.get('returnTo') || 'profile.html';
+                            window.location.href = returnTo;
+                        }, 800);
                     } else {
-                        // Remove expiration if "Remember Me" is not checked (session only)
-                        localStorage.removeItem('tokenExpiration');
+                        // Login failed - show error X
+                        showStatusError();
+
+                        // Show specific error message from backend
+                        // Backend now returns "Account does not exist" or "Incorrect password"
+                        const errorMessage = data.detail || 'Invalid email or password';
+                        alert(`❌ Login failed: ${errorMessage}`);
+
+                        btn.textContent = originalText;
+                        btn.disabled = false;
                     }
-                    
-                    // Redirect after showing success
-                    setTimeout(() => {
-                        // Check if there's a returnTo parameter in the URL
-                        const urlParams = new URLSearchParams(window.location.search);
-                        const returnTo = urlParams.get('returnTo') || 'profile.html';
-                        window.location.href = returnTo;
-                    }, 800);
-                } else {
-                    // Login failed - show error X
+                } catch (error) {
+                    console.error('Login error:', error);
                     showStatusError();
-                    alert(`❌ Login failed: ${data.detail || 'Invalid email or password'}`);
+                    alert('❌ Connection error. Please try again.');
                     btn.textContent = originalText;
                     btn.disabled = false;
                 }
-            } catch (error) {
-                console.error('Login error:', error);
-                showStatusError();
-                alert('❌ Connection error. Please try again.');
-                btn.textContent = originalText;
-                btn.disabled = false;
-            }
             });
         }
-        
+
         // Call the function immediately (or it will retry if DOM not ready)
         setupFormListener();
     </script>
