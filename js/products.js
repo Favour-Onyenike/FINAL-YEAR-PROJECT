@@ -34,7 +34,9 @@
  * - Works everywhere without configuration
  * - Frontend and backend use same domain, different ports
  */
-const API_URL = `${window.location.protocol}//${window.location.hostname}:8000/api`;
+const API_URL = window.location.port === '5000'
+    ? `${window.location.protocol}//${window.location.hostname}:8000/api`
+    : '/api';
 
 // =============================================================================
 // CURRENT FILTER STATE
@@ -77,70 +79,70 @@ async function fetchProducts() {
     try {
         // Build query parameters
         const params = new URLSearchParams();
-        
+
         // Add search query if present
         // Backend uses 'q' parameter for search
         if (currentFilters.search && currentFilters.search.trim()) {
             params.append('q', currentFilters.search);
         }
-        
+
         // Add category filter if selected
         // Skip if 'all' or empty (no filter)
         if (currentFilters.category && currentFilters.category !== 'all') {
             params.append('category', currentFilters.category);
         }
-        
+
         // Add minimum price filter if greater than 0
         if (currentFilters.minPrice > 0) {
             params.append('minPrice', currentFilters.minPrice);
         }
-        
+
         // Add maximum price filter if less than max (₦10,000)
         if (currentFilters.maxPrice < 10000) {
             params.append('maxPrice', currentFilters.maxPrice);
         }
-        
+
         // Add condition filter if selected
         // Skip if 'all' or empty (no filter)
         if (currentFilters.condition && currentFilters.condition !== 'all') {
             params.append('condition', currentFilters.condition);
         }
-        
+
         // Add clothing-specific filters if Clothing is selected
         if (currentFilters.category === 'Clothing') {
             // Add sizes if any selected (comma-separated)
             if (currentFilters.sizes.length > 0) {
                 params.append('sizes', currentFilters.sizes.join(','));
             }
-            
+
             // Add colors if any selected (comma-separated)
             if (currentFilters.colors.length > 0) {
                 params.append('colors', currentFilters.colors.join(','));
             }
-            
+
             // Add sub-categories if any selected (comma-separated)
             if (currentFilters.subCategories.length > 0) {
                 params.append('subCategories', currentFilters.subCategories.join(','));
             }
         }
-        
+
         // Add sorting method
         params.append('sortBy', currentFilters.sortBy);
-        
+
         // Add pagination
         params.append('page', currentFilters.page);
         params.append('limit', currentFilters.limit);
-        
+
         // Make API request with all filters
         const response = await fetch(`${API_URL}/products?${params.toString()}`);
         const data = await response.json();
-        
+
         // Display the products on the page
         displayProducts(data.products);
-        
+
         // Update the "Showing X-Y of Z results" text
         updateResultsCount(data.totalResults, data.page, data.limit);
-        
+
     } catch (error) {
         console.error('Error fetching products:', error);
         displayError();
@@ -163,7 +165,7 @@ async function fetchProducts() {
  */
 function displayProducts(products) {
     const productGrid = document.querySelector('.product-grid');
-    
+
     // Handle empty results
     if (products.length === 0) {
         productGrid.innerHTML = `
@@ -177,7 +179,7 @@ function displayProducts(products) {
         lucide.createIcons();
         return;
     }
-    
+
     // Create HTML for each product
     productGrid.innerHTML = products.map(product => `
         <a href="product-detail.html?id=${product.id}" class="product-card">
@@ -224,7 +226,7 @@ function displayProducts(products) {
             </div>
         </a>
     `).join('');
-    
+
     // Re-initialize Lucide icons
     // They need to be created after we insert new HTML
     lucide.createIcons();
@@ -270,11 +272,11 @@ function updateResultsCount(total, page, limit) {
     const start = (page - 1) * limit + 1;
     const end = Math.min(page * limit, total);
     const countElement = document.getElementById('results-count');
-    
+
     if (countElement) {
         countElement.textContent = `Showing ${start}-${end} of ${total} results`;
     }
-    
+
     // Update filter status
     updateFilterStatus();
 }
@@ -287,18 +289,18 @@ function updateResultsCount(total, page, limit) {
  * Updates the title to reflect current filter state
  */
 function updateFilterStatus() {
-    const hasFilters = currentFilters.category || 
-                      currentFilters.minPrice > 0 || 
-                      currentFilters.maxPrice < 10000 || 
-                      currentFilters.condition;
-    
+    const hasFilters = currentFilters.category ||
+        currentFilters.minPrice > 0 ||
+        currentFilters.maxPrice < 10000 ||
+        currentFilters.condition;
+
     const viewAllBtn = document.getElementById('view-all-btn');
     const titleElement = document.getElementById('products-title');
-    
+
     if (hasFilters) {
         // Show the "View All Products" button
         if (viewAllBtn) viewAllBtn.style.display = 'inline-flex';
-        
+
         // Update title to show filtered view
         if (titleElement) {
             const filterText = [];
@@ -307,13 +309,13 @@ function updateFilterStatus() {
                 filterText.push(`₦${currentFilters.minPrice}-₦${currentFilters.maxPrice}`);
             }
             if (currentFilters.condition) filterText.push(currentFilters.condition);
-            
+
             titleElement.textContent = `Filtered Results: ${filterText.join(' • ')}`;
         }
     } else {
         // Hide the "View All Products" button
         if (viewAllBtn) viewAllBtn.style.display = 'none';
-        
+
         // Reset title
         if (titleElement) titleElement.textContent = 'All Products';
     }
@@ -342,14 +344,14 @@ async function toggleSave(productId) {
         window.location.href = '/login.html';
         return;
     }
-    
+
     try {
         // Find the save button for this product
         const saveBtn = event.target.closest('.product-save-btn');
         if (saveBtn) {
             saveBtn.disabled = true;
         }
-        
+
         // Send request to toggle save
         const response = await fetch(`${API_URL}/saved-items`, {
             method: 'POST',
@@ -359,13 +361,13 @@ async function toggleSave(productId) {
             },
             body: JSON.stringify({ productId })
         });
-        
+
         if (!response.ok) {
             throw new Error('Failed to save item');
         }
-        
+
         const data = await response.json();
-        
+
         // Update button visual state
         if (saveBtn) {
             if (data.isSaved) {
@@ -379,9 +381,9 @@ async function toggleSave(productId) {
             }
             saveBtn.disabled = false;
         }
-        
+
         console.log(data.isSaved ? 'Product saved' : 'Product unsaved');
-        
+
     } catch (error) {
         console.error('Error toggling save:', error);
         showNotification('Failed to save item', 'error');
@@ -410,7 +412,7 @@ function showNotification(message, type = 'info') {
     `;
     notification.textContent = message;
     document.body.appendChild(notification);
-    
+
     setTimeout(() => {
         notification.style.animation = 'slideOut 0.3s ease-in-out';
         setTimeout(() => notification.remove(), 300);
@@ -454,15 +456,15 @@ function updateClothingFilters() {
     // Get all selected sizes
     const sizeCheckboxes = document.querySelectorAll('input[name="size"]:checked');
     currentFilters.sizes = Array.from(sizeCheckboxes).map(cb => cb.value);
-    
+
     // Get all selected colors
     const colorCheckboxes = document.querySelectorAll('input[name="color"]:checked');
     currentFilters.colors = Array.from(colorCheckboxes).map(cb => cb.value);
-    
+
     // Get all selected sub-categories
     const subCategoryCheckboxes = document.querySelectorAll('input[name="sub-category"]:checked');
     currentFilters.subCategories = Array.from(subCategoryCheckboxes).map(cb => cb.value);
-    
+
     currentFilters.page = 1;  // Reset to page 1
     fetchProducts();
 }
@@ -480,7 +482,7 @@ function clearAllFilters() {
         colors: [],
         subCategories: []
     };
-    
+
     // Reset all filters
     currentFilters.search = '';
     currentFilters.category = '';
@@ -490,36 +492,36 @@ function clearAllFilters() {
     currentFilters.sizes = [];
     currentFilters.colors = [];
     currentFilters.subCategories = [];
-    
+
     // Reset UI elements
     const categorySelect = document.querySelector('#category-select');
     const conditionRadios = document.querySelectorAll('input[name="condition"]');
     const priceRange = document.querySelector('#price-range');
     const priceValue = document.querySelector('#price-value');
     const searchInput = document.querySelector('.search-bar input');
-    
+
     if (categorySelect) categorySelect.value = 'all';
     if (conditionRadios) conditionRadios[0].checked = true;  // Check "Any"
     if (priceRange) priceRange.value = 5000;
     if (priceValue) priceValue.textContent = '₦5000';
     if (searchInput) searchInput.value = '';
-    
+
     // Clear all clothing-specific checkboxes
     document.querySelectorAll('input[name="size"]').forEach(cb => cb.checked = false);
     document.querySelectorAll('input[name="color"]').forEach(cb => cb.checked = false);
     document.querySelectorAll('input[name="sub-category"]').forEach(cb => cb.checked = false);
-    
+
     // Hide the "View All Products" button
     const viewAllBtn = document.getElementById('view-all-btn');
     if (viewAllBtn) viewAllBtn.style.display = 'none';
-    
+
     // Reset title
     const titleElement = document.getElementById('products-title');
     if (titleElement) titleElement.textContent = 'All Products';
-    
+
     // Clear URL parameters by navigating to products.html without query string
     window.history.pushState({}, '', 'products.html');
-    
+
     fetchProducts();
 }
 
@@ -534,25 +536,25 @@ function clearAllFilters() {
 function updateSearch(searchQuery) {
     currentFilters.search = searchQuery;
     currentFilters.page = 1;  // Reset to page 1 when searching
-    
+
     // Update search input field if it exists
     const searchInput = document.querySelector('.search-bar input');
     if (searchInput) {
         searchInput.value = searchQuery;
     }
-    
+
     // Update title
     const titleElement = document.getElementById('products-title');
     if (titleElement) {
         titleElement.textContent = `Search results for "${searchQuery}"`;
     }
-    
+
     // Show "View All Products" button to clear search
     const viewAllBtn = document.getElementById('view-all-btn');
     if (viewAllBtn) {
         viewAllBtn.style.display = 'inline-block';
     }
-    
+
     // Fetch products with new search
     fetchProducts();
 }
@@ -575,43 +577,43 @@ document.addEventListener('DOMContentLoaded', () => {
             loader.classList.add('hidden');
         }
     });
-    
+
     // Read URL parameters
     const urlParams = new URLSearchParams(window.location.search);
     const urlSearch = urlParams.get('search');
     const urlCategory = urlParams.get('category');
-    
+
     // Handle search parameter
     if (urlSearch) {
         currentFilters.search = urlSearch;
-        
+
         // Update search input field
         const searchInput = document.querySelector('.search-bar input');
         if (searchInput) {
             searchInput.value = urlSearch;
         }
-        
+
         // Update title
         const titleElement = document.getElementById('products-title');
         if (titleElement) {
             titleElement.textContent = `Search results for "${urlSearch}"`;
         }
-        
+
         // Show "View All Products" button to clear search
         const viewAllBtn = document.getElementById('view-all-btn');
         if (viewAllBtn) {
             viewAllBtn.style.display = 'inline-block';
         }
     }
-    
+
     // Handle category parameter
     if (urlCategory) {
         currentFilters.category = urlCategory;
-        
+
         // Update the category dropdown to show selected category
         const categorySelect = document.querySelector('#category-select');
         const mobileCategorySelect = document.querySelector('#mobile-category-select');
-        
+
         if (categorySelect) {
             categorySelect.value = urlCategory;
         }
@@ -619,13 +621,13 @@ document.addEventListener('DOMContentLoaded', () => {
             mobileCategorySelect.value = urlCategory;
         }
     }
-    
+
     // Add click handler for "View All Products" button
     const viewAllBtn = document.getElementById('view-all-btn');
     if (viewAllBtn) {
         viewAllBtn.addEventListener('click', clearAllFilters);
     }
-    
+
     // Fetch products
     fetchProducts();
 });

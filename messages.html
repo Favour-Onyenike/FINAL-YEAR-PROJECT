@@ -453,7 +453,9 @@ SECURITY:
         // - Backend: Runs FastAPI + Socket.IO server (port 8000)
         // - They communicate via WebSocket over port 8000
 
-        const backendUrl = window.location.protocol + '//' + window.location.hostname + ':8000';
+        const backendUrl = window.location.port === '5000'
+            ? window.location.protocol + '//' + window.location.hostname + ':8000'
+            : window.location.origin;
         const socket = io(backendUrl, {
             reconnection: true,                // Auto-reconnect if connection drops
             reconnectionDelay: 1000,           // Wait 1 second before first reconnect attempt

@@ -121,13 +121,21 @@ function getImageUrl(imagePath) {
     if (!imagePath || imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
         return imagePath;
     }
-    
+
     // Convert relative path to backend URL
     const currentUrl = new URL(window.location.href);
-    const backendUrl = new URL(currentUrl);
-    backendUrl.port = '8000';
-    backendUrl.pathname = imagePath;
-    return backendUrl.toString();
+
+    // If we are on localhost:5000 (frontend server), point to port 8000 (backend)
+    // Otherwise (Render/Production), use the same origin (backend serves frontend)
+    if (currentUrl.port === '5000') {
+        const backendUrl = new URL(currentUrl);
+        backendUrl.port = '8000';
+        backendUrl.pathname = imagePath;
+        return backendUrl.toString();
+    }
+
+    // For production/Render, just return the path (it's relative to current origin)
+    return imagePath;
 }
 
 // =============================================================================
@@ -161,7 +169,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Toggle 'open' class to show/hide menu
             mobileMenu.classList.toggle('open');
         });
-        
+
         // Close mobile menu when any link is clicked
         mobileMenu.querySelectorAll('a, button').forEach(link => {
             link.addEventListener('click', () => {
@@ -370,7 +378,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const loggedInActions = document.getElementById('logged-in-actions');
         const mobileLoggedOutActions = document.getElementById('mobile-logged-out-actions');
         const mobileLoggedInActions = document.getElementById('mobile-logged-in-actions');
-        
+
         if (loggedOutActions && loggedInActions) {
             if (token) {
                 // User is logged in - Show icons, hide login/signup buttons
@@ -382,7 +390,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 loggedInActions.classList.add('hidden');
             }
         }
-        
+
         // Update mobile menu auth state
         if (mobileLoggedOutActions && mobileLoggedInActions) {
             if (token) {
@@ -396,10 +404,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     }
-    
+
     // Update navbar auth state on page load
     updateNavbarAuthState();
-    
+
     /* =========================================
        AUTHENTICATION STATE CHECK (Legacy)
        ========================================= */
@@ -409,7 +417,7 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     const token = localStorage.getItem('token');
     const authLinks = document.querySelector('.auth-links');
-    
+
     if (authLinks) {
         if (token) {
             // User is logged in
@@ -446,7 +454,7 @@ function logout() {
     // Remove token and user data from browser storage
     localStorage.removeItem('token');
     localStorage.removeItem('user');
-    
+
     // Redirect to home page
     window.location.href = '/';
 }
@@ -469,12 +477,12 @@ function getToken() {
  */
 function clearBrokenToken() {
     const token = localStorage.getItem('token');
-    
+
     // If token is literally "undefined" or "null" (broken from old code), clear it
     if (token === 'undefined' || token === 'null') {
         console.log('❌ BROKEN TOKEN DETECTED! Clearing localStorage...');
         localStorage.clear();
-        
+
         // Only redirect if not already on login/signup
         const currentPage = window.location.pathname;
         if (!currentPage.includes('login') && !currentPage.includes('signup')) {
@@ -559,24 +567,24 @@ async function updateMessageBadge() {
             if (badge) badge.classList.add('hidden');
             return;
         }
-        
+
         // Use the optimized endpoint to get all conversations with unread counts
         const response = await fetch('/api/conversations', {
             headers: { 'Authorization': `Bearer ${token}` }
         });
-        
+
         if (!response.ok) return;
-        
+
         const conversations = await response.json();
         let unreadCount = 0;
-        
+
         // Sum up unread counts from all conversations
         for (let convo of conversations) {
             if (convo.unreadCount) {
                 unreadCount += convo.unreadCount;
             }
         }
-        
+
         // Update the badge
         const badge = document.getElementById('message-badge');
         if (badge) {
@@ -619,7 +627,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (isLoggedIn()) {
         // User is logged in - update badge immediately
         updateMessageBadge();
-        
+
         // Then check for new messages every 5 seconds
         // This is a fallback to make sure we don't miss any messages
         // Even if Socket.IO is temporarily slow
@@ -629,7 +637,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }, 5000);  // 5000 milliseconds = 5 seconds
     }
-    
+
     // Global search functionality
     initializeGlobalSearch();
 });
@@ -644,13 +652,13 @@ document.addEventListener('DOMContentLoaded', () => {
  */
 function initializeGlobalSearch() {
     const searchBars = document.querySelectorAll('.search-bar');
-    
+
     searchBars.forEach(searchBar => {
         const searchInput = searchBar.querySelector('input');
         const searchIcon = searchBar.querySelector('.search-icon');
-        
+
         if (!searchInput) return;
-        
+
         // Handle Enter key in search input
         searchInput.addEventListener('keypress', (event) => {
             if (event.key === 'Enter') {
@@ -658,16 +666,16 @@ function initializeGlobalSearch() {
                 performSearch(searchInput.value);
             }
         });
-        
+
         // Handle search icon click - toggle expand on mobile, search on desktop
         if (searchIcon) {
             searchIcon.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                
+
                 // Check if we're on mobile
                 const isMobile = window.innerWidth < 768;
-                
+
                 if (isMobile) {
                     // Toggle expand on mobile
                     if (!searchBar.classList.contains('expanded')) {
@@ -688,7 +696,7 @@ function initializeGlobalSearch() {
                 }
             });
         }
-        
+
         // Close search bar when clicking outside (mobile only)
         if (window.innerWidth < 768) {
             document.addEventListener('click', (e) => {
@@ -709,7 +717,7 @@ function initializeGlobalSearch() {
 function checkAuthAndNavigate(targetPage) {
     const token = localStorage.getItem('token');
     const user = localStorage.getItem('user');
-    
+
     // Check if user is authenticated
     if (!token || !user) {
         // Not logged in - redirect to login page
@@ -727,10 +735,10 @@ function checkAuthAndNavigate(targetPage) {
 function performSearch(query) {
     // Trim whitespace
     query = query.trim();
-    
+
     // Don't search if empty
     if (!query) return;
-    
+
     // Redirect to products page with search parameter
     // If already on products page, just update the filter
     if (window.location.pathname.includes('products.html')) {
