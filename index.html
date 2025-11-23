@@ -470,17 +470,100 @@ LINKS:
         }
         
         /**
-         * Toggle save status for a product (called when user clicks save button)
-         * This is a placeholder - full implementation in products.html
+         * Toggle save status for a product (bookmark/wishlist)
+         * Saves or unsaves the product depending on current state
+         * 
+         * FLOW:
+         * 1. Check if user is logged in
+         * 2. Send POST to /api/saved-items with productId
+         * 3. Backend toggles: if saved → unsave, if not saved → save
+         * 4. Update button visual state
          */
-        function toggleSaveProduct(productId) {
-            if (!isLoggedIn()) {
+        async function toggleSaveProduct(productId) {
+            // Check if user is logged in
+            const token = localStorage.getItem('token');
+            if (!token) {
+                // Not logged in, redirect to login
                 alert('Please log in to save products');
                 window.location.href = '/login.html';
                 return;
             }
-            // Toggle save (implementation in products.html)
-            console.log('Save product:', productId);
+            
+            try {
+                // Get the API URL (same as in products.js)
+                const API_URL = `${window.location.protocol}//${window.location.hostname}:8000/api`;
+                
+                // Find the save button for this product
+                const saveBtn = event.target.closest('.product-save-btn');
+                if (saveBtn) {
+                    saveBtn.disabled = true;
+                }
+                
+                // Send request to toggle save
+                const response = await fetch(`${API_URL}/saved-items`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`  // Include JWT token
+                    },
+                    body: JSON.stringify({ productId })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to save item');
+                }
+                
+                const data = await response.json();
+                
+                // Update button visual state
+                if (saveBtn) {
+                    if (data.isSaved) {
+                        saveBtn.style.color = '#ef4444';  // Red color when saved
+                        saveBtn.style.borderColor = '#ef4444';
+                        showTopSellingNotification('✓ Item saved!', 'success');
+                    } else {
+                        saveBtn.style.color = '';  // Normal color when not saved
+                        saveBtn.style.borderColor = '';
+                        showTopSellingNotification('✗ Item removed from saved', 'info');
+                    }
+                    saveBtn.disabled = false;
+                }
+                
+                console.log(data.isSaved ? 'Product saved' : 'Product unsaved');
+                
+            } catch (error) {
+                console.error('Error toggling save:', error);
+                showTopSellingNotification('Failed to save item', 'error');
+                if (event.target.closest('.product-save-btn')) {
+                    event.target.closest('.product-save-btn').disabled = false;
+                }
+            }
+        }
+        
+        /**
+         * Show notification popup (for top selling section save feedback)
+         */
+        function showTopSellingNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
+                color: white;
+                padding: 12px 24px;
+                border-radius: 8px;
+                z-index: 9999;
+                font-weight: 500;
+                animation: slideIn 0.3s ease-in-out;
+            `;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease-in-out';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
         }
     </script>
     <script src="js/app.js"></script>
