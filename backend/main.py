@@ -283,7 +283,7 @@ def login(credentials: UserLogin, db: Session = Depends(get_db)):
     6. Frontend includes token in Authorization header for future requests
     """
     # Find user by email
-    user = db.query(User).filter(User.email == login_data.email).first()
+    user = db.query(User).filter(User.email == credentials.email).first()
     
     # Check if user exists
     if not user:
@@ -293,7 +293,7 @@ def login(credentials: UserLogin, db: Session = Depends(get_db)):
         )
     
     # Check password
-    if not verify_password(login_data.password, user.password_hash):
+    if not verify_password(credentials.password, user.password_hash):
         raise HTTPException(
             status_code=401,
             detail="Incorrect password",
