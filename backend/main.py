@@ -1043,12 +1043,6 @@ def get_messages(
         )
     ).order_by(Message.created_at).all()
     
-    # Mark messages as read (for current user)
-    for msg in messages:
-        if msg.receiver_id == current_user.id and msg.is_read == 0:
-            msg.is_read = 1
-    db.commit()
-    
     return [
         {
             "id": m.id,
@@ -1060,6 +1054,36 @@ def get_messages(
         }
         for m in messages
     ]
+
+@app.put("/api/messages/{user_id}/mark-read")
+def mark_messages_read(
+    user_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Mark all messages from a specific user as read.
+    
+    PARAMETERS:
+    - user_id: The user whose messages to mark as read
+    
+    RETURNS: Success message
+    """
+    # Mark all messages from user_id to current_user as read
+    messages = db.query(Message).filter(
+        and_(
+            Message.sender_id == user_id,
+            Message.receiver_id == current_user.id,
+            Message.is_read == 0
+        )
+    ).all()
+    
+    for msg in messages:
+        msg.is_read = 1
+    
+    db.commit()
+    
+    return {"status": "success", "message": f"Marked {len(messages)} messages as read"}
 
 # =============================================================================
 # COMMENT ENDPOINTS (Product Comments/Questions)
