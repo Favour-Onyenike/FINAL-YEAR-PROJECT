@@ -1,0 +1,1228 @@
+================================================================================
+UNIMARKET - SOCKET.IO, REAL-TIME CHAT & NOTIFICATION SYSTEM
+================================================================================
+
+COMPREHENSIVE TECHNICAL DOCUMENTATION
+
+Created: November 23, 2025
+Version: 1.0
+Author: UniMarket Development Team
+
+
+TABLE OF CONTENTS
+================================================================================
+1. Architecture Overview
+2. Socket.IO Implementation
+3. Real-Time Chat System
+4. Message Persistence (REST API)
+5. Notification System
+6. Code Snippets & Examples
+7. Data Flow Diagrams
+
+
+================================================================================
+1. ARCHITECTURE OVERVIEW
+================================================================================
+
+The UniMarket messaging system uses a HYBRID approach combining:
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│                      FRONTEND (Port 5000)                               │
+│  ┌────────────────────────────────────────────────────────────────────┐ │
+│  │ HTML/CSS/JavaScript (Browser)                                      │ │
+│  │                                                                    │ │
+│  │ • messages.html - Messaging UI                                    │ │
+│  │ • app.js - Socket.IO client code & notification logic            │ │
+│  │ • Socket.IO client library (CDN)                                 │ │
+│  └────────────────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────────────────┘
+                                   ↕
+                    WebSocket (Real-time) + HTTP (REST API)
+                                   ↕
+┌─────────────────────────────────────────────────────────────────────────┐
+│                      BACKEND (Port 8000)                                │
+│  ┌────────────────────────────────────────────────────────────────────┐ │
+│  │ FastAPI + Socket.IO Server (Python)                               │ │
+│  │                                                                    │ │
+│  │ • main.py - Backend API endpoints                                │ │
+│  │ • Socket.IO event handlers                                       │ │
+│  │ • Message REST API endpoints                                     │ │
+│  │ • Database session management                                    │ │
+│  └────────────────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────────────────┘
+                                   ↕
+┌─────────────────────────────────────────────────────────────────────────┐
+│                      DATABASE (SQLite/PostgreSQL)                       │
+│  ┌────────────────────────────────────────────────────────────────────┐ │
+│  │ Message Table                                                      │ │
+│  │ • id, sender_id, receiver_id, content, is_read, created_at       │ │
+│  │                                                                    │ │
+│  │ User Table                                                         │ │
+│  │ • id, username, email, password_hash, profile_image, etc.       │ │
+│  └────────────────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────────────────┘
+
+
+WHY HYBRID APPROACH?
+========================================================================
+
+✓ SOCKET.IO (WebSocket):
+  - Instant message delivery (real-time)
+  - Low latency communication
+  - Live notifications
+  - Active user feedback
+  
+✓ REST API (HTTP):
+  - Message persistence (saves to database)
+  - Load historical messages
+  - Works without WebSocket connection
+  - More reliable for unreliable networks
+  - Better for mobile
+
+
+FLOW SUMMARY:
+========================================================================
+
+When User A sends message to User B:
+
+1. Frontend calls: POST /api/messages (REST API)
+   └─→ Saves message to database permanently
+   
+2. Backend also emits Socket.IO event: 'receive_message'
+   └─→ User B receives instant notification IF connected
+   
+3. If User B is NOT connected:
+   └─→ Message stored in database
+   └─→ User B fetches it when reconnecting
+   
+4. When User B opens conversation:
+   └─→ Frontend fetches all messages via GET /api/messages
+   └─→ Frontend marks messages as read via PUT /api/messages/{user_id}/mark-read
+   └─→ Notification badge disappears
+
+
+================================================================================
+2. SOCKET.IO IMPLEMENTATION
+================================================================================
+
+BACKEND SETUP (main.py)
+========================================================================
+
+Step 1: Import Socket.IO library
+
+    import socketio
+
+Step 2: Initialize Socket.IO server with ASGI
+
+    # Line 66-76 in main.py
+    sio = socketio.AsyncServer(
+        async_mode='asgi',           # Use async mode for FastAPI
+        cors_allowed_origins=['*'],  # Allow all origins (development)
+        logger=False,                # Disable debug logging
+        engineio_logger=False        # Disable engine logging
+    )
+    
+    # Create ASGI app that combines FastAPI and Socket.IO
+    from socketio import ASGIApp
+    app_with_sio = ASGIApp(sio, app)
+
+Step 3: Track connected users
+
+    # Line 925 in main.py
+    connected_users = {}  # Dictionary: {user_id: socket_id}
+    
+    Example:
+    {
+        1: "abc123xyz",   # User 1's Socket.IO connection ID
+        5: "def456uvw",   # User 5's Socket.IO connection ID
+        ...
+    }
+
+Step 4: Define Socket.IO event handlers
+
+Handler 1: Connect event (when user connects)
+
+    @sio.event
+    async def connect(sid, environ):
+        """Handle user connection to Socket.IO"""
+        print(f"Client connected: {sid}")
+    
+    What happens:
+    - User opens messages.html
+    - Browser connects via WebSocket
+    - Backend receives this event
+    - Connection ID (sid) is assigned to this user
+
+Handler 2: Authenticate event (map socket to user ID)
+
+    @sio.event
+    async def authenticate(sid, data):
+        """Authenticate user for Socket.IO connection"""
+        user_id = data.get('userId')  # Extract user ID from frontend
+        if user_id:
+            connected_users[user_id] = sid  # Remember this user's connection
+            await sio.emit('authenticated', {'status': 'ok', 'userId': user_id}, to=sid)
+    
+    What happens:
+    - Frontend sends user ID after connecting
+    - Backend stores: connected_users[1] = "abc123xyz"
+    - Now we know if user 1 is online
+    - Send confirmation back to frontend
+
+Handler 3: Send message event (real-time messaging)
+
+    @sio.event
+    async def send_message(sid, data):
+        """Handle real-time message sending via Socket.IO"""
+        receiver_id = data.get('receiverId')
+        content = data.get('content')
+        sender_id = data.get('senderId')
+        
+        # Emit to receiver if they're connected
+        if receiver_id in connected_users:
+            receiver_sid = connected_users[receiver_id]
+            await sio.emit('receive_message', {
+                'senderId': sender_id,
+                'content': content,
+                'timestamp': datetime.utcnow().isoformat()
+            }, to=receiver_sid)
+        
+        # Confirm to sender
+        await sio.emit('message_sent', {'status': 'success'}, to=sid)
+    
+    What happens:
+    - User A's frontend sends message via Socket.IO
+    - Backend checks if User B is connected
+    - If yes: Send message to User B immediately
+    - Send confirmation back to User A
+    - NOTE: This is ONLY for real-time! Messages are saved separately
+
+Handler 4: Disconnect event (when user disconnects)
+
+    @sio.event
+    async def disconnect(sid):
+        """Handle user disconnection from Socket.IO"""
+        # Remove user from connected list
+        for user_id, socket_id in list(connected_users.items()):
+            if socket_id == sid:
+                del connected_users[user_id]
+        print(f"Client disconnected: {sid}")
+    
+    What happens:
+    - User closes browser or loses connection
+    - Backend removes them from connected_users
+    - Other users know they're offline
+
+
+FRONTEND SETUP (messages.html)
+========================================================================
+
+Step 1: Include Socket.IO client library
+
+    <!-- Line 11 in messages.html -->
+    <script src="https://cdn.socket.io/4.8.0/socket.io.min.js"></script>
+
+Step 2: Initialize Socket.IO connection
+
+    // Line 343-351 in messages.html
+    const backendUrl = window.location.protocol + '//' + 
+                       window.location.hostname + ':8000';
+    const socket = io(backendUrl, {
+        reconnection: true,           // Auto-reconnect on disconnect
+        reconnectionDelay: 1000,      // Wait 1 second before first retry
+        reconnectionDelayMax: 5000,   // Max 5 second wait between retries
+        reconnectionAttempts: Infinity // Retry forever
+    });
+
+Step 3: Handle connection event
+
+    // Line 354-361 in messages.html
+    socket.on('connect', () => {
+        console.log('Connected to messaging server');
+        const token = localStorage.getItem('token');
+        const userId = localStorage.getItem('userId');
+        if (userId) {
+            // Tell backend who we are
+            socket.emit('authenticate', { userId: parseInt(userId) });
+        }
+    });
+
+Step 4: Handle incoming messages
+
+    // Line 363-373 in messages.html
+    socket.on('receive_message', (data) => {
+        console.log('Received message:', data);
+        
+        // Update the notification badge (red dot)
+        if (typeof updateMessageBadge === 'function') {
+            updateMessageBadge();
+        }
+        
+        // If message is from current conversation, load new messages
+        if (currentConversationUserId && data.senderId == currentConversationUserId) {
+            loadMessages(currentConversationUserId);
+        }
+    });
+
+Step 5: Send message via Socket.IO (in chat)
+
+    Example from messages.html:
+    socket.emit('send_message', {
+        senderId: currentUserId,
+        receiverId: currentConversationUserId,
+        content: messageText
+    });
+
+
+================================================================================
+3. REAL-TIME CHAT SYSTEM
+================================================================================
+
+FULL MESSAGE FLOW (User A → User B)
+========================================================================
+
+[STEP 1] USER A TYPES AND SENDS MESSAGE
+
+    Frontend Code (messages.html):
+    ────────────────────────────
+    const messageText = document.getElementById('message-input').value;
+    
+    // Save to database via REST API
+    const response = await fetch('http://localhost:8000/api/messages', {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            receiverId: 5,      // User B's ID
+            content: messageText // "Hi, are you selling this?"
+        })
+    });
+
+[STEP 2] BACKEND SAVES TO DATABASE
+
+    Backend Code (main.py, line 974-1022):
+    ──────────────────────────────────────
+    @app.post("/api/messages")
+    async def send_message_api(
+        message_data: MessageCreate,
+        current_user: User = Depends(get_current_user),
+        db: Session = Depends(get_db)
+    ):
+        # Verify receiver exists
+        receiver = db.query(User).filter(User.id == message_data.receiverId).first()
+        
+        # Create message object
+        new_message = Message(
+            sender_id=current_user.id,      # User A's ID
+            receiver_id=message_data.receiverId,  # User B's ID
+            content=message_data.content,   # "Hi, are you selling this?"
+            is_read=0                       # Mark as unread
+        )
+        
+        # Save to database
+        db.add(new_message)
+        db.commit()
+        db.refresh(new_message)
+        
+        # EMIT REAL-TIME NOTIFICATION
+        if message_data.receiverId in connected_users:
+            # User B is connected! Send them the message immediately
+            await sio.emit('receive_message', {
+                'senderId': current_user.id,
+                'content': message_data.content,
+                'timestamp': new_message.created_at.isoformat()
+            }, to=connected_users[message_data.receiverId])
+
+[STEP 3] USER B RECEIVES MESSAGE
+
+    Frontend Code (messages.html, line 363-373):
+    ────────────────────────────────────────────
+    socket.on('receive_message', (data) => {
+        // Event fired immediately if User B is online
+        console.log('Received message:', data);
+        
+        // Update notification badge (red dot appears)
+        updateMessageBadge();
+        
+        // If User B is viewing User A's conversation, load new messages
+        if (currentConversationUserId == data.senderId) {
+            loadMessages(currentConversationUserId);
+        }
+    });
+
+    What User B sees:
+    ┌─────────────────────────────────────────────┐
+    │ NAVBAR: Message icon shows red dot (●)      │
+    │ MESSAGES PAGE: Conversation shows badge: 1  │
+    │ CHAT: New message appears in message list   │
+    └─────────────────────────────────────────────┘
+
+[STEP 4] USER B CLICKS CONVERSATION
+
+    Frontend Code (messages.html, line 520-588):
+    ──────────────────────────────────────────
+    async function selectConversation(userId, userName) {
+        // Load all messages from REST API
+        await loadMessages(userId);
+        
+        // MARK MESSAGES AS READ
+        const response = await fetch(`/api/messages/${userId}/mark-read`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        // Update notification badge (disappears)
+        updateMessageBadge();
+    }
+
+[STEP 5] BACKEND MARKS AS READ
+
+    Backend Code (main.py, line 1061-1089):
+    ─────────────────────────────────────
+    @app.put("/api/messages/{user_id}/mark-read")
+    def mark_messages_read(user_id: int, current_user: User, db: Session):
+        # Find all unread messages from this user
+        messages = db.query(Message).filter(
+            and_(
+                Message.sender_id == user_id,
+                Message.receiver_id == current_user.id,
+                Message.is_read == 0  # Only unread
+            )
+        ).all()
+        
+        # Mark them as read
+        for msg in messages:
+            msg.is_read = 1
+        
+        db.commit()
+        return {"status": "success"}
+
+
+MESSAGE FETCHING
+========================================================================
+
+When User B opens the messages page:
+
+    Frontend: GET /api/messages/1
+    (Get all messages between me and User 1)
+    
+    Backend: Queries database for all messages where:
+    - (sender_id = my_id AND receiver_id = 1) OR
+    - (sender_id = 1 AND receiver_id = my_id)
+    
+    Returns: List of messages in chronological order
+    [
+        {
+            "id": 1,
+            "senderId": 1,
+            "receiverId": 5,
+            "content": "Hi, are you selling this?",
+            "createdAt": "2025-11-23T12:00:00",
+            "isRead": 0
+        },
+        {
+            "id": 2,
+            "senderId": 5,
+            "receiverId": 1,
+            "content": "Yes, still available!",
+            "createdAt": "2025-11-23T12:01:00",
+            "isRead": 1
+        }
+    ]
+
+
+================================================================================
+4. MESSAGE PERSISTENCE (REST API)
+================================================================================
+
+WHY DO WE NEED BOTH SOCKET.IO AND REST API?
+========================================================================
+
+Socket.IO is REAL-TIME but NOT PERSISTENT:
+- If User B is offline, Socket.IO event is lost
+- User B won't see the message when they reconnect
+- Perfect for: instant feedback, live typing indicators
+
+REST API is PERSISTENT but NOT INSTANT:
+- Messages saved to database permanently
+- User B can fetch when they reconnect
+- Perfect for: reliability, history, offline support
+
+
+MESSAGE ENDPOINTS
+========================================================================
+
+1. SEND MESSAGE
+   ──────────────
+
+    POST /api/messages
+    
+    Request:
+    {
+        "receiverId": 5,
+        "content": "Hi, is this still available?"
+    }
+    
+    Response:
+    {
+        "id": 123,
+        "senderId": 1,
+        "receiverId": 5,
+        "content": "Hi, is this still available?",
+        "createdAt": "2025-11-23T12:00:00",
+        "isRead": 0
+    }
+    
+    What happens:
+    - Saves message to database
+    - Emits Socket.IO event to receiver (if online)
+    - Returns message object with timestamp
+
+
+2. GET MESSAGES
+   ─────────────
+
+    GET /api/messages/5
+    (Get all messages between me and user 5)
+    
+    Response:
+    [
+        {"id": 1, "senderId": 1, "receiverId": 5, ...},
+        {"id": 2, "senderId": 5, "receiverId": 1, ...},
+        {"id": 3, "senderId": 1, "receiverId": 5, ...}
+    ]
+    
+    What happens:
+    - Queries database for all messages between users
+    - Returns in chronological order
+    - Does NOT auto-mark as read anymore
+    - Use mark-read endpoint for that
+
+
+3. MARK MESSAGES AS READ
+   ──────────────────────
+
+    PUT /api/messages/{user_id}/mark-read
+    (Mark all messages from user_id as read)
+    
+    Response:
+    {
+        "status": "success",
+        "message": "Marked 5 messages as read"
+    }
+    
+    What happens:
+    - Finds all unread messages from the specified user
+    - Sets is_read = 1 for all of them
+    - Notification badge disappears
+
+
+DATABASE SCHEMA
+========================================================================
+
+Message Table:
+
+    CREATE TABLE message (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        sender_id INTEGER NOT NULL,          -- Who sent it
+        receiver_id INTEGER NOT NULL,        -- Who receives it
+        content TEXT NOT NULL,               -- Message text
+        is_read INTEGER DEFAULT 0,           -- 0=unread, 1=read
+        created_at DATETIME DEFAULT NOW(),   -- When it was sent
+        FOREIGN KEY (sender_id) REFERENCES user(id),
+        FOREIGN KEY (receiver_id) REFERENCES user(id)
+    );
+
+Example data:
+
+    id  | sender_id | receiver_id | content              | is_read | created_at
+    ──────────────────────────────────────────────────────────────────────────
+    1   | 1         | 5           | Hi there!            | 1       | 2025-11-23 12:00:00
+    2   | 5         | 1           | Hey, how are you?    | 0       | 2025-11-23 12:01:00
+    3   | 1         | 5           | Good, you?           | 0       | 2025-11-23 12:02:00
+
+
+================================================================================
+5. NOTIFICATION SYSTEM
+================================================================================
+
+NOTIFICATION BADGE ARCHITECTURE
+========================================================================
+
+The notification system works through three layers:
+
+┌─────────────────────────────────────────────────────────────┐
+│ LAYER 1: DATABASE                                           │
+│ ─────────────────────────────────────────────────────────────│
+│ Message.is_read = 0  → Message is unread                    │
+│ Message.is_read = 1  → Message has been read                │
+└─────────────────────────────────────────────────────────────┘
+                            ↓
+┌─────────────────────────────────────────────────────────────┐
+│ LAYER 2: BACKEND NOTIFICATION API                           │
+│ ─────────────────────────────────────────────────────────────│
+│ GET /api/messages/{user_id}  → Returns unread count         │
+│ PUT /api/messages/{user_id}/mark-read → Mark as read       │
+│ Socket.IO 'receive_message' → Real-time notification        │
+└─────────────────────────────────────────────────────────────┘
+                            ↓
+┌─────────────────────────────────────────────────────────────┐
+│ LAYER 3: FRONTEND BADGE DISPLAY                             │
+│ ─────────────────────────────────────────────────────────────│
+│ Navbar: Small red dot (●) on message icon                   │
+│ Messages page: Number badge on each conversation            │
+└─────────────────────────────────────────────────────────────┘
+
+
+BADGE UPDATE FLOW
+========================================================================
+
+Step 1: Calculate Unread Count (js/app.js, line 424-507)
+
+    async function updateMessageBadge() {
+        // Get current user ID
+        const user = JSON.parse(localStorage.getItem('user'));
+        const userId = user.id;
+        
+        // Get all users
+        const response = await fetch('/api/users', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const users = await response.json();
+        
+        let unreadCount = 0;
+        
+        // Check messages with EACH user
+        for (let user of users) {
+            const msgResponse = await fetch(`/api/messages/${user.id}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const messages = await msgResponse.json();
+            
+            // Count unread messages where I am the receiver
+            for (let msg of messages) {
+                if (msg.isRead === 0 && msg.receiverId === userId) {
+                    unreadCount++;
+                }
+            }
+        }
+        
+        // Update badge display
+        const badge = document.getElementById('message-badge');
+        if (unreadCount > 0) {
+            badge.textContent = '●';  // Show red dot
+            badge.classList.remove('hidden');
+            badge.style.color = '#ef4444';  // Red color
+        } else {
+            badge.classList.add('hidden');  // Hide badge
+        }
+    }
+
+Step 2: Periodic Updates (js/app.js, line 512-525)
+
+    // Check for new messages every 5 seconds
+    setInterval(() => {
+        if (isLoggedIn()) {
+            updateMessageBadge();
+        }
+    }, 5000);
+
+Step 3: Real-Time Updates (messages.html, line 363-373)
+
+    socket.on('receive_message', (data) => {
+        // When new message arrives, update badge immediately
+        if (typeof updateMessageBadge === 'function') {
+            updateMessageBadge();
+        }
+    });
+
+Step 4: Conversation-Level Badges (messages.html, line 445-467)
+
+    // For each conversation, calculate unread count
+    for (let user of conversations) {
+        const msgResponse = await fetch(`/api/messages/${user.id}`);
+        const messages = await msgResponse.json();
+        
+        // Count unread from this specific user
+        user.unreadCount = messages.filter(m => 
+            m.receiverId === currentUserIdFromStorage && 
+            m.isRead === 0
+        ).length;
+    }
+
+Step 5: Display Badge (messages.html, line 502-514)
+
+    container.innerHTML = convos.map(user => `
+        <div class="conversation-item" style="position: relative;">
+            ${user.unreadCount > 0 ? `
+                <div style="position: absolute; top: -8px; right: -8px; 
+                            background: #ef4444; color: white; 
+                            border-radius: 50%; width: 1.75rem; height: 1.75rem; 
+                            font-size: 0.7rem; font-weight: bold; z-index: 10;">
+                    ${user.unreadCount}
+                </div>
+            ` : ''}
+            <!-- Conversation UI -->
+        </div>
+    `).join('');
+
+
+WHAT TRIGGERS BADGE UPDATE?
+========================================================================
+
+1. PAGE LOAD
+   └─→ updateMessageBadge() called on DOMContentLoaded
+   
+2. EVERY 5 SECONDS
+   └─→ setInterval runs updateMessageBadge()
+   
+3. NEW MESSAGE ARRIVES
+   └─→ socket.on('receive_message') triggers updateMessageBadge()
+   
+4. OPEN CONVERSATION
+   └─→ selectConversation() marks messages as read → badge hidden
+   
+5. CLICK MESSAGES PAGE
+   └─→ Shows per-conversation unread badges
+   
+6. READ MESSAGE
+   └─→ Badge for that conversation disappears
+
+
+BADGE DISPLAY LOCATIONS
+========================================================================
+
+NAVBAR:
+┌──────────────────────────────────────────────┐
+│ UNIMARKET    [Shop ▼] [About] [Search...]    │
+│                                     ● (←─── RED DOT)
+│                        [Messages ●]          │
+└──────────────────────────────────────────────┘
+
+MESSAGES PAGE CONVERSATION LIST:
+┌────────────────────────────────────────────┐
+│ Conversations                              │
+├────────────────────────────────────────────┤
+│ ┌───┐  Favour Onyenike          [1] ←────┐ │
+│ │   │  @favour.onyenike               │  │ │
+│ │ 👤 │  "Still interested in..."       │  │ │
+│ └───┘                                 └──┘ │
+│                                            │
+│ ┌───┐  Joshua Obi                          │
+│ │   │  @josh9667                           │
+│ │ 👤 │  "Thanks for the message"           │
+│ └───┘                                      │
+│                                            │
+│ (No badge - all messages read)             │
+└────────────────────────────────────────────┘
+
+CHAT MESSAGE DISPLAY:
+┌──────────────────────────────────────────┐
+│ Favour Onyenike (@favour.onyenike)       │
+├──────────────────────────────────────────┤
+│                                          │
+│  [12:00 PM]  Hi, is this still available? │
+│  (Gray bg, red dot)  ← UNREAD MESSAGE    │
+│                                          │
+│  [12:01 PM]  Yes, still available!      │
+│  (Normal bg)  ← READ MESSAGE             │
+│                                          │
+│  ╔════════════════════════════════════╗  │
+│  ║ Type your message...            [➤]║  │
+│  ╚════════════════════════════════════╝  │
+└──────────────────────────────────────────┘
+
+
+CSS STYLING FOR BADGES
+========================================================================
+
+Navbar Badge (css/style.css, line 2585-2602):
+
+    .notification-badge {
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        background-color: #ef4444;      /* Red */
+        color: white;
+        border-radius: 50%;             /* Circle */
+        width: 10px;
+        height: 10px;
+        font-size: 0.5rem;
+        border: 1px solid var(--background);
+        animation: pulse 2s infinite;   /* Pulsing effect */
+    }
+    
+    .notification-badge.hidden {
+        display: none;
+    }
+    
+    @keyframes pulse {
+        0%, 100% {
+            box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
+        }
+        50% {
+            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.6);
+        }
+    }
+
+Conversation Badge (messages.html, dynamic inline styles):
+
+    /* Generated via JavaScript for each conversation */
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: #ef4444;
+    color: white;
+    border-radius: 50%;
+    width: 1.75rem;
+    height: 1.75rem;
+    font-size: 0.7rem;
+    font-weight: bold;
+    border: 2px solid white;
+
+Unread Message Styling (css/style.css):
+
+    .unread-message {
+        background: rgba(239, 68, 68, 0.05);  /* Very light red */
+    }
+    
+    .unread-indicator {
+        color: #ef4444;                        /* Red dot */
+        font-size: 0.5rem;
+        margin-right: 0.5rem;
+    }
+
+
+================================================================================
+6. CODE SNIPPETS & EXAMPLES
+================================================================================
+
+COMPLETE EXAMPLE: SENDING A MESSAGE
+========================================================================
+
+Frontend (messages.html):
+
+    // User clicks send button
+    document.getElementById('send-btn').addEventListener('click', async () => {
+        const messageText = document.getElementById('message-input').value;
+        
+        if (!messageText.trim()) return;
+        
+        try {
+            // Send via REST API (saves to database)
+            const response = await fetch(`${API_BASE_URL}/messages`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${getToken()}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    receiverId: currentConversationUserId,
+                    content: messageText
+                })
+            });
+            
+            if (response.ok) {
+                const message = await response.json();
+                
+                // Add to UI immediately
+                displayMessage(message);
+                
+                // Clear input
+                document.getElementById('message-input').value = '';
+                
+                // Scroll to bottom
+                scrollToBottom();
+            }
+        } catch (error) {
+            console.error('Error sending message:', error);
+        }
+    });
+
+Backend (main.py):
+
+    @app.post("/api/messages")
+    async def send_message_api(
+        message_data: MessageCreate,
+        current_user: User = Depends(get_current_user),
+        db: Session = Depends(get_db)
+    ):
+        # Create message
+        new_message = Message(
+            sender_id=current_user.id,
+            receiver_id=message_data.receiverId,
+            content=message_data.content
+        )
+        
+        db.add(new_message)
+        db.commit()
+        db.refresh(new_message)
+        
+        # Send real-time notification if receiver online
+        if message_data.receiverId in connected_users:
+            await sio.emit('receive_message', {
+                'senderId': current_user.id,
+                'content': message_data.content,
+                'timestamp': new_message.created_at.isoformat()
+            }, to=connected_users[message_data.receiverId])
+        
+        return {
+            "id": new_message.id,
+            "senderId": new_message.sender_id,
+            "receiverId": new_message.receiver_id,
+            "content": new_message.content,
+            "createdAt": new_message.created_at,
+            "isRead": new_message.is_read
+        }
+
+
+COMPLETE EXAMPLE: RECEIVING A MESSAGE
+========================================================================
+
+Frontend (messages.html):
+
+    // Socket.IO listener for new messages
+    socket.on('receive_message', (data) => {
+        console.log('Message received:', data);
+        
+        // Update notification badge
+        updateMessageBadge();
+        
+        // If currently viewing this conversation, show message
+        if (currentConversationUserId === data.senderId) {
+            // Add message to chat display
+            const messageElement = document.createElement('div');
+            messageElement.className = 'message received';
+            messageElement.innerHTML = `
+                <div class="message-content">${escapeHtml(data.content)}</div>
+                <div class="message-time">${formatTime(data.timestamp)}</div>
+            `;
+            document.getElementById('chat-messages').appendChild(messageElement);
+            scrollToBottom();
+        }
+    });
+
+What Backend does:
+
+    # In send_message_api endpoint
+    if message_data.receiverId in connected_users:
+        # User is online
+        receiver_sid = connected_users[message_data.receiverId]
+        
+        await sio.emit('receive_message', {
+            'senderId': current_user.id,
+            'content': message_data.content,
+            'timestamp': new_message.created_at.isoformat()
+        }, to=receiver_sid)
+    else:
+        # User is offline - message saved to database
+        # They'll see it when they reconnect and fetch messages
+
+
+COMPLETE EXAMPLE: HANDLING NOTIFICATIONS
+========================================================================
+
+Update Badge Every 5 Seconds (js/app.js):
+
+    document.addEventListener('DOMContentLoaded', () => {
+        if (isLoggedIn()) {
+            // Check immediately
+            updateMessageBadge();
+            
+            // Check every 5 seconds
+            setInterval(() => {
+                if (isLoggedIn()) {
+                    updateMessageBadge();
+                }
+            }, 5000);
+        }
+    });
+
+Update Badge in Real-Time (messages.html):
+
+    socket.on('receive_message', (data) => {
+        // Immediately update badge
+        updateMessageBadge();
+    });
+
+Display Per-Conversation Badges (messages.html):
+
+    async function loadConversations() {
+        const users = await fetch('/api/users').then(r => r.json());
+        
+        let conversationsWithMessages = [];
+        
+        for (let user of users) {
+            const messages = await fetch(`/api/messages/${user.id}`).then(r => r.json());
+            
+            if (messages.length > 0) {
+                user.unreadCount = messages.filter(m => 
+                    m.receiverId === currentUserId && 
+                    m.isRead === 0
+                ).length;
+                
+                conversationsWithMessages.push(user);
+            }
+        }
+        
+        renderConversations(conversationsWithMessages);
+    }
+
+Render Badges (messages.html):
+
+    function renderConversations(convos) {
+        const html = convos.map(user => `
+            <div class="conversation-item">
+                <div class="avatar-wrapper" style="position: relative;">
+                    <img src="..." alt="..." />
+                    ${user.unreadCount > 0 ? `
+                        <span class="badge" style="
+                            position: absolute;
+                            top: -8px;
+                            right: -8px;
+                            background: #ef4444;
+                            color: white;
+                            border-radius: 50%;
+                            width: 1.75rem;
+                            height: 1.75rem;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            font-weight: bold;
+                            font-size: 0.7rem;
+                        ">
+                            ${user.unreadCount}
+                        </span>
+                    ` : ''}
+                </div>
+                <div class="info">
+                    <h3>${user.fullName}</h3>
+                </div>
+            </div>
+        `).join('');
+        
+        document.getElementById('conversations-container').innerHTML = html;
+    }
+
+
+================================================================================
+7. DATA FLOW DIAGRAMS
+================================================================================
+
+COMPLETE MESSAGE LIFECYCLE
+========================================================================
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│                          USER A (Sender)                                │
+├─────────────────────────────────────────────────────────────────────────┤
+│ 1. Types message in chat input                                          │
+│ 2. Clicks SEND button                                                   │
+│                                                                         │
+│    ↓                                                                    │
+│                                                                         │
+│ Frontend POST /api/messages {receiverId: 5, content: "..."}            │
+└─────────────────────────────────────────────────────────────────────────┘
+                                    ↓
+                            ┌─────────────────┐
+                            │   BACKEND       │
+                            │ (FastAPI +      │
+                            │  Socket.IO)     │
+                            │                 │
+                            │ 1. Create msg   │
+                            │ 2. Save to DB   │
+                            │ 3. Check if     │
+                            │    user5 online │
+                            │ 4a. If YES:     │
+                            │    Emit event   │
+                            │ 4b. If NO:      │
+                            │    Message in   │
+                            │    database     │
+                            └─────────────────┘
+                                    ↓
+            ┌───────────────────────────────────────────────┐
+            ↓                                               ↓
+    [IF USER 5 ONLINE]                          [IF USER 5 OFFLINE]
+    Socket.IO event                             Message stored in DB
+    "receive_message"                           User 5 sees it when:
+    ↓                                           - Reconnects
+    └─────────────────────────────────────────────────────────────────────────┐
+                            ↓                                                 │
+        ┌─────────────────────────────────────────────────────────────────┐   │
+        │                     USER B (Receiver)                           │   │
+        ├─────────────────────────────────────────────────────────────────┤   │
+        │ 1. Socket.IO 'receive_message' event fires                     │   │
+        │ 2. Browser receives notification (real-time)                  │   │
+        │ 3. Notification badge updates: Shows ● on message icon      │   │
+        │ 4. Updates conversation badge (shows count)                  │   │
+        │ 5. If viewing conversation: Message appears in chat          │   │
+        │                                                               │   │
+        │ Later: User B opens messages page                            │   │
+        │ 1. Frontend: GET /api/messages/1 (my messages with user 1)  │   │
+        │ 2. Backend: Queries database for all messages               │   │
+        │ 3. Backend: Returns messages with is_read=0 (unread)        │   │
+        │ 4. Frontend: Displays message with gray bg + red dot        │   │
+        │                                                               │   │
+        │ User B clicks conversation                                   │   │
+        │ 1. Frontend: PUT /api/messages/1/mark-read                  │   │
+        │ 2. Backend: Sets is_read=1 for all messages from user 1     │   │
+        │ 3. Frontend: Removes unread styling (gray bg disappears)    │   │
+        │ 4. Badge disappears (both navbar and conversation)          │   │
+        └─────────────────────────────────────────────────────────────────┘
+└───────────────────────────────────────────────────────────────────────────┘
+
+
+REAL-TIME VS PERSISTENCE FLOW
+========================================================================
+
+                    ┌──────────────────┐
+                    │  Message Sent    │
+                    └────────┬─────────┘
+                             │
+                   ┌─────────┴─────────┐
+                   │                   │
+          ┌────────▼────────┐  ┌──────▼──────────┐
+          │  REST API       │  │  Socket.IO      │
+          │  Persistence    │  │  Real-time      │
+          └────────┬────────┘  └──────┬──────────┘
+                   │                   │
+           ┌───────▼───────┐   ┌──────▼──────────┐
+           │   Database    │   │ Check if user   │
+           │   Message     │   │ is connected    │
+           │   saved ✓     │   └──────┬──────────┘
+           └───────────────┘          │
+                                      ├─────────────┬────────────────┐
+                                      │             │                │
+                                    YES            NO            Connection lost
+                                      │             │                │
+                            ┌─────────▼──┐    ┌───▼────┐    ┌───────▼────────┐
+                            │  Emit to   │    │ User   │    │ Message saved  │
+                            │  receiver  │    │ sees   │    │ in database    │
+                            │  (instant) │    │ badge  │    │                │
+                            └─────────┬──┘    │        │    │ User fetches   │
+                                      │       │ later  │    │ when back      │
+                            ┌─────────▼──┐    └───┬────┘    └───────────────┘
+                            │  Receiver  │        │
+                            │  sees msg  │        │
+                            │  in chat   │        │
+                            │  (instant) │        │
+                            └────────────┘        │
+                                                  │
+                                       ┌──────────▼─────────┐
+                                       │ User reconnects    │
+                                       │ Frontend fetches   │
+                                       │ GET /messages/{id} │
+                                       │ Shows unread badge │
+                                       └────────────────────┘
+
+
+NOTIFICATION BADGE UPDATE CYCLE
+========================================================================
+
+┌──────────────────────────────────────────────────────────────────┐
+│                    PAGE LOAD                                     │
+└──────────────────────────────────┬───────────────────────────────┘
+                                   │
+                    ┌──────────────▼──────────────┐
+                    │  updateMessageBadge() runs  │
+                    └──────────────┬──────────────┘
+                                   │
+                ┌──────────────────┼──────────────────┐
+                │                  │                  │
+        ┌───────▼──────┐  ┌────────▼────────┐  ┌────▼──────────┐
+        │ Get all      │  │ For each user:  │  │ Count         │
+        │ users from   │  │ GET messages    │  │ unread where  │
+        │ /api/users   │  │                 │  │ isRead=0      │
+        └───────┬──────┘  └────────┬────────┘  └────┬──────────┘
+                │                  │                │
+                │   ┌──────────────┴────────────────┤
+                │   │                               │
+                └───┼───────────────────────────────┘
+                    │
+        ┌───────────▼────────────┐
+        │ Display badge:         │
+        │ • If count > 0:        │
+        │   Show ● (red dot)     │
+        │ • If count = 0:        │
+        │   Hide badge           │
+        └───────────┬────────────┘
+                    │
+                ┌───┴───────────────────┐
+                │                       │
+        ┌───────▼──────┐        ┌──────▼────────┐
+        │ Every 5 secs │        │ On new message│
+        │ repeat cycle │        │ (Socket.IO)   │
+        │              │        │ repeat cycle  │
+        └──────────────┘        └──────────────┘
+
+
+================================================================================
+SUMMARY
+================================================================================
+
+WHAT WE BUILT:
+==============
+
+1. HYBRID MESSAGING SYSTEM:
+   - Socket.IO for real-time communication (instant)
+   - REST API for message persistence (reliable)
+   - Perfect combination for offline support + live updates
+
+2. NOTIFICATION SYSTEM:
+   - Navbar badge: Small red dot when unread messages exist
+   - Conversation badges: Shows count per conversation
+   - Auto-update every 5 seconds + real-time updates
+   - Auto-disappear when messages are read
+
+3. MESSAGE MANAGEMENT:
+   - Send messages: REST API + Socket.IO
+   - Fetch messages: REST API with is_read tracking
+   - Mark as read: REST API to update database
+   - Real-time events: Socket.IO for instant delivery
+
+4. DATA SAFETY:
+   - All messages saved to database (persistent)
+   - Works even if recipient offline
+   - Timestamps for all messages
+   - Read status tracking (is_read = 0/1)
+
+
+KEY FILES:
+==========
+
+Backend:
+- backend/main.py (lines 66-76): Socket.IO initialization
+- backend/main.py (lines 925-968): Socket.IO event handlers
+- backend/main.py (lines 974-1089): Message REST API endpoints
+
+Frontend:
+- messages.html (line 11): Socket.IO client library
+- messages.html (lines 343-373): Socket.IO connection & events
+- js/app.js (lines 424-507): Notification badge logic
+- js/app.js (lines 512-525): Periodic badge updates
+- css/style.css (lines 2585-2612): Badge styling
+
+
+TECHNICAL STACK:
+================
+
+Backend:
+- FastAPI (HTTP server)
+- Socket.IO (WebSocket server)
+- SQLAlchemy (ORM)
+- SQLite/PostgreSQL (Database)
+
+Frontend:
+- Vanilla JavaScript
+- Socket.IO client (CDN)
+- REST API calls (Fetch API)
+- DOM manipulation
+
+
+================================================================================
+END OF DOCUMENTATION
+================================================================================
