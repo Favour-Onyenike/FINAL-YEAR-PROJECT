@@ -134,6 +134,7 @@ class User(Base):
     
     # Optional profile picture URL (can be NULL)
     profile_image = Column(String(500), nullable=True)
+    profile_image_data = Column(Text, nullable=True)  # Base64 encoded image data
     
     # Optional phone number (can be NULL)
     phone = Column(String(20), nullable=True)
@@ -309,6 +310,9 @@ class ProductImage(Base):
     
     # Relationship: This image belongs to one product
     product = relationship("Product", back_populates="images")
+    
+    # Store the actual image data (Base64 encoded string)
+    image_data = Column(Text, nullable=True)
 
 # =============================================================================
 # SAVED ITEMS TABLE (Bookmarks/Wishlist)

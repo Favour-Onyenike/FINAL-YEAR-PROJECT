@@ -73,8 +73,8 @@ For detailed endpoint documentation, see:
 ================================================================================
 """
 
-from fastapi import FastAPI, Depends, HTTPException, status, UploadFile, File, Query
-from fastapi.responses import FileResponse  # Serve HTML files
+from fastapi import FastAPI, Depends, HTTPException, status, UploadFile, File, Query, Response
+from fastapi.responses import FileResponse, RedirectResponse  # Serve HTML files
 from fastapi.middleware.cors import CORSMiddleware  # Allow cross-origin requests
 from fastapi.staticfiles import StaticFiles  # Serve static files (images)
 from sqlalchemy.orm import Session
@@ -439,6 +439,18 @@ def update_user(
     
     if user_data.avatarUrl is not None:
         user.profile_image = user_data.avatarUrl
+        
+        # Check if this is a new DB-stored image (URL format: /api/images/{id})
+        # If so, we need to copy the data from the orphan image to the user record
+        if "/api/images/" in user_data.avatarUrl and user_data.avatarUrl.split("/")[-1].isdigit():
+            image_id = int(user_data.avatarUrl.split("/")[-1])
+            # Find the orphan image record
+            orphan_image = db.query(ProductImage).filter(ProductImage.id == image_id).first()
+            if orphan_image and orphan_image.image_data:
+                # Copy data to user profile
+                user.profile_image_data = orphan_image.image_data
+                # Delete the orphan image since we copied the data
+                db.delete(orphan_image)
     
     # Save changes to database
     db.commit()
@@ -756,12 +768,25 @@ def create_product(
     
     # Add images to the product
     for idx, image_url in enumerate(product_data.images):
-        product_image = ProductImage(
-            product_id=new_product.id,
-            image_url=image_url,
-            is_primary=1 if idx == 0 else 0  # First image is primary
-        )
-        db.add(product_image)
+        # Check if this is a new DB-stored image (URL format: /api/images/{id})
+        if "/api/images/" in image_url and image_url.split("/")[-1].isdigit():
+            image_id = int(image_url.split("/")[-1])
+            # Find the orphan image record
+            existing_image = db.query(ProductImage).filter(ProductImage.id == image_id).first()
+            if existing_image:
+                # Link it to the product
+                existing_image.product_id = new_product.id
+                existing_image.is_primary = 1 if idx == 0 else 0
+                db.add(existing_image)
+        else:
+            # Legacy/External URL support (e.g. Unsplash or old uploads)
+            # Create a new record for it
+            product_image = ProductImage(
+                product_id=new_product.id,
+                image_url=image_url,
+                is_primary=1 if idx == 0 else 0  # First image is primary
+            )
+            db.add(product_image)
     
     # Save images to database
     db.commit()
@@ -813,16 +838,30 @@ def update_product(
             raise HTTPException(status_code=400, detail="Product must have between 1 and 5 images")
         
         # Delete old images
+        # NOTE: We should probably delete the actual image data too if we want to save space
+        # But for now, we just unlink them. A cleanup job could delete orphans later.
         db.query(ProductImage).filter(ProductImage.product_id == product_id).delete()
         
         # Add new images
         for idx, image_url in enumerate(images):
-            product_image = ProductImage(
-                product_id=product_id,
-                image_url=image_url,
-                is_primary=1 if idx == 0 else 0
-            )
-            db.add(product_image)
+            # Check if this is a new DB-stored image (URL format: /api/images/{id})
+            if "/api/images/" in image_url and image_url.split("/")[-1].isdigit():
+                image_id = int(image_url.split("/")[-1])
+                # Find the orphan image record
+                existing_image = db.query(ProductImage).filter(ProductImage.id == image_id).first()
+                if existing_image:
+                    # Link it to the product
+                    existing_image.product_id = product_id
+                    existing_image.is_primary = 1 if idx == 0 else 0
+                    db.add(existing_image)
+            else:
+                # Legacy/External URL support
+                product_image = ProductImage(
+                    product_id=product_id,
+                    image_url=image_url,
+                    is_primary=1 if idx == 0 else 0
+                )
+                db.add(product_image)
     
     # Handle category if provided
     if "categoryId" in update_data:
@@ -1000,20 +1039,86 @@ async def upload_image(file: UploadFile = File(...)):
     if not file.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="File must be an image")
     
-    # Generate unique filename to avoid conflicts
-    # Use UUID (universally unique identifier) + original extension
-    # Example: 3fa85f64-5717-4562-b3fc-2c963f66afa6.jpg
+    # Generate unique filename (still used for URL reference)
     file_extension = file.filename.split(".")[-1]
     unique_filename = f"{uuid.uuid4()}.{file_extension}"
-    file_path = f"backend/uploads/products/{unique_filename}"
     
-    # Save file to disk
-    with open(file_path, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)  # Copy file contents
+    # Read file content
+    file_content = await file.read()
     
-    # Return URL to access the uploaded image
-    # Frontend will use this URL in the images array when creating product
-    return {"imageUrl": f"/uploads/products/{unique_filename}"}
+    # Convert to Base64 for DB storage
+    import base64
+    image_data_b64 = base64.b64encode(file_content).decode('utf-8')
+    
+    # Create a temporary ProductImage record to store the data
+    # We'll link it to a product later, or just use the ID/URL reference
+    # For now, we'll just return the URL that points to our new image serving endpoint
+    
+    # NOTE: In a perfect world, we'd save to a "TemporaryImage" table first
+    # But to keep it simple and compatible with existing flow:
+    # We will save the image data into a new table or just return the data?
+    # Actually, the current flow is: Upload -> Get URL -> Create Product with URL
+    # So we need to store this image SOMEWHERE until the product is created.
+    
+    # STRATEGY:
+    # 1. Create a ProductImage with product_id=NULL (orphan image)
+    # 2. Store the Base64 data in it
+    # 3. Return the URL /api/images/{id}
+    # 4. When creating product, we update the product_id
+    
+    new_image = ProductImage(
+        product_id=None,  # Will be linked when product is created
+        image_url=f"/api/images/{unique_filename}", # Virtual URL
+        image_data=image_data_b64,
+        is_primary=0
+    )
+    
+    db.add(new_image)
+    db.commit()
+    db.refresh(new_image)
+    
+    # Return URL to access the uploaded image from DB
+    return {"imageUrl": f"/api/images/{new_image.id}"}
+
+@app.get("/api/images/{image_id}")
+def get_image(image_id: str, db: Session = Depends(get_db)):
+    """
+    Serve an image directly from the database.
+    
+    URL: /api/images/123 (ID) or /api/images/uuid.jpg (Legacy/Filename)
+    """
+    # Check if it's a numeric ID (new DB images)
+    if image_id.isdigit():
+        image = db.query(ProductImage).filter(ProductImage.id == int(image_id)).first()
+        if image and image.image_data:
+            # Decode Base64 and return as response
+            import base64
+            image_bytes = base64.b64decode(image.image_data)
+            return Response(content=image_bytes, media_type="image/jpeg")
+            
+    # If not found or not numeric, try to find by filename (for migration/compatibility)
+    # This part is tricky because we stored full URLs in image_url column
+    # e.g. /uploads/products/abc.jpg -> we need to find this record
+    
+    # Try to find by image_url containing this filename
+    search_url = f"/uploads/products/{image_id}"
+    image = db.query(ProductImage).filter(ProductImage.image_url.like(f"%{image_id}%")).first()
+    
+    if image and image.image_data:
+        import base64
+        image_bytes = base64.b64decode(image.image_data)
+        return Response(content=image_bytes, media_type="image/jpeg")
+        
+    # Fallback: Try to serve from disk (for non-migrated images)
+    # This ensures backward compatibility during migration
+    file_path = f"backend/uploads/products/{image_id}"
+    if os.path.exists(file_path):
+        return FileResponse(file_path)
+        
+    # If still not found, return 404
+    # raise HTTPException(status_code=404, detail="Image not found")
+    # Return a placeholder instead of 404 to avoid broken UI
+    return RedirectResponse(url="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?q=80&w=200")
 
 # =============================================================================
 # CATEGORY ENDPOINT
