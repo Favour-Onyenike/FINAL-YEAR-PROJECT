@@ -2581,19 +2581,19 @@ textarea.input-with-padding {
 
 .notification-badge {
     position: absolute;
-    top: -8px;
-    right: -8px;
+    top: -5px;
+    right: -5px;
     background-color: #ef4444;
     color: white;
     border-radius: 50%;
-    width: 24px;
-    height: 24px;
+    width: 10px;
+    height: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.75rem;
+    font-size: 0.5rem;
     font-weight: 700;
-    border: 2px solid var(--background);
+    border: 1px solid var(--background);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     animation: pulse 2s infinite;
 }
