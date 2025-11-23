@@ -498,9 +498,9 @@
 
             container.innerHTML = convos.map(user => `
                 <div class="conversation-item" style="position: relative;">
-                    ${user.unreadCount > 0 ? `<div style="position: absolute; top: -5px; right: -5px; background: #ef4444; color: white; border-radius: 50%; width: 1.5rem; height: 1.5rem; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: bold; z-index: 10;">${user.unreadCount}</div>` : ''}
-                    <a href="profile.html?userId=${user.id}" class="conversation-avatar" style="width: 3rem; height: 3rem; background: var(--secondary); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; text-decoration: none; flex-shrink: 0; overflow: hidden;">
+                    <a href="profile.html?userId=${user.id}" class="conversation-avatar" style="width: 3rem; height: 3rem; background: var(--secondary); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; text-decoration: none; flex-shrink: 0; overflow: visible; position: relative;">
                         ${user.profileImage ? `<img src="${getImageUrl(user.profileImage)}" alt="${user.username}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block;">` : `<i data-lucide="user" style="width: 1.5rem; height: 1.5rem;"></i>`}
+                        ${user.unreadCount > 0 ? `<div style="position: absolute; top: -8px; right: -8px; background: #ef4444; color: white; border-radius: 50%; width: 1.75rem; height: 1.75rem; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: bold; z-index: 10; border: 2px solid white;">${user.unreadCount}</div>` : ''}
                     </a>
                     <div class="conversation-info" onclick="selectConversation(${user.id}, '${user.fullName || user.username}')">
                         <div class="conversation-name">${user.fullName || user.username}</div>
