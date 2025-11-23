@@ -416,28 +416,69 @@ function requireLogin() {
 /* =============================================================================
    UNREAD MESSAGE BADGE - Shows notification for new messages
    ============================================================================= */
+// This system displays a red dot (●) on the message icon when you have unread messages
+// It works by:
+// 1. Fetching all messages between you and each user
+// 2. Counting how many are unread (is_read = 0)
+// 3. Updating the navbar badge if count > 0
+// 4. Checking every 5 seconds + when new messages arrive (Socket.IO)
 
 /**
- * Fetch unread message count and update the notification badge
- * Called on page load and when new messages arrive
+ * Fetch unread message count from backend and update the notification badge
+ * 
+ * WHAT IT DOES:
+ * 1. Gets current user ID from localStorage
+ * 2. Fetches all users from backend
+ * 3. For each user: Gets messages and counts unread ones
+ * 4. Updates the red dot (●) on message icon if count > 0
+ * 
+ * WHEN IT'S CALLED:
+ * - On page load (DOMContentLoaded event)
+ * - Every 5 seconds (periodic check)
+ * - When new message arrives (Socket.IO receive_message event)
+ * 
+ * RETURNS: Nothing (updates DOM directly)
+ * 
+ * LOGIC FLOW:
+ * GET /api/users -> For each user:
+ *   GET /api/messages/{user_id} -> Count messages where:
+ *     - is_read = 0 (unread)
+ *     - receiverId = my_id (I'm the receiver)
+ * Total count > 0 -> Show red dot
+ * Total count = 0 -> Hide badge
+ * 
+ * PERFORMANCE NOTE:
+ * This fetches messages for ALL users, which can be slow with many users.
+ * Acceptable because:
+ * - Called only every 5 seconds
+ * - Users typically have < 20 conversations
+ * - Backend efficiently queries database
+ * 
+ * ERROR HANDLING:
+ * - If /api/users fails: Skip badge update (don't crash)
+ * - If /api/messages/{id} fails: Continue checking other users
+ * - If badge element not found: Log warning but continue
  */
 async function updateMessageBadge() {
     try {
+        // Get authentication token
         const token = getToken();
+        // Get user object from localStorage (set during login)
         const userStr = localStorage.getItem('user');
         
+        // If not logged in, hide badge and exit
         if (!token || !userStr) {
-            // Hide badge if not logged in
             const badge = document.getElementById('message-badge');
             if (badge) badge.classList.add('hidden');
             console.debug('Badge update skipped: user not logged in');
             return;
         }
         
-        // Parse user object to get ID
+        // Parse user object to extract our user ID
         const user = JSON.parse(userStr);
         const userId = user.id;
         
+        // Verify we have a user ID
         if (!userId) {
             console.debug('No userId found in user object');
             return;
@@ -445,79 +486,120 @@ async function updateMessageBadge() {
         
         console.debug('Updating message badge for user:', userId);
         
-        // Get all users to check for messages
+        // STEP 1: Get list of all users on the platform
         const response = await fetch('/api/users', {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         
+        // Error handling: If we can't get users, skip badge update
         if (!response.ok) {
             console.warn('Failed to fetch users for message badge. Status:', response.status);
-            // Don't clear token - just skip badge update
             return;
         }
         
+        // Parse response
         const users = await response.json();
-        let unreadCount = 0;
+        let unreadCount = 0;  // Total count of unread messages
         
-        // Check messages with each user for unread count
+        // STEP 2: For EACH user, check messages and count unread ones
         for (let user of users) {
-            if (user.id === parseInt(userId)) continue; // Skip current user
+            // Skip checking messages with ourselves
+            if (user.id === parseInt(userId)) continue;
             
             try {
+                // Get all messages between me and this user
                 const msgResponse = await fetch(`/api/messages/${user.id}`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 
+                // If fetch succeeds, process messages
                 if (msgResponse.ok) {
                     const messages = await msgResponse.json();
-                    // Count unread messages (is_read = 0 and we are receiver)
+                    
+                    // STEP 3: Count unread messages
+                    // An unread message is:
+                    // - is_read = 0 (hasn't been read yet)
+                    // - receiverId = my_id (I'm the one receiving it)
                     for (let msg of messages) {
                         if (msg.isRead === 0 && msg.receiverId === parseInt(userId)) {
+                            // This is an unread message addressed to me!
                             unreadCount++;
                         }
                     }
                 }
             } catch (error) {
-                // Continue checking other users even if one fails
+                // If this one user fails, continue checking others
+                // Don't let one failure break the whole notification system
                 console.debug('Error checking messages with user', user.id);
             }
         }
         
-        // Update badge - show just a red dot if unread messages exist
+        // STEP 4: Update the notification badge on the DOM
+        // The badge is a small red dot (●) on the message icon in the navbar
         const badge = document.getElementById('message-badge');
         console.log('Badge element:', badge, 'Unread count:', unreadCount);
+        
         if (badge) {
+            // If we have unread messages, show the red dot
             if (unreadCount > 0) {
+                // Set content to red dot
                 badge.textContent = '●';
+                // Make it visible (remove hidden class)
                 badge.classList.remove('hidden');
+                // Style it to be small and red
                 badge.style.fontSize = '0.5rem';
-                badge.style.color = '#ef4444';
+                badge.style.color = '#ef4444';  // Red color
                 console.log('✅ Badge updated with unread count:', unreadCount);
             } else {
+                // No unread messages - hide the badge
                 badge.classList.add('hidden');
                 console.log('No unread messages');
             }
         } else {
+            // Badge element doesn't exist on this page
+            // (OK for pages that don't have the badge, like profile page)
             console.warn('Message badge element not found on this page');
         }
     } catch (error) {
+        // Catch any unexpected errors
         console.error('Error updating message badge:', error);
-        // Don't block the rest of the app if badge update fails
+        // Don't crash the app if badge update fails
     }
 }
 
 /**
- * Update message badge when page loads (if user is logged in)
+ * Initialize badge updates on page load and set periodic refresh
+ * 
+ * WHAT HAPPENS:
+ * 1. When page loads (DOMContentLoaded)
+ * 2. If user is logged in:
+ *    - Call updateMessageBadge() immediately
+ *    - Set interval to call it every 5 seconds
+ * 
+ * WHY EVERY 5 SECONDS?
+ * - Balances responsiveness with server load
+ * - Fast enough to feel real-time
+ * - Slow enough to not overload backend
+ * - Gets combined with Socket.IO for instant updates
+ * 
+ * COMBINED WITH SOCKET.IO:
+ * - Socket.IO: Instant update when message arrives (real-time)
+ * - 5-second interval: Backup in case Socket.IO is slow
+ * - Both together = highly responsive notification system
  */
 document.addEventListener('DOMContentLoaded', () => {
     if (isLoggedIn()) {
+        // User is logged in - update badge immediately
         updateMessageBadge();
-        // Check for new messages every 5 seconds
+        
+        // Then check for new messages every 5 seconds
+        // This is a fallback to make sure we don't miss any messages
+        // Even if Socket.IO is temporarily slow
         setInterval(() => {
             if (isLoggedIn()) {
                 updateMessageBadge();
             }
-        }, 5000);
+        }, 5000);  // 5000 milliseconds = 5 seconds
     }
     
     // Global search functionality

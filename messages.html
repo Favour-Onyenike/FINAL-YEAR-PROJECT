@@ -333,40 +333,101 @@
         // =============================================================================
         // MESSAGING PAGE - REAL-TIME MESSAGE INTEGRATION
         // =============================================================================
+        // This script handles the messaging interface including:
+        // 1. Real-time message delivery via Socket.IO
+        // 2. Loading and displaying conversations
+        // 3. Handling message input and sending
+        // 4. Updating notification badges
         
-        // State management
-        let currentConversationUserId = null;
-        let currentUserId = null;
-        let allUsers = {}; // Cache of user data
-        let conversations = []; // List of unique conversation partners
+        // STATE MANAGEMENT - Variables to track the current state of the messaging interface
+        let currentConversationUserId = null;  // Which user's conversation is currently open
+        let currentUserId = null;              // The logged-in user's ID
+        let allUsers = {};                     // Cache of all user data (for quick lookup)
+        let conversations = [];                // List of users we have conversations with
         
-        // Initialize Socket.IO
-        // Connect to backend on port 8000 where Socket.IO is running
+        // =============================================================================
+        // SOCKET.IO CONNECTION SETUP
+        // =============================================================================
+        // Socket.IO provides WebSocket communication for real-time messaging
+        // This connects to the backend on port 8000 where the Socket.IO server runs
+        // 
+        // CONNECTION URL FORMAT:
+        // - Frontend on port 5000 -> http://localhost:5000
+        // - Backend on port 8000 -> http://localhost:8000
+        // 
+        // WHY DIFFERENT PORTS?
+        // - Frontend: Serves static HTML/CSS/JS files (port 5000)
+        // - Backend: Runs FastAPI + Socket.IO server (port 8000)
+        // - They communicate via WebSocket over port 8000
+        
         const backendUrl = window.location.protocol + '//' + window.location.hostname + ':8000';
         const socket = io(backendUrl, {
-            reconnection: true,
-            reconnectionDelay: 1000,
-            reconnectionDelayMax: 5000,
-            reconnectionAttempts: Infinity
+            reconnection: true,                // Auto-reconnect if connection drops
+            reconnectionDelay: 1000,           // Wait 1 second before first reconnect attempt
+            reconnectionDelayMax: 5000,        // Max 5 second wait between retries
+            reconnectionAttempts: Infinity     // Keep trying forever (until user closes browser)
         });
 
-        // Socket.IO event handlers
+        // =============================================================================
+        // SOCKET.IO EVENT LISTENERS
+        // =============================================================================
+        // These handle real-time events from the backend server
+        
+        /**
+         * CONNECT EVENT - Fires when WebSocket connection is established
+         * 
+         * FLOW:
+         * 1. User opens messages.html
+         * 2. Socket.IO client connects to backend WebSocket
+         * 3. 'connect' event fires
+         * 4. We send authentication with user ID
+         * 5. Backend maps this socket to our user ID
+         * 
+         * PURPOSE: Establish connection and tell backend who we are
+         */
         socket.on('connect', () => {
             console.log('Connected to messaging server');
+            
+            // Get our user ID from localStorage (set during login)
             const token = localStorage.getItem('token');
             const userId = localStorage.getItem('userId');
+            
+            // Send authenticate event to backend with our user ID
             if (userId) {
+                // Backend receives this and stores: connected_users[userId] = socket_id
                 socket.emit('authenticate', { userId: parseInt(userId) });
             }
         });
 
+        /**
+         * RECEIVE_MESSAGE EVENT - Fires when someone sends us a message
+         * 
+         * FLOW:
+         * 1. User A sends message to User B
+         * 2. Backend checks if User B is online (in connected_users)
+         * 3. If YES: Backend emits 'receive_message' event to User B's socket
+         * 4. This listener fires immediately (real-time!)
+         * 5. We update the badge and reload messages if viewing that conversation
+         * 
+         * DATA RECEIVED:
+         * {
+         *   senderId: 1,
+         *   content: "Hi there!",
+         *   timestamp: "2025-11-23T12:00:00"
+         * }
+         * 
+         * PURPOSE: Handle incoming messages in real-time
+         */
         socket.on('receive_message', (data) => {
             console.log('Received message:', data);
-            // Update the message badge when new message arrives
+            
+            // Update the notification badge (red dot) to show we have unread messages
             if (typeof updateMessageBadge === 'function') {
                 updateMessageBadge();
             }
-            // If message is from current conversation, load new messages
+            
+            // If the message is from the user we're currently chatting with, reload messages
+            // This makes the new message appear in the chat immediately
             if (currentConversationUserId && data.senderId == currentConversationUserId) {
                 loadMessages(currentConversationUserId);
             }
@@ -384,22 +445,31 @@
             return params.get('userId');
         }
         
-        // Load conversations and messages on page load
+        // =============================================================================
+        // PAGE INITIALIZATION - Set up messaging interface when page loads
+        // =============================================================================
+        // This runs when the user opens messages.html
+        // Loads conversations and sets up the messaging interface
         document.addEventListener('DOMContentLoaded', async () => {
-            // Check if logged in (delay until DOM is ready)
+            // Step 1: Check if user is logged in (has token)
+            // If not logged in, redirect to login page
             if (!isLoggedIn()) {
                 window.location.href = '/login.html';
                 return;
             }
             
-            lucide.createIcons();
-            initializeLayout();
+            // Step 2: Initialize UI
+            lucide.createIcons();           // Load icons from Lucide library
+            initializeLayout();             // Set up mobile/desktop layout
+            
+            // Step 3: Fetch all conversations from database
             await loadConversations();
             
-            // If coming from a profile, auto-select that user's conversation
-            const targetUserId = getTargetUserId();
+            // Step 4: If coming from a user's profile (via link or message)
+            // Auto-open the conversation with that user
+            const targetUserId = getTargetUserId();  // Get user ID from URL ?userId=X
             if (targetUserId) {
-                // Wait a moment for conversations to load, then select the target user
+                // Wait for conversations to load, then select target user's conversation
                 setTimeout(() => {
                     const targetUserData = allUsers[parseInt(targetUserId)];
                     if (targetUserData) {
@@ -409,7 +479,17 @@
             }
         });
 
-        // Load all conversations (unique users with messages)
+        // =============================================================================
+        // LOAD CONVERSATIONS - Fetch all conversation partners and their message counts
+        // =============================================================================
+        // This function:
+        // 1. Gets all users from the backend
+        // 2. For each user: Fetches message history
+        // 3. Calculates unread count for each conversation
+        // 4. Sorts by most recent message
+        // 5. Renders the conversation list
+        // 
+        // CALLED BY: Page load, when socket receives new message
         async function loadConversations() {
             try {
                 const token = getToken();
@@ -513,44 +593,63 @@
             lucide.createIcons();
         }
 
-        // Select a conversation and load messages
+        // =============================================================================
+        // SELECT CONVERSATION - Open a chat with a specific user
+        // =============================================================================
+        // This function handles everything when user clicks on a conversation:
+        // 1. Updates the chat header with user's info
+        // 2. Loads messages from the database
+        // 3. Marks unread messages as read
+        // 4. Updates notification badges
+        // 5. Updates UI to show which conversation is active
+        // 
+        // CALLED BY: Click on conversation item, Socket.IO receive_message, page init
+        // 
+        // EXAMPLE:
+        // selectConversation(5, "John Doe")
+        // -> Opens conversation with User 5
+        // -> Shows their name in header
+        // -> Loads all messages between me and User 5
+        // -> Marks them as read
+        // -> Badge disappears
         async function selectConversation(userId, userName) {
+            // Step 1: Save which conversation is open
             currentConversationUserId = userId;
             
-            // Update header
+            // Step 2: Update chat header with user's information
             const user = allUsers[userId] || { fullName: userName };
             document.getElementById('chat-header-name').textContent = user.fullName || userName;
             document.getElementById('chat-header-product').textContent = `@${user.username || 'user'}`;
             
+            // Step 3: Set user's profile image in header (if they have one)
             if (user.profileImage) {
                 document.getElementById('chat-header-avatar').innerHTML = `<img src="${getImageUrl(user.profileImage)}" alt="${userName}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
             }
             
-            // Make header clickable to navigate to profile
+            // Step 4: Make header clickable to navigate to user's profile
             const chatHeader = document.getElementById('chat-header');
             if (chatHeader) {
-                // Remove old onclick if exists
-                chatHeader.onclick = null;
-                // Add onclick to navigate to profile (but not on back button)
+                chatHeader.onclick = null;  // Remove old onclick handler
+                // Add new onclick to navigate to profile (but not if clicking back button)
                 chatHeader.addEventListener('click', (e) => {
-                    // Don't navigate if clicking the back button
                     if (e.target.closest('.chat-header-back-btn')) {
-                        return;
+                        return;  // Don't navigate if clicking back button
                     }
                     window.location.href = `profile.html?userId=${userId}`;
                 });
             }
 
-            // Enable input
+            // Step 5: Enable message input (was disabled when no conversation selected)
             document.getElementById('message-input').disabled = false;
             document.getElementById('send-btn').disabled = false;
 
-            // Load messages
+            // Step 6: Load all messages between me and this user from database
             await loadMessages(userId);
             
-            // Mark messages from this user as read
+            // Step 7: Mark messages as read (removes notification badge)
             try {
                 const token = localStorage.getItem('token');
+                // Call mark-read endpoint to update database
                 const response = await fetch(`${API_BASE_URL}/messages/${userId}/mark-read`, {
                     method: 'PUT',
                     headers: {
@@ -558,20 +657,23 @@
                         'Content-Type': 'application/json'
                     }
                 });
+                
                 if (response.ok) {
-                    // After marking as read, update badges
+                    // Step 7a: Update local data - set unread count to 0
                     if (allUsers[userId]) {
                         allUsers[userId].unreadCount = 0;
                     }
-                    // Remove the unread badge from this conversation
+                    
+                    // Step 7b: Remove badge from conversation list
                     const conversationItems = document.querySelectorAll('.conversation-item');
                     conversationItems.forEach((item, index) => {
                         const badge = item.querySelector('div[style*="background: #ef4444"]');
                         if (badge) {
-                            badge.remove();
+                            badge.remove();  // Remove red number badge
                         }
                     });
-                    // Update navbar badge
+                    
+                    // Step 7c: Update navbar message badge (red dot)
                     if (window.updateMessageBadge) {
                         window.updateMessageBadge();
                     }
@@ -580,31 +682,40 @@
                 console.error('Error marking messages as read:', err);
             }
 
-            // Show chat on mobile
+            // Step 8: On mobile, show chat area and hide conversation list
             if (window.innerWidth < 768) {
                 showChat();
             }
 
-            // Mark all conversations items as inactive, then mark this one active
+            // Step 9: Update UI to show which conversation is active
+            // Remove active status from all conversations
             document.querySelectorAll('.conversation-item').forEach(item => {
                 item.classList.remove('active');
             });
-            // Find and mark the active conversation
+            
+            // Add active status to this conversation
             const conversationItems = document.querySelectorAll('.conversation-item');
             conversationItems.forEach((item, index) => {
-                // Find the user's conversation item by checking if the onclick matches
                 if (item.onclick && item.onclick.toString().includes(userId)) {
-                    item.classList.add('active');
+                    item.classList.add('active');  // Highlight active conversation
                 }
             });
         }
 
-        // Format time for messages
+        // =============================================================================
+        // FORMAT MESSAGE TIME - Convert timestamp to readable format
+        // =============================================================================
+        // Converts ISO timestamps to human-readable time format
+        // Examples:
+        // - 59 seconds ago -> "just now"
+        // - 5 minutes ago -> "12:34 PM"
+        // 
+        // RETURNS: Formatted time string or "unknown time" if error
         function formatMessageTime(dateStr) {
             try {
                 const date = new Date(dateStr);
                 
-                // Get current UTC time (convert browser local time to UTC)
+                // Get current time in UTC for comparison
                 const now = new Date();
                 const offsetMs = now.getTimezoneOffset() * 60 * 1000;
                 const nowUTC = new Date(now.getTime() + offsetMs);
@@ -612,21 +723,38 @@
                 // Calculate difference in milliseconds
                 const diff = nowUTC.getTime() - date.getTime();
                 
-                // If less than 1 minute, show "just now"
+                // If less than 1 minute old, show "just now"
                 if (diff < 60000) return 'just now';
                 
-                // For messages, show time of day
-                // Convert UTC date to local timezone for display
+                // Otherwise show time of day (e.g., "2:34 PM")
                 return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             } catch (e) {
                 return 'unknown time';
             }
         }
 
-        // Load messages with a specific user
+        // =============================================================================
+        // LOAD MESSAGES - Fetch all messages with a specific user from database
+        // =============================================================================
+        // This function:
+        // 1. Calls GET /api/messages/{userId} to fetch messages from database
+        // 2. Messages are returned in chronological order (oldest first)
+        // 3. Includes read status for each message (is_read = 0 or 1)
+        // 4. Passes messages to renderMessages() to display
+        // 
+        // NOTE: This does NOT mark messages as read
+        // Read-marking is done separately in selectConversation()
+        // 
+        // PARAMETERS:
+        // - userId: The other user in the conversation
+        // 
+        // CALLED BY: selectConversation(), Socket.IO receive_message event
         async function loadMessages(userId) {
             try {
                 const token = getToken();
+                
+                // Fetch messages from backend API
+                // GET /api/messages/5 -> All messages between me and user 5
                 const response = await fetch(`/api/messages/${userId}`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
@@ -636,6 +764,7 @@
                     return;
                 }
 
+                // Parse response and display messages
                 const messages = await response.json();
                 renderMessages(messages);
             } catch (error) {
@@ -643,50 +772,98 @@
             }
         }
 
-        // Render messages
+        // =============================================================================
+        // RENDER MESSAGES - Display messages in the chat area
+        // =============================================================================
+        // This function takes an array of messages and renders them as HTML
+        // Features:
+        // 1. Shows messages from both sender and receiver
+        // 2. Messages from me appear on the right (gray background)
+        // 3. Messages from them appear on the left (with avatar)
+        // 4. Unread messages have light gray background + red dot indicator
+        // 5. Shows timestamp for each message
+        // 6. Shows avatar for received messages (not for sent)
+        // 7. Auto-scrolls to bottom after rendering
+        // 
+        // PARAMETERS:
+        // - messages: Array of message objects from GET /api/messages
+        // 
+        // CALLED BY: loadMessages()
         function renderMessages(messages) {
             const container = document.getElementById('chat-messages');
             
+            // If no messages, show placeholder
             if (messages.length === 0) {
                 container.innerHTML = '<div style="padding: 2rem 1rem; text-align: center; color: var(--muted);">No messages yet. Start a conversation!</div>';
                 return;
             }
 
+            // Render each message
             container.innerHTML = messages.map(msg => {
+                // Determine who sent the message
                 const isMe = msg.senderId === currentUserId;
+                
+                // Format the timestamp
                 const time = formatMessageTime(msg.createdAt);
+                
+                // Get sender's profile info
                 const sender = allUsers[msg.senderId] || {};
+                
+                // Only show avatar for received messages (not for my messages)
                 const hasProfilePic = sender.profileImage && !isMe;
+                
+                // Check if message is unread (to show red indicator)
                 const isUnread = !isMe && msg.isRead === 0;
                 
+                // Build message HTML
                 return `
                     <div class="message ${isMe ? 'me' : ''}" style="${isUnread ? 'background-color: rgba(0, 0, 0, 0.03); padding: 0.5rem; border-radius: 0.5rem; margin: -0.5rem -0.5rem 0 -0.5rem;' : ''}">
                         <div style="display: flex; align-items: flex-start; gap: 0.5rem;">
+                            <!-- Sender's avatar (only for received messages) -->
                             <div class="message-avatar" style="width: 2rem; height: 2rem; background: var(--secondary); border-radius: 50%; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0;">
                                 ${hasProfilePic ? `<img src="${getImageUrl(sender.profileImage)}" alt="${sender.username}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block;">` : `<i data-lucide="user" style="width: 1rem; height: 1rem;"></i>`}
                             </div>
                             <div>
+                                <!-- Message text in bubble -->
                                 <div class="message-bubble">${msg.content}</div>
+                                <!-- Timestamp below message -->
                                 <div class="message-time">${time}</div>
                             </div>
+                            <!-- Red dot for unread messages (visual indicator) -->
                             ${isUnread ? `<div style="width: 0.5rem; height: 0.5rem; background: #ef4444; border-radius: 50%; margin-top: 0.5rem; flex-shrink: 0;"></div>` : ''}
                         </div>
                     </div>
                 `;
             }).join('');
 
+            // Load Lucide icons
             lucide.createIcons();
             
-            // Scroll to bottom after DOM is fully rendered
+            // Auto-scroll to bottom to show latest messages
+            // Use setTimeout to wait for DOM to fully render
             setTimeout(() => {
                 container.scrollTop = container.scrollHeight;
             }, 0);
         }
 
-        // Send message
+        // =============================================================================
+        // SEND MESSAGE - Send a message to the current conversation partner
+        // =============================================================================
+        // This function:
+        // 1. Gets message text from input box
+        // 2. Validates message is not empty and conversation selected
+        // 3. Calls POST /api/messages to save to database
+        // 4. Backend also emits Socket.IO event for real-time delivery
+        // 5. Clears input and refreshes message display
+        // 
+        // HYBRID APPROACH:
+        // - REST API: Saves to database (persistence)
+        // - Socket.IO: Delivers in real-time if recipient is online
+        // 
+        // CALLED BY: Send button click, Enter key press
         async function sendMessage() {
             const input = document.getElementById('message-input');
-            const content = input.value.trim();
+            const content = input.value.trim();  // Get message text and trim whitespace
             
             if (!content || !currentConversationUserId) return;
 

@@ -921,50 +921,138 @@ def get_categories(db: Session = Depends(get_db)):
 # =============================================================================
 # REAL-TIME MESSAGING (Socket.IO)
 # =============================================================================
+# Socket.IO enables WebSocket communication for instant message delivery
+# This works alongside REST API for message persistence
+# 
+# FLOW:
+# 1. Frontend connects -> connect event fires
+# 2. Frontend authenticates with user_id -> authenticate event fires
+# 3. User A sends message -> Message saved via REST API + Socket.IO event emitted
+# 4. If User B is online -> receive_message event fires immediately
+# 5. If User B is offline -> message stays in database, fetched on next connect
 
-# Track connected users: {user_id: socket_id}
+# Dictionary to track which users are currently connected
+# Format: {user_id: socket_id}
+# Example: {1: "abc123xyz", 5: "def456uvw"}
+# Used to know if a user is online and which WebSocket to send them messages to
 connected_users = {}
 
 @sio.event
 async def connect(sid, environ):
-    """Handle user connection to Socket.IO"""
+    """
+    Handle initial WebSocket connection from client
+    
+    This event fires when a user opens messages.html and establishes a WebSocket connection.
+    The Socket.IO server automatically assigns a unique session ID (sid) to this connection.
+    
+    PARAMETERS:
+    - sid: Socket.IO session ID (unique connection identifier)
+    - environ: WSGI environment dict (connection metadata)
+    
+    WHY: Initial connection setup. Frontend will authenticate after this.
+    """
     print(f"Client connected: {sid}")
 
 @sio.event
 async def disconnect(sid):
-    """Handle user disconnection from Socket.IO"""
-    # Remove user from connected list
+    """
+    Handle WebSocket disconnection from client
+    
+    This event fires when a user closes the browser, loses connection, or navigates away.
+    We clean up our tracking by removing them from connected_users dict.
+    
+    PARAMETERS:
+    - sid: Socket.IO session ID being disconnected
+    
+    PURPOSE: When user goes offline, remove them from connected_users so we don't try
+             to send them messages (they won't receive them anyway).
+    """
+    # Iterate through connected_users to find which user_id has this socket_id
     for user_id, socket_id in list(connected_users.items()):
         if socket_id == sid:
+            # Found the user - remove them from connected list
             del connected_users[user_id]
     print(f"Client disconnected: {sid}")
 
 @sio.event
 async def authenticate(sid, data):
-    """Authenticate user for Socket.IO connection"""
-    user_id = data.get('userId')
+    """
+    Map WebSocket connection to user ID
+    
+    After connecting, the frontend sends authenticate event with the user's ID.
+    This allows us to know: "Socket abc123xyz belongs to User 5"
+    
+    PARAMETERS:
+    - sid: The WebSocket connection ID (from connect event)
+    - data: Object with userId {"userId": 5}
+    
+    WHAT HAPPENS:
+    1. Frontend emits authenticate with user ID
+    2. Backend stores: connected_users[5] = sid
+    3. Now we know User 5 is online
+    4. When someone sends User 5 a message, we can emit it to their socket
+    
+    EXAMPLE:
+    User 5 opens browser:
+    - connect event -> sid = "abc123xyz"
+    - authenticate event -> connected_users[5] = "abc123xyz"
+    - Now messages to User 5 are sent to socket "abc123xyz"
+    """
+    user_id = data.get('userId')  # Extract user_id from the event data
     if user_id:
+        # Map this user to their WebSocket connection
         connected_users[user_id] = sid
+        # Send confirmation back to client that authentication succeeded
         await sio.emit('authenticated', {'status': 'ok', 'userId': user_id}, to=sid)
 
 @sio.event
 async def send_message(sid, data):
-    """Handle real-time message sending via Socket.IO"""
-    # This is just the real-time event - messages are also saved via REST API
-    receiver_id = data.get('receiverId')
-    content = data.get('content')
-    sender_id = data.get('senderId')
+    """
+    Handle real-time message event from frontend (Socket.IO route)
     
-    # Emit to receiver if connected
+    NOTE: This is only for REAL-TIME delivery when user is online.
+    Actual message persistence is handled by send_message_api endpoint (REST API).
+    
+    PARAMETERS:
+    - sid: Sender's socket ID
+    - data: Message object with:
+      {
+        "senderId": 1,        // Who is sending
+        "receiverId": 5,      // Who should receive
+        "content": "Hi!",     // Message text
+      }
+    
+    LOGIC:
+    1. Check if receiver is in connected_users (online?)
+    2. If YES: Send receive_message event to their socket immediately
+    3. If NO: Do nothing - message is already saved to database via REST API
+    
+    WHY TWO METHODS?
+    - Socket.IO: Instant delivery to online users (real-time)
+    - REST API: Persistence for offline users (reliability)
+    
+    EXAMPLE FLOW:
+    User 1 sends message to User 5:
+    - send_message_api called first (saves to database)
+    - Then send_message called (if User 5 online, emit event)
+    - If User 5 offline: They fetch messages later from database
+    """
+    receiver_id = data.get('receiverId')  # Who to send to
+    content = data.get('content')         # What message says
+    sender_id = data.get('senderId')      # Who sent it
+    
+    # Check if receiver is currently connected (online)
     if receiver_id in connected_users:
+        # Receiver is online! Get their socket ID
         receiver_sid = connected_users[receiver_id]
+        # Send the message immediately via WebSocket
         await sio.emit('receive_message', {
             'senderId': sender_id,
             'content': content,
             'timestamp': datetime.utcnow().isoformat()
         }, to=receiver_sid)
     
-    # Emit back to sender for confirmation
+    # Send confirmation back to sender that message was processed
     await sio.emit('message_sent', {'status': 'success'}, to=sid)
 
 # =============================================================================
@@ -978,47 +1066,97 @@ async def send_message_api(
     db: Session = Depends(get_db)
 ):
     """
-    Send a message to another user.
+    REST API endpoint to SEND AND PERSIST a message
     
-    REQUEST BODY:
+    This is the PRIMARY way messages are saved to the database.
+    Socket.IO handles real-time delivery, but this handles persistence.
+    
+    WORKFLOW:
+    1. Frontend calls POST /api/messages with receiverId and content
+    2. Backend verifies receiver exists
+    3. Creates Message object and saves to database
+    4. Commits transaction (message is now permanent)
+    5. If receiver is online: Emits Socket.IO event for instant delivery
+    6. Returns message object to frontend
+    
+    REQUEST BODY (JSON):
     {
-        "receiverId": 5,
-        "content": "Hi, is this still available?"
+        "receiverId": 5,              // Who to send message to
+        "content": "Hi, available?"   // What message says
     }
     
-    RETURNS: Message object with timestamp
+    PARAMETERS:
+    - message_data: MessageCreate schema from request body
+    - current_user: Extracted from JWT token (who is sending)
+    - db: Database session for queries
+    
+    RETURNS (JSON):
+    {
+        "id": 123,
+        "senderId": 1,
+        "receiverId": 5,
+        "content": "Hi, available?",
+        "createdAt": "2025-11-23T12:00:00",
+        "isRead": 0
+    }
+    
+    ERROR CASES:
+    - 404: Receiver not found (invalid receiverId)
+    - 401: Not authenticated (missing token)
+    
+    HYBRID APPROACH:
+    Step 1: Save to database (REST API) - PERSISTENCE
+    Step 2: Emit Socket.IO if online - REAL-TIME
+    
+    This ensures:
+    - Message never gets lost (saved first)
+    - Instant delivery if recipient is online (Socket.IO)
+    - Fetch from database if recipient is offline
     """
-    # Verify receiver exists
+    # Step 1: Verify the receiver exists before saving message
+    # This prevents saving messages to non-existent users
     receiver = db.query(User).filter(User.id == message_data.receiverId).first()
     if not receiver:
         raise HTTPException(status_code=404, detail="Receiver not found")
     
-    # Create message with current user as sender
+    # Step 2: Create new Message object
+    # Message is not saved yet - just created in Python
     new_message = Message(
-        sender_id=current_user.id,
-        receiver_id=message_data.receiverId,
-        content=message_data.content
+        sender_id=current_user.id,        # Who is sending this
+        receiver_id=message_data.receiverId,  # Who receives this
+        content=message_data.content,     # What the message says
+        # is_read defaults to 0 (unread) in the database model
     )
     
-    db.add(new_message)
-    db.commit()
-    db.refresh(new_message)
+    # Step 3: Save message to database
+    db.add(new_message)       # Add to session
+    db.commit()               # Write to database (PERMANENT)
+    db.refresh(new_message)   # Reload to get timestamp from database
     
-    # Emit real-time notification via Socket.IO if receiver is connected
+    # Step 4: Send real-time notification via Socket.IO if receiver is online
+    # Check if receiver is in connected_users dictionary
     if message_data.receiverId in connected_users:
+        # Receiver is online! Get their socket connection ID
+        receiver_socket_id = connected_users[message_data.receiverId]
+        
+        # Emit 'receive_message' event to their socket immediately
+        # This makes message appear instantly if they're viewing chat
         await sio.emit('receive_message', {
             'senderId': current_user.id,
             'content': message_data.content,
             'timestamp': new_message.created_at.isoformat()
-        }, to=connected_users[message_data.receiverId])
+        }, to=receiver_socket_id)
+    # If receiver is offline, do nothing - they'll fetch message later when they connect
     
+    # Step 5: Return the saved message to frontend
+    # Frontend uses this to display the message in the chat
     return {
         "id": new_message.id,
         "senderId": new_message.sender_id,
         "receiverId": new_message.receiver_id,
         "content": new_message.content,
         "createdAt": new_message.created_at,
-        "isRead": new_message.is_read
+        "isRead": new_message.is_read  # Will be 0 (unread)
     }
 
 @app.get("/api/messages/{user_id}", response_model=List[MessageResponse])
@@ -1028,29 +1166,82 @@ def get_messages(
     db: Session = Depends(get_db)
 ):
     """
-    Get all messages between users.
+    REST API endpoint to FETCH all messages between two users
+    
+    Gets the complete conversation history between the current user and user_id.
+    Returns messages in chronological order (oldest first).
+    
+    WORKFLOW:
+    1. Frontend calls GET /api/messages/5 (to get messages with user 5)
+    2. Backend queries database for all messages between current user and user 5
+    3. Returns messages sorted by timestamp
+    4. Frontend displays messages in the chat
+    5. Frontend then calls mark-read endpoint to mark them as read
+    
+    URL PARAMETERS:
+    - user_id: The other user in the conversation (whose ID appears in URL)
+      Example: GET /api/messages/5 -> Get messages between me and user 5
     
     PARAMETERS:
-    - user_id: The other user's ID (conversation partner)
+    - user_id: Extracted from URL path
+    - current_user: Extracted from JWT token (who is requesting)
+    - db: Database session for queries
     
-    RETURNS: List of messages in chronological order
+    RETURNS (JSON): Array of message objects
+    [
+        {
+            "id": 1,
+            "senderId": 1,
+            "receiverId": 5,
+            "content": "Hi, is this still available?",
+            "createdAt": "2025-11-23T12:00:00",
+            "isRead": 0
+        },
+        {
+            "id": 2,
+            "senderId": 5,
+            "receiverId": 1,
+            "content": "Yes, still available!",
+            "createdAt": "2025-11-23T12:01:00",
+            "isRead": 1
+        }
+    ]
+    
+    DATABASE QUERY:
+    Finds messages where:
+    - (sender_id = current_user.id AND receiver_id = user_id) OR
+    - (sender_id = user_id AND receiver_id = current_user.id)
+    
+    Then sorts by created_at (chronological order)
+    
+    IMPORTANT NOTE:
+    - This endpoint does NOT automatically mark messages as read
+    - That's done separately via PUT /api/messages/{user_id}/mark-read
+    - This keeps read status separate from message fetching
     """
-    # Get all messages between the current user and the specified user
+    # Step 1: Query database for all messages between the two users
+    # Use OR to get messages in both directions:
+    # - Messages I sent to user_id
+    # - Messages from user_id to me
     messages = db.query(Message).filter(
         or_(
+            # Messages I (current_user) sent to user_id
             and_(Message.sender_id == current_user.id, Message.receiver_id == user_id),
+            # Messages from user_id sent to me (current_user)
             and_(Message.sender_id == user_id, Message.receiver_id == current_user.id)
         )
-    ).order_by(Message.created_at).all()
+    ).order_by(Message.created_at).all()  # Sort by timestamp (oldest first)
     
+    # Step 2: Format messages as dictionaries with camelCase keys
+    # (Frontend expects camelCase for consistency with other endpoints)
     return [
         {
-            "id": m.id,
-            "senderId": m.sender_id,
-            "receiverId": m.receiver_id,
-            "content": m.content,
-            "createdAt": m.created_at,
-            "isRead": m.is_read
+            "id": m.id,              # Message ID
+            "senderId": m.sender_id,      # Who sent this message
+            "receiverId": m.receiver_id,  # Who received this message
+            "content": m.content,         # Message text content
+            "createdAt": m.created_at,    # When it was sent (timestamp)
+            "isRead": m.is_read           # Read status: 0 = unread, 1 = read
         }
         for m in messages
     ]
@@ -1062,28 +1253,71 @@ def mark_messages_read(
     db: Session = Depends(get_db)
 ):
     """
-    Mark all messages from a specific user as read.
+    REST API endpoint to MARK MESSAGES AS READ
+    
+    When a user opens a conversation, this endpoint is called to mark all
+    unread messages from that conversation as read. This makes the notification
+    badge disappear for that conversation.
+    
+    WORKFLOW:
+    1. User opens conversation with user_id
+    2. Frontend calls selectConversation(user_id)
+    3. selectConversation calls this endpoint
+    4. All unread messages from user_id are marked as read
+    5. Notification badge disappears (updateMessageBadge() hides it)
+    
+    URL PARAMETERS:
+    - user_id: The conversation partner whose messages to mark as read
     
     PARAMETERS:
-    - user_id: The user whose messages to mark as read
+    - user_id: Extracted from URL path
+    - current_user: Extracted from JWT token (who is marking as read)
+    - db: Database session for queries
     
-    RETURNS: Success message
+    RETURNS (JSON):
+    {
+        "status": "success",
+        "message": "Marked 5 messages as read"
+    }
+    
+    DATABASE QUERY:
+    Finds all messages where:
+    - sender_id = user_id (messages from that user)
+    - receiver_id = current_user.id (addressed to me)
+    - is_read = 0 (currently unread)
+    
+    Then sets is_read = 1 for all of them
+    
+    NOTIFICATION FLOW:
+    BEFORE: User has unread message -> Badge shows red dot (●)
+    CALL: PUT /api/messages/5/mark-read -> Marks them as read in database
+    AFTER: updateMessageBadge() runs -> Counts unread -> Finds 0 -> Hides badge
     """
-    # Mark all messages from user_id to current_user as read
+    # Step 1: Find all unread messages FROM user_id TO current_user
+    # We only mark messages as read if:
+    # - They came from user_id (sender_id = user_id)
+    # - They're addressed to current_user (receiver_id = current_user.id)
+    # - They're currently unread (is_read = 0)
     messages = db.query(Message).filter(
         and_(
-            Message.sender_id == user_id,
-            Message.receiver_id == current_user.id,
-            Message.is_read == 0
+            Message.sender_id == user_id,              # From this user
+            Message.receiver_id == current_user.id,    # To me
+            Message.is_read == 0                       # Currently unread
         )
     ).all()
     
+    # Step 2: Mark each message as read (is_read = 1)
     for msg in messages:
-        msg.is_read = 1
+        msg.is_read = 1  # 0 = unread, 1 = read
     
+    # Step 3: Commit changes to database (PERMANENT)
     db.commit()
     
-    return {"status": "success", "message": f"Marked {len(messages)} messages as read"}
+    # Step 4: Return success response
+    return {
+        "status": "success",
+        "message": f"Marked {len(messages)} messages as read"
+    }
 
 # =============================================================================
 # COMMENT ENDPOINTS (Product Comments/Questions)
