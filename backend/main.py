@@ -599,17 +599,17 @@ def get_products(
 @app.get("/api/products/top-selling/featured")
 def get_top_selling_products(db: Session = Depends(get_db)):
     """
-    Get the 5 most saved products (Top Selling section)
+    Get the 4 most saved products (Top Selling section)
     
     LOGIC:
     1. Join products with saved items
     2. Count how many times each product was saved
     3. Sort by save count (most saved first)
-    4. Return top 5 products
+    4. Return top 4 products
     
     URL: /api/products/top-selling/featured
     
-    RETURNS: Array of top 5 products with save counts
+    RETURNS: Array of top 4 products with save counts
     [
         {
             "id": 1,
@@ -644,7 +644,7 @@ def get_top_selling_products(db: Session = Depends(get_db)):
         Product.id
     ).order_by(
         func.count(SavedItem.id).desc()  # Most saved first
-    ).limit(5).all()
+    ).limit(4).all()
     
     # Format response with save counts
     result = []
