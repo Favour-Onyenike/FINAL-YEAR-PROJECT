@@ -3,39 +3,10 @@ DEPLOYMENT GUIDE: UNIMARKET ON RENDER (FREE TIER)
 
 You have chosen the **Free Tier**. To ensure your data is saved permanently (since the Free Tier doesn't support persistent disks), we will use Render's **Free PostgreSQL Database**.
 
-STEP 1: CREATE THE DATABASE
----------------------------
-1. Go to your Render Dashboard (https://dashboard.render.com).
-2. Click **New +** and select **PostgreSQL**.
-3. Settings:
-   - **Name**: unimarket-db
-   - **Database**: unimarket
-   - **User**: unimarket_user
-   - **Region**: Oregon (US West) - *Must match your Web Service region*
-   - **Instance Type**: Free
-4. Click **Create Database**.
-5. Wait for it to be created.
-6. Look for the **Internal Database URL**. Copy it!
-   - It looks like: `postgres://unimarket_user:password@hostname/unimarket`
-
 STEP 2: DEPLOY THE WEB SERVICE
 ------------------------------
 1. Go back to the Dashboard.
 2. Click **New +** and select **Web Service**.
-3. Connect your GitHub repository.
-4. Settings:
-   - **Name**: UniMarket
-   - **Region**: Oregon (US West) - *Must match your Database region*
-   - **Branch**: master
-   - **Runtime**: Python 3
-   - **Build Command**: `pip install -r requirements.txt`
-   - **Start Command**: `uvicorn backend.main:app_with_sio --host 0.0.0.0 --port 10000`
-   - **Instance Type**: Free
-
-STEP 3: CONNECT THEM (CRITICAL)
--------------------------------
-1. Scroll down to **Environment Variables**.
-2. Click **Add Environment Variable**.
 3. Enter:
    - **Key**: `DATABASE_URL`
    - **Value**: (Paste the Internal Database URL you copied in Step 1)
