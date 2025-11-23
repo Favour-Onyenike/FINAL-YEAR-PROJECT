@@ -663,19 +663,23 @@ SECURITY:
                 return;
             }
 
-            container.innerHTML = convos.map(user => `
-                <div class="conversation-item" style="position: relative;">
+            container.innerHTML = convos.map(user => {
+                // Escape single quotes in username to prevent onclick string injection
+                const escapedName = (user.fullName || user.username).replace(/'/g, "\\'");
+                return `
+                <div class="conversation-item" style="position: relative;" data-user-id="${user.id}" data-user-name="${escapedName}">
                     <a href="profile.html?userId=${user.id}" class="conversation-avatar" style="width: 3rem; height: 3rem; background: var(--secondary); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; text-decoration: none; flex-shrink: 0; overflow: visible; position: relative;">
                         ${user.profileImage ? `<img src="${getImageUrl(user.profileImage)}" alt="${user.username}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block;">` : `<i data-lucide="user" style="width: 1.5rem; height: 1.5rem;"></i>`}
                         ${user.unreadCount > 0 ? `<div style="position: absolute; top: -8px; right: -8px; background: #ef4444; color: white; border-radius: 50%; width: 1.75rem; height: 1.75rem; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: bold; z-index: 10; border: 2px solid white;">${user.unreadCount}</div>` : ''}
                     </a>
-                    <div class="conversation-info" onclick="selectConversation(${user.id}, '${user.fullName || user.username}')">
+                    <div class="conversation-info" onclick="selectConversation(${user.id}, '${escapedName}')">
                         <div class="conversation-name">${user.fullName || user.username}</div>
                         <div class="conversation-product" style="font-size: 0.8rem;">@${user.username}</div>
                         <div class="conversation-last-message">${user.lastMessage?.substring(0, 50) || 'No messages'}</div>
                     </div>
                 </div>
-            `).join('');
+            `;
+            }).join('');
             
             lucide.createIcons();
         }
@@ -700,6 +704,9 @@ SECURITY:
         // -> Marks them as read
         // -> Badge disappears
         async function selectConversation(userId, userName) {
+            // DEBUG: Log when conversation is selected
+            console.log('📍 selectConversation called with userId:', userId, 'userName:', userName);
+            
             // Step 1: Save which conversation is open
             currentConversationUserId = userId;
             
@@ -737,7 +744,7 @@ SECURITY:
             try {
                 const token = localStorage.getItem('token');
                 // Call mark-read endpoint to update database
-                const response = await fetch(`${API_BASE_URL}/messages/${userId}/mark-read`, {
+                const response = await fetch(`/api/messages/${userId}/mark-read`, {
                     method: 'PUT',
                     headers: {
                         'Authorization': `Bearer ${token}`,
@@ -746,6 +753,7 @@ SECURITY:
                 });
                 
                 if (response.ok) {
+                    console.log('✅ Messages marked as read successfully');
                     // Step 7a: Update local data - set unread count to 0
                     if (allUsers[userId]) {
                         allUsers[userId].unreadCount = 0;
@@ -764,6 +772,10 @@ SECURITY:
                     if (window.updateMessageBadge) {
                         window.updateMessageBadge();
                     }
+                } else {
+                    // API returned error status code
+                    const errorData = await response.text();
+                    console.error(`Failed to mark messages as read. Status: ${response.status}`, errorData);
                 }
             } catch (err) {
                 console.error('Error marking messages as read:', err);
