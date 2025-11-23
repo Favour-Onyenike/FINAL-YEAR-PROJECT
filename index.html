@@ -377,7 +377,7 @@ LINKS:
         
         /**
          * Render top selling products in the grid
-         * Creates HTML for each product with images, name, price, and save count
+         * Creates HTML for each product matching the products page styling
          */
         function renderTopSellingProducts(products) {
             const grid = document.getElementById('top-selling-grid');
@@ -385,7 +385,7 @@ LINKS:
             // Clear loading message
             grid.innerHTML = '';
             
-            // Create a product card for each product
+            // Create a product card for each product (matching products.html style)
             const productsHTML = products.map(product => {
                 // Get first image URL (with fallback)
                 const imageUrl = product.images && product.images.length > 0 
@@ -395,10 +395,7 @@ LINKS:
                 // Format price with ₦ symbol
                 const formattedPrice = '₦' + product.price.toLocaleString();
                 
-                // Get seller name
-                const sellerName = product.seller?.fullName || product.seller?.username || 'Unknown';
-                
-                // Return HTML for this product card
+                // Return HTML for this product card (matches products.html structure)
                 return `
                     <a href="product-detail.html?id=${product.id}" class="product-card">
                         <div class="product-image-container">
@@ -408,17 +405,12 @@ LINKS:
                                 loading="lazy"
                                 onerror="this.src='https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=800&auto=format&fit=crop'">
                             <button class="product-save-btn" onclick="event.preventDefault(); toggleSaveProduct(${product.id})">
-                                <i data-lucide="bookmark"></i>
+                                <i data-lucide="bookmark" style="width: 1.25rem;"></i>
                             </button>
                         </div>
                         <div class="product-info">
                             <h3 class="product-name">${escapeHtml(product.name)}</h3>
                             <span class="product-price">${formattedPrice}</span>
-                            <div class="product-stats">
-                                <span class="stat" title="${product.saveCount} saves">
-                                    <i data-lucide="heart" size="14"></i> ${product.saveCount}
-                                </span>
-                            </div>
                         </div>
                     </a>
                 `;
