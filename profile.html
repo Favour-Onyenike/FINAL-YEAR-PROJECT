@@ -119,59 +119,6 @@ SECURITY:
 
 ================================================================================
 -->
-- GET /api/saved-items (get user's saved items - owner only)
-
-QUERY PARAMETERS:
-- userId (optional): View specific user's profile
-- If not provided: View current logged-in user's profile
-
-JAVASCRIPT LOGIC (find in this file):
-- loadUserProfile(): Loads user data from API or localStorage
-- Checks if current user is profile owner
-- Shows/hides owner-only buttons based on ownership
-- switchTab(): Toggle between Listings and Saved tabs
-- Dynamic UI: Titles change ("My" vs "[Username]'s")
-
-SECURITY:
-- Redirect to login if no token and trying to edit
-- Only account owner can see Saved Items tab
-- Only account owner can see Edit Profile button
-- Only account owner can see New Listing button
-- Edit profile page requires authentication
-
-LOCAL STORAGE:
-- User data stored from login/signup
-- Used to pre-fill edit profile form
-
-RESPONSIVE DESIGN:
-- Mobile: Single column layout
-- Tablet: Two column layout
-- Desktop: Full width with sidebar
-
-STYLING:
-- Profile header: Avatar + info + buttons
-- Tabs: Toggle between listings and saved
-- Product grid: Responsive grid layout
-- Empty state: "No listings yet" message
-
-NEXT STEPS FROM HERE:
-- Edit Profile: Redirect to edit-profile.html
-- New Listing: Redirect to sell.html
-- View Saved: Show saved-items tab
-- View Product: Click product to go to product-detail.html
-================================================================================
--->
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Profile - UniMarket</title>
-    <link rel="stylesheet" href="css/style.css">
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- Socket.IO Client Library for real-time messaging -->
-    <script src="https://cdn.socket.io/4.8.0/socket.io.min.js"></script>
-</head>
 
 <body>
 
