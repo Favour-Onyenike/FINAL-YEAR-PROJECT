@@ -74,6 +74,7 @@ For detailed endpoint documentation, see:
 """
 
 from fastapi import FastAPI, Depends, HTTPException, status, UploadFile, File, Query
+from fastapi.responses import FileResponse  # Serve HTML files
 from fastapi.middleware.cors import CORSMiddleware  # Allow cross-origin requests
 from fastapi.staticfiles import StaticFiles  # Serve static files (images)
 from sqlalchemy.orm import Session
@@ -146,6 +147,11 @@ os.makedirs("backend/uploads/products", exist_ok=True)
 # When frontend requests: /uploads/products/image.jpg
 # It serves from: backend/uploads/products/image.jpg
 app.mount("/uploads", StaticFiles(directory="backend/uploads"), name="uploads")
+
+# Mount static directories (CSS, JS, Images)
+app.mount("/css", StaticFiles(directory="css"), name="css")
+app.mount("/js", StaticFiles(directory="js"), name="js")
+app.mount("/img", StaticFiles(directory="img"), name="img")
 
 # =============================================================================
 # STARTUP EVENT
@@ -1569,3 +1575,23 @@ def delete_comment(
     db.commit()
     
     return None
+# =============================================================================
+# FRONTEND ROUTES (SERVE HTML)
+# =============================================================================
+
+@app.get("/")
+async def read_root():
+    """Serve the homepage"""
+    return FileResponse("index.html")
+
+@app.get("/{page_name}.html")
+async def read_html(page_name: str):
+    """Serve other HTML pages (e.g., login.html, products.html)"""
+    # Security check: prevent directory traversal
+    if ".." in page_name or "/" in page_name:
+        raise HTTPException(status_code=404, detail="Page not found")
+    
+    file_path = f"{page_name}.html"
+    if os.path.exists(file_path):
+        return FileResponse(file_path)
+    raise HTTPException(status_code=404, detail="Page not found")
