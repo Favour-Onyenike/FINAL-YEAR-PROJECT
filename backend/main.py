@@ -596,6 +596,65 @@ def get_products(
         "products": [serialize_product(p) for p in products]
     }
 
+@app.get("/api/products/top-selling/featured")
+def get_top_selling_products(db: Session = Depends(get_db)):
+    """
+    Get the 5 most saved products (Top Selling section)
+    
+    LOGIC:
+    1. Join products with saved items
+    2. Count how many times each product was saved
+    3. Sort by save count (most saved first)
+    4. Return top 5 products
+    
+    URL: /api/products/top-selling/featured
+    
+    RETURNS: Array of top 5 products with save counts
+    [
+        {
+            "id": 1,
+            "name": "Product Name",
+            "price": 1500,
+            "images": [...],
+            "seller": {...},
+            "saveCount": 12  // How many users saved this
+        },
+        ...
+    ]
+    
+    WHY THIS WORKS:
+    - Products with most saves = most popular/desired
+    - Reflects user interest better than artificial rankings
+    - Updates automatically as users save/unsave items
+    """
+    # Subquery: Count saves per product
+    from sqlalchemy import func
+    
+    # Query: Get products with save counts
+    # LEFT JOIN preserves products with 0 saves
+    products_with_saves = db.query(
+        Product,
+        func.count(SavedItem.id).label('save_count')
+    ).outerjoin(
+        SavedItem,
+        Product.id == SavedItem.product_id
+    ).filter(
+        Product.status == "available"  # Only show available products
+    ).group_by(
+        Product.id
+    ).order_by(
+        func.count(SavedItem.id).desc()  # Most saved first
+    ).limit(5).all()
+    
+    # Format response with save counts
+    result = []
+    for product, save_count in products_with_saves:
+        product_dict = serialize_product(product)
+        product_dict["saveCount"] = save_count or 0
+        result.append(product_dict)
+    
+    return result
+
 @app.get("/api/products/{product_id}", response_model=ProductResponse)
 def get_product(product_id: int, db: Session = Depends(get_db)):
     """
